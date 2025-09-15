@@ -24,17 +24,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Set Database URL
-        run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-
-      - name: Verify DATABASE_URL
-        run: echo "DATABASE_URL is set to $DATABASE_URL"
-
-      - name: Apply database migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx prisma db pull && npx prisma generate
-
       - name: Run tests with coverage
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
