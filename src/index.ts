@@ -1,41 +1,23 @@
-import express from "express";
-import { config } from "./config/environment";
-import { logger } from "./utils/logger";
+import mysql from "mysql2/promise";
+import dotenv from "dotenv";
+dotenv.config();
 
-const app = express();
-app.disable("x-powered-by");
+const {
+  DATABASE_HOST = process.env.DATABASE_HOST || "localhost",
+  DATABASE_PORT = process.env.DATABASE_PORT || "3306",
+  DATABASE_USER = process.env.DATABASE_USER || "root",
+  DATABASE_PASSWORD = process.env.DATABASE_PASSWORD || "",
+  DATABASE_NAME = process.env.DATABASE_NAME ||
+    process.env.MYSQL_DATABASE ||
+    "mydb_test",
+} = process.env;
 
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    environment: config.nodeEnv,
-  });
+export const pool = mysql.createPool({
+  host: DATABASE_HOST,
+  port: Number(DATABASE_PORT),
+  user: DATABASE_USER,
+  password: DATABASE_PASSWORD,
+  database: DATABASE_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
 });
-
-if (config.nodeEnv !== "test") {
-  const server = app.listen(config.port, () => {
-    logger.info(`Server started on port ${config.port}`, {
-      environment: config.nodeEnv,
-      port: config.port,
-    });
-  });
-
-  process.on("SIGTERM", () => {
-    logger.info("SIGTERM received, shutting down gracefully");
-    server.close(() => {
-      logger.info("Server closed");
-      process.exit(0);
-    });
-  });
-
-  process.on("SIGINT", () => {
-    logger.info("SIGINT received, shutting down gracefully");
-    server.close(() => {
-      logger.info("Server closed");
-      process.exit(0);
-    });
-  });
-}
-
-export default app;

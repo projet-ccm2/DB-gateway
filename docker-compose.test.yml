@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  mysql-test:
+    image: mysql:8.0
+    container_name: mysql_test_db
+    env_file: .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_test_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping","-h","localhost"]
+      interval: 5s
+      retries: 10
+
+  app-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app_test
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+    environment:
+      DATABASE_HOST: mysql-test
+      DATABASE_PORT: 3306
+      DATABASE_USER: ${MYSQL_USER}
+      DATABASE_PASSWORD: ${MYSQL_PASSWORD}
+      DATABASE_NAME: ${MYSQL_DATABASE}
+    volumes:
+      - ./:/usr/src/app
+    command: ["npm","run","dev"]
+    ports:
+      - "3001:3000"
+
+volumes:
+  mysql_test_data:
