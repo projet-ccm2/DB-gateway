@@ -1,16 +1,20 @@
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+
 dotenv.config();
 
 const {
-  DATABASE_HOST = process.env.DATABASE_HOST || "localhost",
-  DATABASE_PORT = process.env.DATABASE_PORT || "3306",
-  DATABASE_USER = process.env.DATABASE_USER || "root",
-  DATABASE_PASSWORD = process.env.DATABASE_PASSWORD || "",
-  DATABASE_NAME = process.env.DATABASE_NAME ||
-    process.env.MYSQL_DATABASE ||
-    "mydb_test",
+  DATABASE_HOST = "localhost",
+  DATABASE_PORT = "3306",
+  DATABASE_USER = "root",
+  DATABASE_PASSWORD = "",
+  DATABASE_NAME = "mydb",
+  NODE_ENV = "development",
 } = process.env;
+
+console.log(
+  `Starting app in ${NODE_ENV} mode, connecting to DB: ${DATABASE_NAME}`,
+);
 
 export const pool = mysql.createPool({
   host: DATABASE_HOST,
