@@ -1,30 +1,21 @@
-// src/handlers/jsonHandler.ts
-import { insertUser, getUserById, User } from "../userRepository";
+import type { userDTO } from "../database/database";
 
-/**
- * Expects payload like:
- * { action: "createUser", payload: { User_ID: "...", User_Username: "..." } }
- */
-export async function handleJsonMessage(msg: any) {
-  if (!msg || !msg.action) {
-    throw new Error("Invalid message");
-  }
+type RepoShape = {
+  addUser(name: string, email: string): Promise<userDTO>;
+  getUserById(id: string): Promise<userDTO | null>;
+};
 
+export async function handleJsonMessage(repo: RepoShape, msg: any) {
   switch (msg.action) {
-    case "createUser": {
-      const u: User = msg.payload;
-      if (!u?.User_ID || !u?.User_Username)
-        throw new Error("Missing user fields");
-      await insertUser(u);
+    case "createUser":
+      await repo.addUser(msg.payload.name, msg.payload.email);
       return { ok: true };
-    }
-    case "getUser": {
-      const id = msg.payload?.User_ID;
-      if (!id) throw new Error("Missing User_ID");
-      const user = await getUserById(id);
+
+    case "getUser":
+      const user = await repo.getUserById(msg.payload.userId || msg.payload.User_ID);
       return { ok: true, user };
-    }
+
     default:
-      throw new Error("Unknown action");
+      return { ok: false, error: "unknown action" };
   }
 }

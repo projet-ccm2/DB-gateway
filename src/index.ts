@@ -1,29 +1,18 @@
-import mysql from "mysql2/promise";
-import dotenv from "dotenv";
+// Gateway entry: factories to create mock or Prisma-backed gateway instances
+import { mockDatabase } from "./database/mockDatabase";
+import { prismaDatabase } from "./database/prismaDatabase";
+import { userRepository } from "./repositories/userRepository";
 
-dotenv.config();
+export function createMockGateway() {
+  const db = new mockDatabase();
+  const repo = new userRepository(db);
+  return { db, repo };
+}
 
-const {
-  DATABASE_HOST = "localhost",
-  DATABASE_PORT = "3306",
-  DATABASE_USER = "root",
-  DATABASE_PASSWORD = "",
-  DATABASE_NAME = "mydb",
-  NODE_ENV = "development",
-} = process.env;
+export function createPrismaGateway() {
+  const db = new prismaDatabase();
+  const repo = new userRepository(db);
+  return { db, repo };
+}
 
-console.log(
-  `Starting app in ${NODE_ENV} mode, connecting to DB: ${DATABASE_NAME}`,
-);
-
-export const pool = mysql.createPool({
-  host: DATABASE_HOST,
-  port: Number(DATABASE_PORT),
-  user: DATABASE_USER,
-  password: DATABASE_PASSWORD,
-  database: DATABASE_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-});
-
-export default pool;
+export default { createMockGateway, createPrismaGateway };

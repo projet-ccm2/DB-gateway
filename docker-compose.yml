@@ -1,44 +1,22 @@
+version: "3.9"
+
 services:
   mysql:
     image: mysql:8.0
-    container_name: mysql_${NODE_ENV}
-    env_file:
-      - .env
+    container_name: mysql_db_gateway
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: app
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
     ports:
-      - "${MYSQL_PORT:-3306}:3306"
+      - "3306:3306"
     volumes:
-      - mysql_${NODE_ENV}_data:/var/lib/mysql
-      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       retries: 10
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: app_${NODE_ENV}
-    depends_on:
-      mysql:
-        condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      DATABASE_HOST: mysql
-      DATABASE_PORT: 3306
-      NODE_ENV: ${NODE_ENV}
-    volumes:
-      - ./:/usr/src/app
-    command: ["npm", "run", "dev"]
-    ports:
-      - "3000:3000"
-
 volumes:
-  mysql_development_data:
-  mysql_test_data:
+  mysql_data:
