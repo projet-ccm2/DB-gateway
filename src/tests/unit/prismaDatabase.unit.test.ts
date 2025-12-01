@@ -92,11 +92,11 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.achieved = {
-              findUnique: async ({ where: { achievementId_userId } }) => {
+              findUnique: async ({ where: { achievementId_UserId } }) => {
                 const key =
-                  achievementId_userId.achievementId +
+                  achievementId_UserId.achievementId +
                   "|" +
-                  achievementId_userId.userId;
+                  achievementId_UserId.userId;
                 return this._achieved.get(key) ?? null;
               },
               create: async ({ data }) => {
@@ -115,9 +115,9 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.are = {
-              findUnique: async ({ where: { userId_chanelId } }) => {
+              findUnique: async ({ where: { userId_ChanelId } }) => {
                 const key =
-                  userId_chanelId.userId + "|" + userId_chanelId.chanelId;
+                  userId_ChanelId.userId + "|" + userId_ChanelId.chanelId;
                 return this._are.get(key) ?? null;
               },
               create: async ({ data }) => {
@@ -133,9 +133,9 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.possesses = {
-              findUnique: async ({ where: { userId_badgeId } }) => {
+              findUnique: async ({ where: { userId_BadgeId } }) => {
                 const key =
-                  userId_badgeId.userId + "|" + userId_badgeId.badgeId;
+                  userId_BadgeId.userId + "|" + userId_BadgeId.badgeId;
                 return this._possesses.get(key) ?? null;
               },
               create: async ({ data }) => {

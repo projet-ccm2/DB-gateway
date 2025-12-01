@@ -120,7 +120,7 @@ export class prismaDatabase implements database {
     userId: string,
   ): Promise<achievedDTO | null> {
     const a = await this.prisma.achieved.findUnique({
-      where: { achievementId_userId: { achievementId, userId } },
+      where: { achievementId_UserId: { achievementId, userId } },
     });
     if (!a) return null;
     return {
@@ -163,7 +163,7 @@ export class prismaDatabase implements database {
 
   async getAre(userId: string, chanelId: string): Promise<areDTO | null> {
     const r = await this.prisma.are.findUnique({
-      where: { userId_chanelId: { userId, chanelId } },
+      where: { userId_ChanelId: { userId, chanelId } },
     });
     if (!r) return null;
     return { userId: r.userId, chanelId: r.chanelId, userType: r.userType };
@@ -185,7 +185,7 @@ export class prismaDatabase implements database {
     badgeId: string,
   ): Promise<possessesDTO | null> {
     const p = await this.prisma.possesses.findUnique({
-      where: { userId_badgeId: { userId, badgeId } },
+      where: { userId_BadgeId: { userId, badgeId } },
     });
     if (!p) return null;
     return {

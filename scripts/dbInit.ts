@@ -1,13 +1,15 @@
-const fs = require("fs");
-const path = require("path");
-const { execSync } = require("child_process");
+/* global process, console, setTimeout, URL */
+import fs from "fs";
+import path from "path";
+import { execSync } from "child_process";
+import mysql from "mysql2/promise";
 
-function loadEnv(file) {
+function loadEnv(file: string): Record<string, string> {
   const p = path.resolve(file);
   if (!fs.existsSync(p)) return {};
   const content = fs.readFileSync(p, "utf8");
   const lines = content.split(/\r?\n/);
-  const env = {};
+  const env: Record<string, string> = {};
   for (const line of lines) {
     const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
     if (!m) continue;
@@ -34,7 +36,6 @@ const myEnv = Object.assign({}, process.env, env);
     execSync("npx prisma generate", { stdio: "inherit", env: myEnv });
 
     // Wait for MySQL to accept connections with provided credentials
-    const mysql = require("mysql2/promise");
     const maxRetries = 20;
     let connected = false;
 
@@ -88,7 +89,7 @@ const myEnv = Object.assign({}, process.env, env);
     });
 
     console.log("DB init completed.");
-  } catch (err) {
+  } catch (err: any) {
     console.error("dbInit failed:", err && err.message ? err.message : err);
     process.exit(1);
   }
