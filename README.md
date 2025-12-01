@@ -220,35 +220,35 @@ Steps (one-liner):
 
 1. Start test DB and init schema + seed:
 
-  ```powershell
-  npm run init:all
-  ```
+```powershell
+npm run init:all
+```
 
-  `init:all` will:
+`init:all` will:
 
-  - start the MySQL test container (defined in `docker-compose.test.yml`),
-  - wait until port 3307 is reachable,
-  - generate the Prisma client,
-  - push the Prisma schema to the DB (`prisma db push`),
-  - insert a seed user.
+- start the MySQL test container (defined in `docker-compose.test.yml`),
+- wait until port 3307 is reachable,
+- generate the Prisma client,
+- push the Prisma schema to the DB (`prisma db push`),
+- insert a seed user.
 
 2. Run unit tests (fast, no Docker):
 
-  ```powershell
-  npm run test:unit
-  ```
+```powershell
+npm run test:unit
+```
 
 3. Run integration tests (needs Docker test DB running):
 
-  ```powershell
-  npm run test:integration
-  ```
+```powershell
+npm run test:integration
+```
 
 4. Stop and remove test DB and volumes:
 
-  ```powershell
-  npm run test:db:down
-  ```
+```powershell
+npm run test:db:down
+```
 
 ## What to expect
 
@@ -260,7 +260,6 @@ Steps (one-liner):
 ## Troubleshooting
 
 - If `npm run init:all` fails with permission/access errors, try:
-
   1. `docker compose -f docker-compose.test.yml down -v --remove-orphans`
   2. Remove leftover volumes if necessary: `docker volume ls` and `docker volume rm <name>`
   3. Re-run `npm run init:all`.
@@ -276,11 +275,11 @@ some suggestions you might want to add next:
 1. Authentication / Authorization: a gateway often needs to validate requests and check permissions.
 2. Validation layer: request schema validation (e.g., Zod or Joi) to enforce payload shape.
 3. API layer / transport: right now we show a JSON handler; integrate an HTTP server (Express / Fastify)
-  or message bus consumer that calls `handleJsonMessage`.
+   or message bus consumer that calls `handleJsonMessage`.
 4. Logging & tracing: you have `winston` in the repo — consider adding structured logs and request tracing.
 5. Error handling & retries: add consistent error shapes and retry/backoff for transient DB errors.
 6. Migration strategy: we use `prisma db push` for test/dev; for production you may want to maintain migrations
-  (`prisma migrate`) and a controlled deployment flow.
+   (`prisma migrate`) and a controlled deployment flow.
 7. Strong typing: remove the remaining `any` casts around Prisma and wrap the client in a typed adapter.
 
 If you want, I can implement any of the above items (pick A/B/C/D from the previous message). For example,

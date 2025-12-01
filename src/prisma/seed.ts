@@ -14,11 +14,20 @@ async function main() {
   const password = decodeURIComponent(url.password);
   const database = url.pathname.replace(/^\//, "");
 
-  const conn = await mysql.createConnection({ host, port, user, password, database });
+  const conn = await mysql.createConnection({
+    host,
+    port,
+    user,
+    password,
+    database,
+  });
   try {
     const id = randomUUID();
     const username = "SeedUser";
-    await conn.execute(`INSERT INTO Users (User_ID, User_Username) VALUES (?, ?)`, [id, username]);
+    await conn.execute(
+      `INSERT INTO Users (User_ID, User_Username) VALUES (?, ?)`,
+      [id, username],
+    );
     console.log("Seed user inserted", id);
   } finally {
     await conn.end();

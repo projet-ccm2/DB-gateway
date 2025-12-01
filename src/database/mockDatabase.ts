@@ -48,8 +48,15 @@ export class mockDatabase implements database {
     return this.types.find((t) => t.id === id) ?? null;
   }
 
-  async addTypeAchievement(t: { label: string; data: string }): Promise<typeAchievementDTO> {
-    const nt: typeAchievementDTO = { id: randomUUID(), label: t.label, data: t.data };
+  async addTypeAchievement(t: {
+    label: string;
+    data: string;
+  }): Promise<typeAchievementDTO> {
+    const nt: typeAchievementDTO = {
+      id: randomUUID(),
+      label: t.label,
+      data: t.data,
+    };
     this.types.push(nt);
     return nt;
   }
@@ -90,8 +97,15 @@ export class mockDatabase implements database {
   }
 
   // Achieved
-  async getAchieved(achievementId: string, userId: string): Promise<achievedDTO | null> {
-    return this.achieved.find((x) => x.achievementId === achievementId && x.userId === userId) ?? null;
+  async getAchieved(
+    achievementId: string,
+    userId: string,
+  ): Promise<achievedDTO | null> {
+    return (
+      this.achieved.find(
+        (x) => x.achievementId === achievementId && x.userId === userId,
+      ) ?? null
+    );
   }
 
   async addAchieved(a: {
@@ -116,22 +130,48 @@ export class mockDatabase implements database {
 
   // Are
   async getAre(userId: string, chanelId: string): Promise<areDTO | null> {
-    return this.are.find((x) => x.userId === userId && x.chanelId === chanelId) ?? null;
+    return (
+      this.are.find((x) => x.userId === userId && x.chanelId === chanelId) ??
+      null
+    );
   }
 
-  async addAre(a: { userId: string; chanelId: string; userType: string }): Promise<areDTO> {
-    const na: areDTO = { userId: a.userId, chanelId: a.chanelId, userType: a.userType };
+  async addAre(a: {
+    userId: string;
+    chanelId: string;
+    userType: string;
+  }): Promise<areDTO> {
+    const na: areDTO = {
+      userId: a.userId,
+      chanelId: a.chanelId,
+      userType: a.userType,
+    };
     this.are.push(na);
     return na;
   }
 
   // Possesses
-  async getPossesses(userId: string, badgeId: string): Promise<possessesDTO | null> {
-    return this.possesses.find((x) => x.userId === userId && x.badgeId === badgeId) ?? null;
+  async getPossesses(
+    userId: string,
+    badgeId: string,
+  ): Promise<possessesDTO | null> {
+    return (
+      this.possesses.find(
+        (x) => x.userId === userId && x.badgeId === badgeId,
+      ) ?? null
+    );
   }
 
-  async addPossesses(p: { userId: string; badgeId: string; aquiredDate: string }): Promise<possessesDTO> {
-    const np: possessesDTO = { userId: p.userId, badgeId: p.badgeId, aquiredDate: p.aquiredDate };
+  async addPossesses(p: {
+    userId: string;
+    badgeId: string;
+    aquiredDate: string;
+  }): Promise<possessesDTO> {
+    const np: possessesDTO = {
+      userId: p.userId,
+      badgeId: p.badgeId,
+      aquiredDate: p.aquiredDate,
+    };
     this.possesses.push(np);
     return np;
   }

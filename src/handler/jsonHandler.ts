@@ -12,7 +12,9 @@ export async function handleJsonMessage(repo: RepoShape, msg: any) {
       return { ok: true };
 
     case "getUser":
-      const user = await repo.getUserById(msg.payload.userId || msg.payload.User_ID);
+      const user = await repo.getUserById(
+        msg.payload.userId || msg.payload.User_ID,
+      );
       return { ok: true, user };
 
     default:

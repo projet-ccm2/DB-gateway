@@ -19,7 +19,11 @@ export type achievedDTO = {
   aquiredDate: string; // ISO
 };
 export type areDTO = { userId: string; chanelId: string; userType: string };
-export type possessesDTO = { userId: string; badgeId: string; aquiredDate: string };
+export type possessesDTO = {
+  userId: string;
+  badgeId: string;
+  aquiredDate: string;
+};
 
 export interface database {
   // User
@@ -32,7 +36,10 @@ export interface database {
 
   // TypeAchievement
   getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
-  addTypeAchievement(t: { label: string; data: string }): Promise<typeAchievementDTO>;
+  addTypeAchievement(t: {
+    label: string;
+    data: string;
+  }): Promise<typeAchievementDTO>;
 
   // Achievement
   getAchievementById(id: string): Promise<achievementDTO | null>;
@@ -49,7 +56,10 @@ export interface database {
   addBadge(b: { title: string; img: string }): Promise<badgeDTO>;
 
   // Achieved (join)
-  getAchieved(achievementId: string, userId: string): Promise<achievedDTO | null>;
+  getAchieved(
+    achievementId: string,
+    userId: string,
+  ): Promise<achievedDTO | null>;
   addAchieved(a: {
     achievementId: string;
     userId: string;
@@ -61,9 +71,17 @@ export interface database {
 
   // Are (join)
   getAre(userId: string, chanelId: string): Promise<areDTO | null>;
-  addAre(a: { userId: string; chanelId: string; userType: string }): Promise<areDTO>;
+  addAre(a: {
+    userId: string;
+    chanelId: string;
+    userType: string;
+  }): Promise<areDTO>;
 
   // Possesses (join)
   getPossesses(userId: string, badgeId: string): Promise<possessesDTO | null>;
-  addPossesses(p: { userId: string; badgeId: string; aquiredDate: string }): Promise<possessesDTO>;
+  addPossesses(p: {
+    userId: string;
+    badgeId: string;
+    aquiredDate: string;
+  }): Promise<possessesDTO>;
 }
