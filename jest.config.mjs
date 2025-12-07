@@ -24,5 +24,10 @@ export default {
   },
   testMatch: ["**/src/**/*.test.{ts,tsx}", "**/src/**/*.spec.{ts,tsx}"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
-  setupFilesAfterEnv: ["<rootDir>/src/tests/setup.ts"],
+  setupFilesAfterEnv: [
+    // setup général (unitaires)
+    "<rootDir>/src/tests/setup.ts"
+  ],
+  globalSetup: "<rootDir>/src/tests/globalSetup.ts",
+  globalTeardown: "<rootDir>/src/tests/globalTeardown.ts",
 };

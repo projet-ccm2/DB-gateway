@@ -1,4 +1,4 @@
-import { PrismaClient as GeneratedPrismaClient } from "../generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
 import {
   database,
   userDTO,
@@ -17,7 +17,7 @@ export class prismaDatabase implements database {
   private prisma: any;
 
   constructor() {
-    this.prisma = new GeneratedPrismaClient({} as any);
+    this.prisma = new PrismaClient({});
   }
 
   async getUserById(id: string): Promise<userDTO | null> {
@@ -88,6 +88,12 @@ export class prismaDatabase implements database {
         goal: a.goal,
         reward: a.reward,
         label: a.label,
+        public: false,
+        downloads: 0,
+        visits: 0,
+        active: true,
+        secret: false,
+        image: "",
       },
     });
     return {

@@ -1,7 +1,5 @@
 import { prismaDatabase } from "../../database/prismaDatabase";
 import { userRepository } from "../../repositories/userRepository";
-import dotenv from "dotenv";
-dotenv.config();
 
 describe("UserRepository (integration: Prisma + MySQL)", () => {
   const db = new prismaDatabase();

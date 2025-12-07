@@ -1,7 +1,7 @@
 // @ts-nocheck
 describe("prismaDatabase not-found branches", () => {
   jest.isolateModules(() => {
-    jest.doMock("../../generated/prisma/client", () => {
+    jest.doMock("@prisma/client", () => {
       return {
         PrismaClient: class {
           constructor() {
