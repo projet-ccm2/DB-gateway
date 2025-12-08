@@ -21,15 +21,15 @@
     "dev": "npm run dev:db && npm run start",
     "build": "tsc",
     "start": "node dist/index.js",
-  "test:unit": "npm run jest --runInBand src/tests/unit",
-  "test:server": "npm run jest --runInBand src/tests/unit/server.unit.test.ts",
-  "test:integration": "npm run jest --runInBand src/tests/integration",
+  "test:unit": "jest--runInBand src/tests/unit",
+  "test:server": "jest --runInBand src/tests/unit/server.unit.test.ts",
+  "test:integration": "jest --runInBand src/tests/integration",
   "test": "jest --runInBand",
   "prettier": "npx prettier . --write",
   "db:init": "npm run npx prisma db push && ts-node src/prisma/seed.ts",
   "server:start": "ts-node src/server.ts",
-  "test:coverage": "npm run jest --runInBand --coverage src/tests/unit",
-  "test:coverage:full": "npm run jest --runInBand --coverage"
+  "test:coverage": "--runInBand --coverage src/tests/unit",
+  "test:coverage:full": "jest --runInBand --coverage"
   },
   "devDependencies": {
     "@testcontainers/mysql": "^11.9.0",
