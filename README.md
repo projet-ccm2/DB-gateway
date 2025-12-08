@@ -137,25 +137,46 @@ SELECT * FROM Users;
 
 ---
 
-## 🧪 Tests
+## 🧪 Testing & Code Quality
 
+### Run Tests
+
+**All tests**
 ```bash
 npm test
 ```
 
-Or in dev mode (with Docker DB running):
-
+**Unit tests only** (fast, no Docker)
 ```bash
-npm run test:dev
+npm run test:unit
 ```
 
----
+**Integration tests only** (requires Docker DB)
+```bash
+npm run test:integration
+```
 
-## 🧹 Other useful scripts
+**Coverage report**
+```bash
+npm run test:coverage:full
+```
 
-- `npm run prettier` → formats all code automatically
-- `npm run build` → compiles TypeScript → JavaScript (`dist/`)
-- `npx eslint . --fix ` → fix any eslint errors
+### Code Quality
+
+**Format with Prettier**
+```bash
+npm run prettier
+```
+
+**Build to JavaScript**
+```bash
+npm run build
+```
+
+**Fix ESLint errors**
+```bash
+npx eslint . --fix
+```
 
 ---
 
@@ -195,7 +216,49 @@ return responses. Typical responsibilities:
 Yes — your description is correct: the gateway receives requests, transforms/validates them, uses a repository
 to talk to the DB, and returns responses. The current code implements this pattern.
 
-## Files & structure (important parts)
+## 📂 Project Structure
+
+### Core Files
+
+**Database & Models**
+- `src/database/database.ts` — Database interface + all DTOs (types)
+- `src/database/mockDatabase.ts` — In-memory implementation for unit tests
+- `src/database/prismaDatabase.ts` — Prisma implementation for real MySQL
+- `prisma/schema.prisma` — Prisma schema (matches legacy SQL schema)
+
+**API & Business Logic**
+- `src/server.ts` — Express server with REST endpoints
+- `src/repositories/*.ts` — Repository layer (UserRepository, etc.)
+- `src/services/*.ts` — Service layer (optional business logic wrapper)
+- `src/handler/jsonHandler.ts` — Message handler example
+
+**Configuration**
+- `src/config/environment.ts` — Environment variables
+- `src/index.ts` — Gateway factories (createMockGateway, createPrismaGateway)
+- `.env` — Environment config for development
+- `.env.test` — Environment config for testing
+
+**Database Setup**
+- `docker-compose.yml` — Development database configuration
+- `mysql/init_Schema.sql` — Initial SQL schema (legacy)
+- `src/prisma/seed.ts` — Seed script (populates test data)
+
+**Testing**
+- `src/tests/unit/*.test.ts` — Unit tests (uses MockDatabase)
+- `src/tests/integration/*.test.ts` — Integration tests (uses PrismaDatabase + testcontainers)
+- `jest.config.mjs` — Jest configuration
+- `src/tests/setup.ts` — Global test setup/teardown
+
+**Other**
+- `src/utils/logger.ts` — Winston logger utility
+- `src/types/express.d.ts` — Express type definitions
+- `eslint.config.mjs` — ESLint configuration
+- `tsconfig.json` — TypeScript configuration
+- `.github/workflows/ci.yml` — CI/CD pipeline (GitHub Actions)
+
+---
+
+## 📂 Project Structure (Legacy - see above for full structure)
 
 - `prisma/schema.prisma` — Prisma schema matching `mysql/init_Schema.sql`
 - `src/database/database.ts` — database interface and DTOs
@@ -205,20 +268,51 @@ to talk to the DB, and returns responses. The current code implements this patte
 - `src/services/userService.ts` — small service layer wrapper
 - `src/handler/jsonHandler.ts` — example of a message handler (injected repo)
 - `src/prisma/seed.ts` — seed script (inserts a seed user)
-- `docker-compose.test.yml` + `.env.test` — test DB orchestration (MySQL on host port 3307)
-- `scripts/dbInit.js` — helper that reads `.env.test`, runs `prisma generate`, waits DB readiness, pushes schema and seeds
+- `docker-compose.yml` + `.env` — test DB orchestration (MySQL on host port 3307)
 
-## Quick start (developer machine)
+## ⚡ Quick Start (Developer Machine)
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Start the Database (Optional)
+
+```bash
+npm run dev:db
+```
+
+This starts MySQL on `localhost:3307`.
+
+### 3. Run Tests
+
+```bash
+npm test
+```
+
+All tests use **in-memory mocks** — no database needed! ✅
+
+### 4. Start the Server
+
+```bash
+npm run server:start
+```
+
+API available at `http://localhost:3000`
+
+---
+
+## 🎯 Getting Started (Full Setup)
 
 Prerequisites:
 
 - Docker Desktop (running)
-- Node.js (>= 18 recommended)
-- npm
+- Node.js ≥ 20.x
+- npm ≥ 9.x
 
-Steps (one-liner):
-
-1. Start test DB and init schema + seed:
+Steps:
 
 ```powershell
 npm run init:all
@@ -234,38 +328,450 @@ npm run init:all
 
 2. Run unit tests (fast, no Docker):
 
-```powershell
-npm run test:unit
+Steps:
+
+1. **Init database with schema + seed:**
+   ```bash
+   npm run dev:db
+   npm run db:init
+   ```
+
+2. **Run tests:**
+   ```bash
+   npm test
+   ```
+
+3. **Start the server:**
+   ```bash
+   npm run server:start
+   ```
+
+---
+
+## 📝 What to Expect
+
+- **Unit tests** use in-memory `MockDatabase` (fast, no Docker needed)
+- **Integration tests** use real MySQL via testcontainers (auto-managed, no manual setup)
+- **API endpoints** follow REST conventions with proper HTTP status codes
+- **Repository pattern** ensures clean separation between API, business logic, and database
+
+---
+
+## 🆘 Troubleshooting
+
+**Tests failing?**
+```bash
+npm test
+```
+Tests don't require Docker — they use in-memory mocks. If tests fail, check TypeScript compilation:
+```bash
+npm run build
 ```
 
-3. Run integration tests (needs Docker test DB running):
+**Database connection issues?**
+```bash
+# Check if Docker container is running
+docker ps
 
-```powershell
-npm run test:integration
+# Manual cleanup if needed
+docker compose --env-file .env -f docker-compose.yml down -v --remove-orphans
+
+# Restart
+npm run dev:db
 ```
 
-4. Stop and remove test DB and volumes:
+**Prisma issues?**
+```bash
+# Regenerate Prisma client
+npm run prisma:gen
 
-```powershell
-npm run test:db:down
+# Push schema to database
+npx prisma db push
+
+# Seed data
+ts-node src/prisma/seed.ts
 ```
+
+---
 
 ## What to expect
 
 - Unit tests use the in-memory `mockDatabase` (fast).
-- Integration tests use the MySQL container on `localhost:3307` (see `.env.test`).
+- Integration tests use MySQL via testcontainers.
 - The repository exposes `addUser(username)` and `getUserById(id)` as examples. You can wire more methods
   following the same pattern.
 
 ## Troubleshooting
 
-- If `npm run init:all` fails with permission/access errors, try:
-  1. `docker compose -f docker-compose.test.yml down -v --remove-orphans`
-  2. Remove leftover volumes if necessary: `docker volume ls` and `docker volume rm <name>`
-  3. Re-run `npm run init:all`.
+- If Docker fails, try manual cleanup and restart:
+  1. `docker compose --env-file .env -f docker-compose.yml down -v --remove-orphans`
+  2. `npm run dev:db` to restart
 
 - If Prisma complains about client constructor validation, ensure `npx prisma generate` has been run and that
   `prisma.config.ts` is present and points to the correct `DATABASE_URL` (we use `.env.test` for tests).
+
+## 📡 API Endpoints
+
+The gateway exposes REST endpoints via Express. Start the server with:
+
+```bash
+npm run server:start
+```
+
+Server runs on `http://localhost:3000`
+
+### Currently Implemented Endpoints
+
+#### Users
+
+**Create a user**
+```http
+POST /users
+Content-Type: application/json
+
+{
+  "username": "john_doe"
+}
+```
+
+Response (201):
+```json
+{
+  "id": "u_abc123",
+  "username": "john_doe"
+}
+```
+
+---
+
+**Get user by ID**
+```http
+GET /users/{id}
+```
+
+Example:
+```http
+GET /users/u_abc123
+```
+
+Response (200):
+```json
+{
+  "id": "u_abc123",
+  "username": "john_doe"
+}
+```
+
+**Error responses:**
+- `400` — Username is required (POST only)
+- `404` — User not found (GET only)
+- `500` — Server error
+
+---
+
+### Planned Endpoints (Implementation Pattern)
+
+The gateway is designed to support all tables from the database schema. Follow the same pattern as Users to implement:
+
+**Channels:**
+- `POST /channels` — Create channel with `{ name: string }`
+- `GET /channels/{id}` — Get channel by ID
+
+**TypeAchievements:**
+- `POST /typeachievements` — Create type with `{ label, data }`
+- `GET /typeachievements/{id}` — Get type by ID
+
+**Achievements:**
+- `POST /achievements` — Create achievement with `{ title, description, goal, reward, label }`
+- `GET /achievements/{id}` — Get achievement by ID
+
+**Badges:**
+- `POST /badges` — Create badge with `{ title, img }`
+- `GET /badges/{id}` — Get badge by ID
+
+**User-Achievement Relations (Achieved):**
+- `POST /users/{userId}/achievements/{achievementId}` — Record achievement with `{ count, finished, labelActive, acquiredDate }`
+- `GET /users/{userId}/achievements/{achievementId}` — Get achievement progress
+
+**Channel Membership (Are):**
+- `POST /users/{userId}/channels/{channelId}` — Add user to channel with `{ userType }`
+- `GET /users/{userId}/channels/{channelId}` — Get membership
+
+**User Badges (Possesses):**
+- `POST /users/{userId}/badges/{badgeId}` — Award badge with `{ acquiredDate }`
+- `GET /users/{userId}/badges/{badgeId}` — Get badge possession
+
+---
+
+## 📋 Data Types & Models
+
+All types are defined in `src/database/database.ts`. Here's the complete type reference:
+
+### DTOs (Data Transfer Objects)
+
+```typescript
+// User
+type userDTO = { 
+  id: string; 
+  username: string 
+};
+
+// Channel
+type channelDTO = { 
+  id: string; 
+  name: string 
+};
+
+// Type/Category of Achievement
+type typeAchievementDTO = { 
+  id: string; 
+  label: string; 
+  data: string; 
+};
+
+// Achievement (Goal/Challenge)
+type achievementDTO = {
+  id: string;
+  title: string;
+  description: string;
+  goal: number;          // Target count
+  reward: number;        // Points/reward
+  label: string;         // Category
+};
+
+// Badge/Trophy
+type badgeDTO = { 
+  id: string; 
+  title: string; 
+  img: string;           // Image URL/path
+};
+
+// User → Achievement progress junction
+type achievedDTO = {
+  achievementId: string;
+  userId: string;
+  count: number;         // Current progress
+  finished: boolean;     // Completed?
+  labelActive: boolean;
+  acquiredDate: string;  // ISO 8601 date
+};
+
+// User → Channel membership junction
+type areDTO = { 
+  userId: string; 
+  channelId: string; 
+  userType: string;      // "admin", "moderator", "member"
+};
+
+// User → Badge ownership junction
+type possessesDTO = {
+  userId: string;
+  badgeId: string;
+  acquiredDate: string;  // ISO 8601 date
+};
+```
+
+### Database Interface
+
+All database adapters (`MockDatabase`, `PrismaDatabase`) implement this interface:
+
+```typescript
+interface database {
+  // User operations
+  getUserById(id: string): Promise<userDTO | null>;
+  addUser(username: string): Promise<userDTO>;
+
+  // Channel operations
+  getChannelById(id: string): Promise<channelDTO | null>;
+  addChannel(channel: { name: string }): Promise<channelDTO>;
+
+  // TypeAchievement operations
+  getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
+  addTypeAchievement(t: { label: string; data: string }): Promise<typeAchievementDTO>;
+
+  // Achievement operations
+  getAchievementById(id: string): Promise<achievementDTO | null>;
+  addAchievement(a: {
+    title: string;
+    description: string;
+    goal: number;
+    reward: number;
+    label: string;
+  }): Promise<achievementDTO>;
+
+  // Badge operations
+  getBadgeById(id: string): Promise<badgeDTO | null>;
+  addBadge(b: { title: string; img: string }): Promise<badgeDTO>;
+
+  // Achieved (User → Achievement) operations
+  getAchieved(achievementId: string, userId: string): Promise<achievedDTO | null>;
+  addAchieved(a: {
+    achievementId: string;
+    userId: string;
+    count: number;
+    finished: boolean;
+    labelActive: boolean;
+    acquiredDate: string;
+  }): Promise<achievedDTO>;
+
+  // Are (User → Channel) operations
+  getAre(userId: string, channelId: string): Promise<areDTO | null>;
+  addAre(a: {
+    userId: string;
+    channelId: string;
+    userType: string;
+  }): Promise<areDTO>;
+
+  // Possesses (User → Badge) operations
+  getPossesses(userId: string, badgeId: string): Promise<possessesDTO | null>;
+  addPossesses(p: {
+    userId: string;
+    badgeId: string;
+    acquiredDate: string;
+  }): Promise<possessesDTO>;
+
+  // Cleanup
+  disconnect(): Promise<void>;
+}
+```
+
+### Using the Types
+
+When implementing new endpoints or repositories, import and use the types:
+
+```typescript
+import { userDTO, database, channelDTO } from "./database/database";
+
+// In your repository
+async function getUser(id: string): Promise<userDTO | null> {
+  return this.db.getUserById(id);
+}
+```
+
+---
+
+## 🛠️ How to Implement New Endpoints
+
+Follow this pattern to add new endpoints. Example: Adding Channel support.
+
+### 1. Create a Repository (if not exists)
+
+Create `src/repositories/channelRepository.ts`:
+
+```typescript
+import { database, channelDTO } from "../database/database";
+
+export class ChannelRepository {
+  constructor(private db: database) {}
+
+  async getChannelById(id: string): Promise<channelDTO | null> {
+    return this.db.getChannelById(id);
+  }
+
+  async addChannel(name: string): Promise<channelDTO> {
+    return this.db.addChannel({ name });
+  }
+}
+```
+
+### 2. Add Routes to Server
+
+Update `src/server.ts`:
+
+```typescript
+// Import your new repository
+const { repo: channelRepo } = createMockGateway();
+
+// POST endpoint
+app.post("/channels", async (req: any, res: any) => {
+  try {
+    const { name } = req.body as { name?: string };
+    if (!name) return res.status(400).json({ error: "name required" });
+    const channel = await channelRepo.addChannel(name);
+    res.status(201).json(channel);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET endpoint
+app.get("/channels/:id", async (req: any, res: any) => {
+  try {
+    const channel = await channelRepo.getChannelById(req.params.id);
+    if (!channel) return res.status(404).json({ error: "not found" });
+    res.json(channel);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+```
+
+### 3. Add Tests
+
+Create `src/tests/unit/channelRepository.unit.test.ts`:
+
+```typescript
+import { MockDatabase } from "../../database/mockDatabase";
+import { ChannelRepository } from "../../repositories/channelRepository";
+
+describe("ChannelRepository", () => {
+  let repo: ChannelRepository;
+
+  beforeEach(() => {
+    const db = new MockDatabase();
+    repo = new ChannelRepository(db);
+  });
+
+  test("addChannel creates a channel", async () => {
+    const channel = await repo.addChannel("general");
+    expect(channel.name).toBe("general");
+    expect(channel.id).toBeDefined();
+  });
+
+  test("getChannelById returns null if not found", async () => {
+    const channel = await repo.getChannelById("nonexistent");
+    expect(channel).toBeNull();
+  });
+
+  test("getChannelById returns created channel", async () => {
+    const created = await repo.addChannel("dev");
+    const retrieved = await repo.getChannelById(created.id);
+    expect(retrieved?.id).toBe(created.id);
+    expect(retrieved?.name).toBe("dev");
+  });
+});
+```
+
+### 4. Run Tests
+
+```bash
+npm test
+```
+
+All tests should pass! ✅
+
+---
+
+## 📦 Architecture Overview
+
+```
+Request
+  ↓
+Server (src/server.ts) — HTTP route handler
+  ↓
+Repository (src/repositories/*.ts) — Business logic layer
+  ↓
+Database Adapter (src/database/*.ts) — Implements database interface
+  ↓
+  ├─ MockDatabase — Fast in-memory for unit tests
+  └─ PrismaDatabase — Real MySQL via Prisma for integration tests
+  ↓
+MySQL (only in Docker for integration/dev)
+```
+
+**Key Principle:** Repositories and business logic don't know whether they're using MockDatabase or PrismaDatabase. This enables fast unit testing without requiring a real database.
+
+---
 
 ## Design notes and suggestions (what might be missing)
 
