@@ -25,7 +25,7 @@ export default {
   testMatch: ["**/src/**/*.test.{ts,tsx}", "**/src/**/*.spec.{ts,tsx}"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   setupFilesAfterEnv: [
-    // setup général (unitaires)
+    // general setup (unit tests)
     "<rootDir>/src/tests/setup.ts"
   ],
   globalSetup: "<rootDir>/src/tests/globalSetup.ts",

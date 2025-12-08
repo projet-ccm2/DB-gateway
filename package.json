@@ -15,7 +15,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-  "prisma:gen": "DATABASE_URL=mysql://user:pass@localhost:3306/db prisma generate",
+  "prisma:gen": "prisma generate",
     "dev:db": "docker compose --env-file .env -f docker-compose.yml up --build -d",
     "dev:db:down": "docker compose --env-file .env -f docker-compose.yml down -v",
     "dev": "npm run dev:db && npm run start",
