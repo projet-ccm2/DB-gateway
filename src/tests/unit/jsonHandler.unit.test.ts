@@ -82,7 +82,8 @@ function makeRepoMock(): GatewayRepo {
         return r;
       },
       getAre: async (userId: string, channelId: string) =>
-        are.find((r) => r.userId === userId && r.channelId === channelId) ?? null,
+        are.find((r) => r.userId === userId && r.channelId === channelId) ??
+        null,
     },
     possesses: {
       addPossesses: async (

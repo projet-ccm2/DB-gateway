@@ -39,7 +39,9 @@ export class PrismaDatabase implements database {
   }
 
   async addChannel(channel: { name: string }): Promise<channelDTO> {
-    const c = await this.prisma.channel.create({ data: { name: channel.name } });
+    const c = await this.prisma.channel.create({
+      data: { name: channel.name },
+    });
     return { id: c.id, name: c.name };
   }
 
@@ -183,7 +185,11 @@ export class PrismaDatabase implements database {
     const nr = await this.prisma.are.create({
       data: { userId: a.userId, channelId: a.channelId, userType: a.userType },
     });
-    return { userId: nr.userId, channelId: nr.channelId, userType: nr.userType };
+    return {
+      userId: nr.userId,
+      channelId: nr.channelId,
+      userType: nr.userType,
+    };
   }
 
   async getPossesses(
@@ -224,3 +230,6 @@ export class PrismaDatabase implements database {
     if (this.prisma?.$disconnect) await this.prisma.$disconnect();
   }
 }
+
+// Backwards-compat: some tests / code expect a lowercase export name
+// legacy alias removed: project now uses PascalCase `PrismaDatabase` throughout

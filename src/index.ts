@@ -1,7 +1,7 @@
 // Gateway entry: factories to create mock or Prisma-backed gateway instances
 import { MockDatabase } from "./database/mockDatabase";
-import { PrismaDatabase } from "./database/prismaDatabase";
 import { UserRepository } from "./repositories/userRepository";
+import { PrismaDatabase } from "./database/prismaDatabase";
 
 export function createMockGateway() {
   const db = new MockDatabase();

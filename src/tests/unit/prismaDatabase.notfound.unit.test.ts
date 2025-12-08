@@ -19,9 +19,9 @@ describe("prismaDatabase not-found branches", () => {
       };
     });
 
-    const { prismaDatabase } = require("../../database/prismaDatabase");
+    const { PrismaDatabase } = require("../../database/prismaDatabase");
     test("all gets return null for missing entries", async () => {
-      const db = new prismaDatabase();
+      const db = new PrismaDatabase();
       expect(await db.getUserById("no")).toBeNull();
       expect(await db.getChannelById("no")).toBeNull();
       expect(await db.getTypeAchievementById("no")).toBeNull();

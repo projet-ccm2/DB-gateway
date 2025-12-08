@@ -17,11 +17,11 @@ describe("index factories", () => {
     expect(g.repo).toBeDefined();
   });
 
-  test("createPrismaGateway uses prismaDatabase mock", () => {
-    // mock prismaDatabase to avoid constructing real client
+  test("createPrismaGateway uses PrismaDatabase mock", () => {
+    // mock PrismaDatabase to avoid constructing real client
     jest.isolateModules(() => {
       jest.doMock("../../database/prismaDatabase", () => ({
-        prismaDatabase: class {
+        PrismaDatabase: class {
           constructor() {
             // noop
           }

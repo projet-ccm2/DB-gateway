@@ -155,9 +155,9 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       };
     });
 
-    const { prismaDatabase } = require("../../database/prismaDatabase");
-    test("prismaDatabase methods (mocked) exercise success and not-found branches", async () => {
-      const db = new prismaDatabase();
+    const { PrismaDatabase } = require("../../database/prismaDatabase");
+    test("PrismaDatabase methods (mocked) exercise success and not-found branches", async () => {
+      const db = new PrismaDatabase();
 
       // User paths
       const addedUser = await db.addUser("alice");

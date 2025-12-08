@@ -55,7 +55,11 @@ export type GatewayRepo = {
     ): Promise<achievedDTO | null>;
   };
   are: {
-    addAre(userId: string, channelId: string, userType: string): Promise<areDTO>;
+    addAre(
+      userId: string,
+      channelId: string,
+      userType: string,
+    ): Promise<areDTO>;
     getAre(userId: string, channelId: string): Promise<areDTO | null>;
   };
   possesses: {
