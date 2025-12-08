@@ -1,9 +1,9 @@
-import { prismaDatabase } from "../../database/prismaDatabase";
-import { userRepository } from "../../repositories/userRepository";
+import { PrismaDatabase } from "../../database/prismaDatabase";
+import { UserRepository } from "../../repositories/userRepository";
 
 describe("UserRepository (integration: Prisma + MySQL)", () => {
-  const db = new prismaDatabase();
-  const service = new userRepository(db);
+  const db = new PrismaDatabase();
+  const service = new UserRepository(db);
 
   afterAll(async () => {
     await (db as any).prisma?.$disconnect();

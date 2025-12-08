@@ -7,7 +7,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
           constructor() {
             // simple in-memory stores
             this._users = new Map();
-            this._chanels = new Map();
+            this._channels = new Map();
             this._types = new Map();
             this._achievements = new Map();
             this._badges = new Map();
@@ -40,13 +40,13 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
               },
             };
 
-            this.chanel = {
+            this.channel = {
               findUnique: async ({ where: { id } }) =>
-                this._chanels.get(id) ?? null,
+                this._channels.get(id) ?? null,
               create: async ({ data }) => {
                 const id = "c_" + Math.random().toString(36).slice(2, 8);
                 const row = { id, name: data.name };
-                this._chanels.set(id, row);
+                this._channels.set(id, row);
                 return row;
               },
             };
@@ -107,7 +107,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                   count: data.count,
                   finished: data.finished,
                   labelActive: data.labelActive,
-                  aquiredDate: data.aquiredDate,
+                  acquiredDate: data.acquiredDate,
                 };
                 this._achieved.set(key, row);
                 return row;
@@ -115,16 +115,16 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.are = {
-              findUnique: async ({ where: { userIdChanelId } }) => {
+              findUnique: async ({ where: { userIdChannelId } }) => {
                 const key =
-                  userIdChanelId.userId + "|" + userIdChanelId.chanelId;
+                  userIdChannelId.userId + "|" + userIdChannelId.channelId;
                 return this._are.get(key) ?? null;
               },
               create: async ({ data }) => {
-                const key = data.userId + "|" + data.chanelId;
+                const key = data.userId + "|" + data.channelId;
                 const row = {
                   userId: data.userId,
-                  chanelId: data.chanelId,
+                  channelId: data.channelId,
                   userType: data.userType,
                 };
                 this._are.set(key, row);
@@ -142,7 +142,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 const row = {
                   userId: data.userId,
                   badgeId: data.badgeId,
-                  aquiredDate: data.aquiredDate,
+                  acquiredDate: data.acquiredDate,
                 };
                 this._possesses.set(key, row);
                 return row;
@@ -166,10 +166,10 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       expect(gotUser?.id).toBe(addedUser.id);
       expect(await db.getUserById("nope")).toBeNull();
 
-      // Chanel
-      const ch = await db.addChanel({ name: "ch1" });
+      // Channel
+      const ch = await db.addChannel({ name: "ch1" });
       expect(ch.name).toBe("ch1");
-      expect((await db.getChanelById(ch.id))?.id).toBe(ch.id);
+      expect((await db.getChannelById(ch.id))?.id).toBe(ch.id);
 
       // Type
       const t = await db.addTypeAchievement({ label: "L", data: "D" });
@@ -196,7 +196,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         count: 1,
         finished: false,
         labelActive: true,
-        aquiredDate: new Date().toISOString(),
+        acquiredDate: new Date().toISOString(),
       });
       expect(achv.achievementId).toBe(a.id);
       expect(await db.getAchieved(a.id, "missing_user")).toBeNull();
@@ -204,7 +204,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       // Are
       const ar = await db.addAre({
         userId: addedUser.id,
-        chanelId: ch.id,
+        channelId: ch.id,
         userType: "admin",
       });
       expect(ar.userType).toBe("admin");
@@ -214,7 +214,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       const p = await db.addPossesses({
         userId: addedUser.id,
         badgeId: b.id,
-        aquiredDate: new Date().toISOString(),
+        acquiredDate: new Date().toISOString(),
       });
       expect(p.badgeId).toBe(b.id);
       expect(await db.getPossesses("x", "y")).toBeNull();

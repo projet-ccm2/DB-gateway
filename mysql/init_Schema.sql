@@ -8,10 +8,10 @@ CREATE TABLE IF NOT EXISTS Users(
     CONSTRAINT Users_PK PRIMARY KEY (User_ID)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS Chanels(
-    Chanel_ID   CHAR(36) NOT NULL,
-    Chanel_Name VARCHAR(50) NOT NULL,
-    CONSTRAINT Chanels_PK PRIMARY KEY (Chanel_ID)
+CREATE TABLE IF NOT EXISTS Channels(
+    Channel_ID   CHAR(36) NOT NULL,
+    Channel_Name VARCHAR(50) NOT NULL,
+    CONSTRAINT Channels_PK PRIMARY KEY (Channel_ID)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Type_Achievements(
@@ -34,10 +34,10 @@ CREATE TABLE IF NOT EXISTS Achievements(
     Achievement_Active      BOOL NOT NULL,
     Achievement_Secret      BOOL NOT NULL,
     Achievement_Image       VARCHAR(55) NOT NULL,
-    Chanel_ID               CHAR(36),
+    Channel_ID               CHAR(36),
     Type_ID                 CHAR(36),
     CONSTRAINT Achievements_PK PRIMARY KEY (Achievement_ID),
-    CONSTRAINT Achievements_Chanels_FK FOREIGN KEY (Chanel_ID) REFERENCES Chanels(Chanel_ID),
+    CONSTRAINT Achievements_Channels_FK FOREIGN KEY (Channel_ID) REFERENCES Channels(Channel_ID),
     CONSTRAINT Achievements_Type_Achievements0_FK FOREIGN KEY (Type_ID) REFERENCES Type_Achievements(Type_ID)
 ) ENGINE=InnoDB;
 
@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS Badges(
     Badge_ID    VARCHAR(36) NOT NULL,
     Badge_Title VARCHAR(50) NOT NULL,
     Badge_img   VARCHAR(50) NOT NULL,
-    Chanel_ID   CHAR(36),
+    Channel_ID   CHAR(36),
     CONSTRAINT Badges_PK PRIMARY KEY (Badge_ID),
-    CONSTRAINT Badges_Chanels_FK FOREIGN KEY (Chanel_ID) REFERENCES Chanels(Chanel_ID)
+    CONSTRAINT Badges_Channels_FK FOREIGN KEY (Channel_ID) REFERENCES Channels(Channel_ID)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS _Achieved(
@@ -64,11 +64,11 @@ CREATE TABLE IF NOT EXISTS _Achieved(
 
 CREATE TABLE IF NOT EXISTS _Are(
     User_ID   VARCHAR(36) NOT NULL,
-    Chanel_ID CHAR(36) NOT NULL,
+    Channel_ID CHAR(36) NOT NULL,
     User_Type VARCHAR(50) NOT NULL,
-    CONSTRAINT _Are_PK PRIMARY KEY (User_ID,Chanel_ID),
+    CONSTRAINT _Are_PK PRIMARY KEY (User_ID,Channel_ID),
     CONSTRAINT _Are_Users_FK FOREIGN KEY (User_ID) REFERENCES Users(User_ID),
-    CONSTRAINT _Are_Chanels0_FK FOREIGN KEY (Chanel_ID) REFERENCES Chanels(Chanel_ID)
+    CONSTRAINT _Are_Channels0_FK FOREIGN KEY (Channel_ID) REFERENCES Channels(Channel_ID)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS _Possesses(

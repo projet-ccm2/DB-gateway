@@ -1,6 +1,6 @@
 import { database, possessesDTO } from "../database/database";
 
-export class possessesRepository {
+export class PossessesRepository {
   constructor(private db: database) {}
 
   async get(userId: string, badgeId: string): Promise<possessesDTO | null> {
@@ -10,8 +10,8 @@ export class possessesRepository {
   async add(
     userId: string,
     badgeId: string,
-    aquiredDate: string,
+    acquiredDate: string,
   ): Promise<possessesDTO> {
-    return this.db.addPossesses({ userId, badgeId, aquiredDate });
+    return this.db.addPossesses({ userId, badgeId, acquiredDate });
   }
 }

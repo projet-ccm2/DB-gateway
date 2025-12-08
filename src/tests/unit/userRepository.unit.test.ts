@@ -1,10 +1,10 @@
-import { userRepository } from "../../repositories/userRepository";
-import { mockDatabase } from "../../database/mockDatabase";
+import { UserRepository } from "../../repositories/userRepository";
+import { MockDatabase } from "../../database/mockDatabase";
 
 describe("userRepository (unit, mock db)", () => {
   it("should create and read a user using mockDatabase", async () => {
-    const mockDb = new mockDatabase();
-    const service = new userRepository(mockDb);
+    const mockDb = new MockDatabase();
+    const service = new UserRepository(mockDb);
 
     const created = await service.addUser("Bob");
     expect(created).toHaveProperty("id");
@@ -16,8 +16,8 @@ describe("userRepository (unit, mock db)", () => {
   });
 
   it("adding same email updates name", async () => {
-    const mockDb = new mockDatabase();
-    const service = new userRepository(mockDb);
+    const mockDb = new MockDatabase();
+    const service = new UserRepository(mockDb);
 
     const a = await service.addUser("Bobby");
     const b = await service.addUser("Robert");

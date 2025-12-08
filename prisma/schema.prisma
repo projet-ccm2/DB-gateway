@@ -19,15 +19,15 @@ model User {
   @@map("Users")
 }
 
-model Chanel {
-  id   String @id @default(uuid()) @map("Chanel_ID") @db.Char(36)
-  name String @map("Chanel_Name") @db.VarChar(50)
+model Channel {
+  id   String @id @default(uuid()) @map("Channel_ID") @db.Char(36)
+  name String @map("Channel_Name") @db.VarChar(50)
 
   achievements Achievement[]
   badges       Badge[]
-  are          Are[] @relation("chanel_are")
+  are          Are[] @relation("channel_are")
 
-  @@map("Chanels")
+  @@map("Channels")
 }
 
 model TypeAchievement {
@@ -54,10 +54,10 @@ model Achievement {
   secret      Boolean @map("Achievement_Secret")
   image       String  @map("Achievement_Image") @db.VarChar(55)
 
-  chanelId String? @map("Chanel_ID") @db.Char(36)
+  channelId String? @map("Channel_ID") @db.Char(36)
   typeId   String? @map("Type_ID")   @db.Char(36)
 
-  chanel Chanel? @relation(fields: [chanelId], references: [id])
+  channel Channel? @relation(fields: [channelId], references: [id])
   type   TypeAchievement? @relation(fields: [typeId], references: [id])
 
   achieved Achieved[]
@@ -70,8 +70,8 @@ model Badge {
   title   String @map("Badge_Title") @db.VarChar(50)
   img     String @map("Badge_img") @db.VarChar(50)
 
-  chanelId String? @map("Chanel_ID") @db.Char(36)
-  chanel   Chanel? @relation(fields: [chanelId], references: [id])
+  channelId String? @map("Channel_ID") @db.Char(36)
+  channel   Channel? @relation(fields: [channelId], references: [id])
 
   possesses Possesses[]
 
@@ -84,7 +84,7 @@ model Achieved {
   count         Int      @map("Count")
   finished      Boolean  @map("Finished")
   labelActive   Boolean  @map("Label_Active")
-  aquiredDate   DateTime @map("Aquired_Date")
+  acquiredDate   DateTime @map("Aquired_Date")
 
   user        User        @relation("user_achieved", fields: [userId], references: [id])
   achievement Achievement @relation(fields: [achievementId], references: [id])
@@ -95,20 +95,20 @@ model Achieved {
 
 model Are {
   userId   String @map("User_ID") @db.VarChar(36)
-  chanelId String @map("Chanel_ID") @db.Char(36)
+  channelId String @map("Channel_ID") @db.Char(36)
   userType String @map("User_Type") @db.VarChar(50)
 
   user   User   @relation("user_are", fields: [userId], references: [id])
-  chanel Chanel @relation("chanel_are", fields: [chanelId], references: [id])
+  channel Channel @relation("channel_are", fields: [channelId], references: [id])
 
-  @@id([userId, chanelId])
+  @@id([userId, channelId])
   @@map("_Are")
 }
 
 model Possesses {
   userId      String   @map("User_ID") @db.VarChar(36)
   badgeId     String   @map("Badge_ID") @db.VarChar(36)
-  aquiredDate DateTime @map("Aquired_Date")
+  acquiredDate DateTime @map("Aquired_Date")
 
   user  User  @relation("user_possesses", fields: [userId], references: [id])
   badge Badge @relation(fields: [badgeId], references: [id])

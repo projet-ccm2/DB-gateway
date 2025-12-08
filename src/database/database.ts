@@ -1,5 +1,5 @@
 export type userDTO = { id: string; username: string };
-export type chanelDTO = { id: string; name: string };
+export type channelDTO = { id: string; name: string };
 export type typeAchievementDTO = { id: string; label: string; data: string };
 export type achievementDTO = {
   id: string;
@@ -16,13 +16,13 @@ export type achievedDTO = {
   count: number;
   finished: boolean;
   labelActive: boolean;
-  aquiredDate: string; // ISO
+  acquiredDate: string; // ISO
 };
-export type areDTO = { userId: string; chanelId: string; userType: string };
+export type areDTO = { userId: string; channelId: string; userType: string };
 export type possessesDTO = {
   userId: string;
   badgeId: string;
-  aquiredDate: string;
+  acquiredDate: string;
 };
 
 export interface database {
@@ -30,9 +30,9 @@ export interface database {
   getUserById(id: string): Promise<userDTO | null>;
   addUser(username: string): Promise<userDTO>;
 
-  // Chanel
-  getChanelById(id: string): Promise<chanelDTO | null>;
-  addChanel(chanel: { name: string }): Promise<chanelDTO>;
+  // Channel
+  getChannelById(id: string): Promise<channelDTO | null>;
+  addChannel(channel: { name: string }): Promise<channelDTO>;
 
   // TypeAchievement
   getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
@@ -66,14 +66,14 @@ export interface database {
     count: number;
     finished: boolean;
     labelActive: boolean;
-    aquiredDate: string;
+    acquiredDate: string;
   }): Promise<achievedDTO>;
 
   // Are (join)
-  getAre(userId: string, chanelId: string): Promise<areDTO | null>;
+  getAre(userId: string, channelId: string): Promise<areDTO | null>;
   addAre(a: {
     userId: string;
-    chanelId: string;
+    channelId: string;
     userType: string;
   }): Promise<areDTO>;
 
@@ -82,6 +82,6 @@ export interface database {
   addPossesses(p: {
     userId: string;
     badgeId: string;
-    aquiredDate: string;
+    acquiredDate: string;
   }): Promise<possessesDTO>;
 }

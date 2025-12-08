@@ -1,6 +1,6 @@
 import { database, typeAchievementDTO } from "../database/database";
 
-export class typeAchievementRepository {
+export class TypeAchievementRepository {
   constructor(private db: database) {}
 
   async getById(id: string): Promise<typeAchievementDTO | null> {

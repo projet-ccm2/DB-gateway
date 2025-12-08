@@ -6,7 +6,7 @@ describe("prismaDatabase not-found branches", () => {
         PrismaClient: class {
           constructor() {
             this.user = { findUnique: async () => null };
-            this.chanel = { findUnique: async () => null };
+            this.channel = { findUnique: async () => null };
             this.typeAchievement = { findUnique: async () => null };
             this.achievement = { findUnique: async () => null };
             this.badge = { findUnique: async () => null };
@@ -23,7 +23,7 @@ describe("prismaDatabase not-found branches", () => {
     test("all gets return null for missing entries", async () => {
       const db = new prismaDatabase();
       expect(await db.getUserById("no")).toBeNull();
-      expect(await db.getChanelById("no")).toBeNull();
+      expect(await db.getChannelById("no")).toBeNull();
       expect(await db.getTypeAchievementById("no")).toBeNull();
       expect(await db.getAchievementById("no")).toBeNull();
       expect(await db.getBadgeById("no")).toBeNull();

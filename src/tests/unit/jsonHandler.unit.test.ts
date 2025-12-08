@@ -1,7 +1,7 @@
 import { handleJsonMessage, GatewayRepo } from "../../handler/jsonHandler";
 import type {
   userDTO,
-  chanelDTO,
+  channelDTO,
   typeAchievementDTO,
   achievementDTO,
   badgeDTO,
@@ -12,7 +12,7 @@ import type {
 
 function makeRepoMock(): GatewayRepo {
   const users: userDTO[] = [];
-  const chanels: chanelDTO[] = [];
+  const channels: channelDTO[] = [];
   const typeAchievements: typeAchievementDTO[] = [];
   const achievements: achievementDTO[] = [];
   const badges: badgeDTO[] = [];
@@ -29,14 +29,14 @@ function makeRepoMock(): GatewayRepo {
       },
       getUserById: async (id: string) => users.find((u) => u.id === id) ?? null,
     },
-    chanel: {
-      addChanel: async (name: string) => {
+    channel: {
+      addChannel: async (name: string) => {
         const c = { id: "c_" + name, name };
-        chanels.push(c);
+        channels.push(c);
         return c;
       },
-      getChanelById: async (id: string) =>
-        chanels.find((c) => c.id === id) ?? null,
+      getChannelById: async (id: string) =>
+        channels.find((c) => c.id === id) ?? null,
     },
     typeAchievement: {
       addTypeAchievement: async (label: string, data: string) => {
@@ -76,21 +76,21 @@ function makeRepoMock(): GatewayRepo {
         ) ?? null,
     },
     are: {
-      addAre: async (userId: string, chanelId: string, userType: string) => {
-        const r = { userId, chanelId, userType };
+      addAre: async (userId: string, channelId: string, userType: string) => {
+        const r = { userId, channelId, userType };
         are.push(r);
         return r;
       },
-      getAre: async (userId: string, chanelId: string) =>
-        are.find((r) => r.userId === userId && r.chanelId === chanelId) ?? null,
+      getAre: async (userId: string, channelId: string) =>
+        are.find((r) => r.userId === userId && r.channelId === channelId) ?? null,
     },
     possesses: {
       addPossesses: async (
         userId: string,
         badgeId: string,
-        aquiredDate: string,
+        acquiredDate: string,
       ) => {
-        const p = { userId, badgeId, aquiredDate };
+        const p = { userId, badgeId, acquiredDate };
         possesses.push(p);
         return p;
       },
@@ -122,16 +122,16 @@ describe("jsonHandler full coverage", () => {
     expect(get.ok).toBe(true);
   });
 
-  test("chanel create/get", async () => {
+  test("channel create/get", async () => {
     const create = await handleJsonMessage(repo, {
-      action: "createChanel",
+      action: "createChannel",
       payload: { name: "chan1" },
     });
     expect(create.ok).toBe(true);
 
     const get = await handleJsonMessage(repo, {
-      action: "getChanel",
-      payload: { chanelId: "c_chan1" },
+      action: "getChannel",
+      payload: { channelId: "c_chan1" },
     });
     expect(get.ok).toBe(true);
   });
@@ -191,7 +191,7 @@ describe("jsonHandler full coverage", () => {
       count: 1,
       finished: true,
       labelActive: true,
-      aquiredDate: "2023-01-01T00:00:00Z",
+      acquiredDate: "2023-01-01T00:00:00Z",
     };
 
     const create = await handleJsonMessage(repo, {
@@ -210,13 +210,13 @@ describe("jsonHandler full coverage", () => {
   test("are create/get", async () => {
     const create = await handleJsonMessage(repo, {
       action: "createAre",
-      payload: { userId: "u1", chanelId: "c1", userType: "admin" },
+      payload: { userId: "u1", channelId: "c1", userType: "admin" },
     });
     expect(create.ok).toBe(true);
 
     const get = await handleJsonMessage(repo, {
       action: "getAre",
-      payload: { userId: "u1", chanelId: "c1" },
+      payload: { userId: "u1", channelId: "c1" },
     });
     expect(get.ok).toBe(true);
   });
@@ -227,7 +227,7 @@ describe("jsonHandler full coverage", () => {
       payload: {
         userId: "u1",
         badgeId: "b1",
-        aquiredDate: "2023-01-01T00:00:00Z",
+        acquiredDate: "2023-01-01T00:00:00Z",
       },
     });
     expect(create.ok).toBe(true);
@@ -251,8 +251,8 @@ describe("jsonHandler full coverage", () => {
     const actions = [
       "createUser",
       "getUser",
-      "createChanel",
-      "getChanel",
+      "createChannel",
+      "getChannel",
       "createTypeAchievement",
       "getTypeAchievement",
       "createAchievement",

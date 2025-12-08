@@ -1,29 +1,29 @@
-import { mockDatabase } from "../../database/mockDatabase";
-import { userRepository } from "../../repositories/userRepository";
-import { chanelRepository } from "../../repositories/chanelRepository";
-import { typeAchievementRepository } from "../../repositories/typeAchievementRepository";
-import { achievementRepository } from "../../repositories/achievementRepository";
-import { badgeRepository } from "../../repositories/badgeRepository";
-import { achievedRepository } from "../../repositories/achievedRepository";
-import { areRepository } from "../../repositories/areRepository";
-import { possessesRepository } from "../../repositories/possessesRepository";
+import { MockDatabase } from "../../database/mockDatabase";
+import { UserRepository } from "../../repositories/userRepository";
+import { ChannelRepository } from "../../repositories/channelRepository";
+import { TypeAchievementRepository } from "../../repositories/typeAchievementRepository";
+import { AchievementRepository } from "../../repositories/achievementRepository";
+import { BadgeRepository } from "../../repositories/badgeRepository";
+import { AchievedRepository } from "../../repositories/achievedRepository";
+import { AreRepository } from "../../repositories/areRepository";
+import { PossessesRepository } from "../../repositories/possessesRepository";
 
 describe("repositories (unit, mock)", () => {
-  const db = new mockDatabase();
-  const userRepo = new userRepository(db);
-  const chanelRepo = new chanelRepository(db);
-  const typeRepo = new typeAchievementRepository(db);
-  const achRepo = new achievementRepository(db);
-  const badgeRepo = new badgeRepository(db);
-  const achievedRepo = new achievedRepository(db);
-  const areRepo = new areRepository(db);
-  const possRepo = new possessesRepository(db);
+  const db = new MockDatabase();
+  const userRepo = new UserRepository(db);
+  const channelRepo = new ChannelRepository(db);
+  const typeRepo = new TypeAchievementRepository(db);
+  const achRepo = new AchievementRepository(db);
+  const badgeRepo = new BadgeRepository(db);
+  const achievedRepo = new AchievedRepository(db);
+  const areRepo = new AreRepository(db);
+  const possRepo = new PossessesRepository(db);
 
-  test("user chanel type achievement badge achieved are possesses add/get flow", async () => {
+  test("user channel type achievement badge achieved are possesses add/get flow", async () => {
     const user = await userRepo.addUser("u1");
     expect(user).toHaveProperty("id");
 
-    const ch = await chanelRepo.addChanel("c1");
+    const ch = await channelRepo.addChannel("c1");
     expect(ch).toHaveProperty("id");
 
     const t = await typeRepo.add("label1", "data1");
@@ -47,7 +47,7 @@ describe("repositories (unit, mock)", () => {
       count: 1,
       finished: false,
       labelActive: true,
-      aquiredDate: new Date().toISOString(),
+      acquiredDate: new Date().toISOString(),
     });
     expect(achv.achievementId).toBe(a.id);
 
@@ -61,7 +61,7 @@ describe("repositories (unit, mock)", () => {
     const gotUser = await userRepo.getUserById(user.id);
     expect(gotUser?.id).toBe(user.id);
 
-    const gotCh = await chanelRepo.getChanelById(ch.id);
+    const gotCh = await channelRepo.getChannelById(ch.id);
     expect(gotCh?.id).toBe(ch.id);
 
     const gotT = await typeRepo.getById(t.id);
@@ -77,7 +77,7 @@ describe("repositories (unit, mock)", () => {
     expect(gotAchv?.achievementId).toBe(a.id);
 
     const gotAre = await areRepo.get(user.id, ch.id);
-    expect(gotAre?.chanelId).toBe(ch.id);
+    expect(gotAre?.channelId).toBe(ch.id);
 
     const gotPoss = await possRepo.get(user.id, b.id);
     expect(gotPoss?.badgeId).toBe(b.id);
@@ -85,7 +85,7 @@ describe("repositories (unit, mock)", () => {
     // negative / not found cases to exercise branches
     const missingId = "00000000-0000-0000-0000-000000000000";
     expect(await userRepo.getUserById(missingId)).toBeNull();
-    expect(await chanelRepo.getChanelById(missingId)).toBeNull();
+    expect(await channelRepo.getChannelById(missingId)).toBeNull();
     expect(await typeRepo.getById(missingId)).toBeNull();
     expect(await achRepo.getById(missingId)).toBeNull();
     expect(await badgeRepo.getById(missingId)).toBeNull();

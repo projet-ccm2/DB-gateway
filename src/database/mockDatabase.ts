@@ -1,7 +1,7 @@
 import {
   database,
   userDTO,
-  chanelDTO,
+  channelDTO,
   typeAchievementDTO,
   achievementDTO,
   badgeDTO,
@@ -11,9 +11,9 @@ import {
 } from "./database";
 import { randomUUID } from "crypto";
 
-export class mockDatabase implements database {
+export class MockDatabase implements database {
   private users: userDTO[] = [];
-  private chanels: chanelDTO[] = [];
+  private channels: channelDTO[] = [];
   private types: typeAchievementDTO[] = [];
   private achievements: achievementDTO[] = [];
   private badges: badgeDTO[] = [];
@@ -32,14 +32,14 @@ export class mockDatabase implements database {
     return newUser;
   }
 
-  // Chanel
-  async getChanelById(id: string): Promise<chanelDTO | null> {
-    return this.chanels.find((c) => c.id === id) ?? null;
+  // Channel
+  async getChannelById(id: string): Promise<channelDTO | null> {
+    return this.channels.find((c) => c.id === id) ?? null;
   }
 
-  async addChanel(chanel: { name: string }): Promise<chanelDTO> {
-    const newC: chanelDTO = { id: randomUUID(), name: chanel.name };
-    this.chanels.push(newC);
+  async addChannel(channel: { name: string }): Promise<channelDTO> {
+    const newC: channelDTO = { id: randomUUID(), name: channel.name };
+    this.channels.push(newC);
     return newC;
   }
 
@@ -114,7 +114,7 @@ export class mockDatabase implements database {
     count: number;
     finished: boolean;
     labelActive: boolean;
-    aquiredDate: string;
+    acquiredDate: string;
   }): Promise<achievedDTO> {
     const na: achievedDTO = {
       achievementId: a.achievementId,
@@ -122,28 +122,28 @@ export class mockDatabase implements database {
       count: a.count,
       finished: a.finished,
       labelActive: a.labelActive,
-      aquiredDate: a.aquiredDate,
+      acquiredDate: a.acquiredDate,
     };
     this.achieved.push(na);
     return na;
   }
 
   // Are
-  async getAre(userId: string, chanelId: string): Promise<areDTO | null> {
+  async getAre(userId: string, channelId: string): Promise<areDTO | null> {
     return (
-      this.are.find((x) => x.userId === userId && x.chanelId === chanelId) ??
+      this.are.find((x) => x.userId === userId && x.channelId === channelId) ??
       null
     );
   }
 
   async addAre(a: {
     userId: string;
-    chanelId: string;
+    channelId: string;
     userType: string;
   }): Promise<areDTO> {
     const na: areDTO = {
       userId: a.userId,
-      chanelId: a.chanelId,
+      channelId: a.channelId,
       userType: a.userType,
     };
     this.are.push(na);
@@ -165,12 +165,12 @@ export class mockDatabase implements database {
   async addPossesses(p: {
     userId: string;
     badgeId: string;
-    aquiredDate: string;
+    acquiredDate: string;
   }): Promise<possessesDTO> {
     const np: possessesDTO = {
       userId: p.userId,
       badgeId: p.badgeId,
-      aquiredDate: p.aquiredDate,
+      acquiredDate: p.acquiredDate,
     };
     this.possesses.push(np);
     return np;

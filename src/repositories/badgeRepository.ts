@@ -1,6 +1,6 @@
 import { database, badgeDTO } from "../database/database";
 
-export class badgeRepository {
+export class BadgeRepository {
   constructor(private db: database) {}
 
   async getById(id: string): Promise<badgeDTO | null> {

@@ -1,8 +1,8 @@
 import { UserService } from "../../services/userService";
-import { mockDatabase } from "../../database/mockDatabase";
+import { MockDatabase } from "../../database/mockDatabase";
 
 test("UserService add/get flow (unit)", async () => {
-  const db = new mockDatabase();
+  const db = new MockDatabase();
   const repo = {
     getUserById: db.getUserById.bind(db),
     addUser: db.addUser.bind(db),

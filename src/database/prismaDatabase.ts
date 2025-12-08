@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import {
   database,
   userDTO,
-  chanelDTO,
+  channelDTO,
   typeAchievementDTO,
   achievementDTO,
   badgeDTO,
@@ -12,7 +12,7 @@ import {
 } from "./database";
 
 // Wrap the generated Prisma client with a simple adapter to satisfy our database interface
-export class prismaDatabase implements database {
+export class PrismaDatabase implements database {
   // Generated client expects an options object; allow any for simplicity
   private prisma: any;
 
@@ -31,15 +31,15 @@ export class prismaDatabase implements database {
     return { id: u.id, username: u.username };
   }
 
-  // Chanel
-  async getChanelById(id: string): Promise<chanelDTO | null> {
-    const c = await this.prisma.chanel.findUnique({ where: { id } });
+  // Channel
+  async getChannelById(id: string): Promise<channelDTO | null> {
+    const c = await this.prisma.channel.findUnique({ where: { id } });
     if (!c) return null;
     return { id: c.id, name: c.name };
   }
 
-  async addChanel(chanel: { name: string }): Promise<chanelDTO> {
-    const c = await this.prisma.chanel.create({ data: { name: chanel.name } });
+  async addChannel(channel: { name: string }): Promise<channelDTO> {
+    const c = await this.prisma.channel.create({ data: { name: channel.name } });
     return { id: c.id, name: c.name };
   }
 
@@ -135,7 +135,7 @@ export class prismaDatabase implements database {
       count: a.count,
       finished: a.finished,
       labelActive: a.labelActive,
-      aquiredDate: a.aquiredDate.toISOString(),
+      acquiredDate: a.acquiredDate.toISOString(),
     };
   }
 
@@ -145,7 +145,7 @@ export class prismaDatabase implements database {
     count: number;
     finished: boolean;
     labelActive: boolean;
-    aquiredDate: string;
+    acquiredDate: string;
   }): Promise<achievedDTO> {
     const na = await this.prisma.achieved.create({
       data: {
@@ -154,7 +154,7 @@ export class prismaDatabase implements database {
         count: a.count,
         finished: a.finished,
         labelActive: a.labelActive,
-        aquiredDate: new Date(a.aquiredDate),
+        acquiredDate: new Date(a.acquiredDate),
       },
     });
     return {
@@ -163,27 +163,27 @@ export class prismaDatabase implements database {
       count: na.count,
       finished: na.finished,
       labelActive: na.labelActive,
-      aquiredDate: na.aquiredDate.toISOString(),
+      acquiredDate: na.acquiredDate.toISOString(),
     };
   }
 
-  async getAre(userId: string, chanelId: string): Promise<areDTO | null> {
+  async getAre(userId: string, channelId: string): Promise<areDTO | null> {
     const r = await this.prisma.are.findUnique({
-      where: { userIdChanelId: { userId, chanelId } },
+      where: { userIdChannelId: { userId, channelId } },
     });
     if (!r) return null;
-    return { userId: r.userId, chanelId: r.chanelId, userType: r.userType };
+    return { userId: r.userId, channelId: r.channelId, userType: r.userType };
   }
 
   async addAre(a: {
     userId: string;
-    chanelId: string;
+    channelId: string;
     userType: string;
   }): Promise<areDTO> {
     const nr = await this.prisma.are.create({
-      data: { userId: a.userId, chanelId: a.chanelId, userType: a.userType },
+      data: { userId: a.userId, channelId: a.channelId, userType: a.userType },
     });
-    return { userId: nr.userId, chanelId: nr.chanelId, userType: nr.userType };
+    return { userId: nr.userId, channelId: nr.channelId, userType: nr.userType };
   }
 
   async getPossesses(
@@ -197,26 +197,26 @@ export class prismaDatabase implements database {
     return {
       userId: p.userId,
       badgeId: p.badgeId,
-      aquiredDate: p.aquiredDate.toISOString(),
+      acquiredDate: p.acquiredDate.toISOString(),
     };
   }
 
   async addPossesses(p: {
     userId: string;
     badgeId: string;
-    aquiredDate: string;
+    acquiredDate: string;
   }): Promise<possessesDTO> {
     const np = await this.prisma.possesses.create({
       data: {
         userId: p.userId,
         badgeId: p.badgeId,
-        aquiredDate: new Date(p.aquiredDate),
+        acquiredDate: new Date(p.acquiredDate),
       },
     });
     return {
       userId: np.userId,
       badgeId: np.badgeId,
-      aquiredDate: np.aquiredDate.toISOString(),
+      acquiredDate: np.acquiredDate.toISOString(),
     };
   }
 

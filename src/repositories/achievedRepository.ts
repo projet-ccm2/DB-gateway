@@ -1,6 +1,6 @@
 import { database, achievedDTO } from "../database/database";
 
-export class achievedRepository {
+export class AchievedRepository {
   constructor(private db: database) {}
 
   async get(
@@ -16,7 +16,7 @@ export class achievedRepository {
     count: number;
     finished: boolean;
     labelActive: boolean;
-    aquiredDate: string;
+    acquiredDate: string;
   }): Promise<achievedDTO> {
     return this.db.addAchieved(a);
   }

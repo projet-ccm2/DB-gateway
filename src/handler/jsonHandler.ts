@@ -1,6 +1,6 @@
 import type {
   userDTO,
-  chanelDTO,
+  channelDTO,
   typeAchievementDTO,
   achievementDTO,
   badgeDTO,
@@ -15,9 +15,9 @@ export type GatewayRepo = {
     addUser(username: string): Promise<userDTO>;
     getUserById(id: string): Promise<userDTO | null>;
   };
-  chanel: {
-    addChanel(name: string): Promise<chanelDTO>;
-    getChanelById(id: string): Promise<chanelDTO | null>;
+  channel: {
+    addChannel(name: string): Promise<channelDTO>;
+    getChannelById(id: string): Promise<channelDTO | null>;
   };
   typeAchievement: {
     addTypeAchievement(
@@ -47,7 +47,7 @@ export type GatewayRepo = {
       count: number;
       finished: boolean;
       labelActive: boolean;
-      aquiredDate: string;
+      acquiredDate: string;
     }): Promise<achievedDTO>;
     getAchieved(
       achievementId: string,
@@ -55,14 +55,14 @@ export type GatewayRepo = {
     ): Promise<achievedDTO | null>;
   };
   are: {
-    addAre(userId: string, chanelId: string, userType: string): Promise<areDTO>;
-    getAre(userId: string, chanelId: string): Promise<areDTO | null>;
+    addAre(userId: string, channelId: string, userType: string): Promise<areDTO>;
+    getAre(userId: string, channelId: string): Promise<areDTO | null>;
   };
   possesses: {
     addPossesses(
       userId: string,
       badgeId: string,
-      aquiredDate: string,
+      acquiredDate: string,
     ): Promise<possessesDTO>;
     getPossesses(userId: string, badgeId: string): Promise<possessesDTO | null>;
   };
@@ -90,17 +90,17 @@ export async function handleJsonMessage(repo: GatewayRepo, msg: any) {
         return { ok: true, user };
       }
 
-      // Chanel
-      case "createChanel": {
+      // Channel
+      case "createChannel": {
         if (!payload.name) return missing("name");
-        const chanel = await repo.chanel.addChanel(payload.name);
-        return { ok: true, chanel };
+        const channel = await repo.channel.addChannel(payload.name);
+        return { ok: true, channel };
       }
-      case "getChanel": {
-        const id = payload.chanelId || payload.id;
-        if (!id) return missing("chanelId");
-        const chanel = await repo.chanel.getChanelById(id);
-        return { ok: true, chanel };
+      case "getChannel": {
+        const id = payload.channelId || payload.id;
+        if (!id) return missing("channelId");
+        const channel = await repo.channel.getChannelById(id);
+        return { ok: true, channel };
       }
 
       // TypeAchievement
@@ -162,7 +162,7 @@ export async function handleJsonMessage(repo: GatewayRepo, msg: any) {
           count,
           finished,
           labelActive,
-          aquiredDate,
+          acquiredDate,
         } = payload;
         if (
           !achievementId ||
@@ -170,7 +170,7 @@ export async function handleJsonMessage(repo: GatewayRepo, msg: any) {
           count == null ||
           finished == null ||
           labelActive == null ||
-          !aquiredDate
+          !acquiredDate
         )
           return missing(
             "achievementId",
@@ -178,7 +178,7 @@ export async function handleJsonMessage(repo: GatewayRepo, msg: any) {
             "count",
             "finished",
             "labelActive",
-            "aquiredDate",
+            "acquiredDate",
           );
         const achieved = await repo.achieved.addAchieved({
           achievementId,
@@ -186,7 +186,7 @@ export async function handleJsonMessage(repo: GatewayRepo, msg: any) {
           count,
           finished,
           labelActive,
-          aquiredDate,
+          acquiredDate,
         });
         return { ok: true, achieved };
       }
@@ -200,28 +200,28 @@ export async function handleJsonMessage(repo: GatewayRepo, msg: any) {
 
       // Are
       case "createAre": {
-        const { userId, chanelId, userType } = payload;
-        if (!userId || !chanelId || !userType)
-          return missing("userId", "chanelId", "userType");
-        const are = await repo.are.addAre(userId, chanelId, userType);
+        const { userId, channelId, userType } = payload;
+        if (!userId || !channelId || !userType)
+          return missing("userId", "channelId", "userType");
+        const are = await repo.are.addAre(userId, channelId, userType);
         return { ok: true, are };
       }
       case "getAre": {
-        const { userId, chanelId } = payload;
-        if (!userId || !chanelId) return missing("userId", "chanelId");
-        const are = await repo.are.getAre(userId, chanelId);
+        const { userId, channelId } = payload;
+        if (!userId || !channelId) return missing("userId", "channelId");
+        const are = await repo.are.getAre(userId, channelId);
         return { ok: true, are };
       }
 
       // Possesses
       case "createPossesses": {
-        const { userId, badgeId, aquiredDate } = payload;
-        if (!userId || !badgeId || !aquiredDate)
-          return missing("userId", "badgeId", "aquiredDate");
+        const { userId, badgeId, acquiredDate } = payload;
+        if (!userId || !badgeId || !acquiredDate)
+          return missing("userId", "badgeId", "acquiredDate");
         const possesses = await repo.possesses.addPossesses(
           userId,
           badgeId,
-          aquiredDate,
+          acquiredDate,
         );
         return { ok: true, possesses };
       }

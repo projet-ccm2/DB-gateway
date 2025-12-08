@@ -1,17 +1,17 @@
 import { database, areDTO } from "../database/database";
 
-export class areRepository {
+export class AreRepository {
   constructor(private db: database) {}
 
-  async get(userId: string, chanelId: string): Promise<areDTO | null> {
-    return this.db.getAre(userId, chanelId);
+  async get(userId: string, channelId: string): Promise<areDTO | null> {
+    return this.db.getAre(userId, channelId);
   }
 
   async add(
     userId: string,
-    chanelId: string,
+    channelId: string,
     userType: string,
   ): Promise<areDTO> {
-    return this.db.addAre({ userId, chanelId, userType });
+    return this.db.addAre({ userId, channelId, userType });
   }
 }
