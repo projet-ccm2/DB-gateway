@@ -430,15 +430,32 @@ POST /users
 Content-Type: application/json
 
 {
-  "username": "john_doe"
+  "username": "john_doe",
+  "twitchUserId": "12345678",
+  "profileImageUrl": "https://example.com/avatar.png",
+  "channelDescription": "Welcome to my channel!",
+  "scope": "chat:read chat:write user:read"
 }
 ```
+
+Required fields:
+- `username` — Display name
+- `twitchUserId` — Twitch User ID
+
+Optional fields:
+- `profileImageUrl` — Profile avatar URL (nullable)
+- `channelDescription` — Channel bio/description (nullable)
+- `scope` — OAuth scopes accepted by user (nullable, space-separated)
 
 Response (201):
 ```json
 {
   "id": "u_abc123",
-  "username": "john_doe"
+  "username": "john_doe",
+  "twitchUserId": "12345678",
+  "profileImageUrl": "https://example.com/avatar.png",
+  "channelDescription": "Welcome to my channel!",
+  "scope": "chat:read chat:write user:read"
 }
 ```
 
@@ -458,14 +475,66 @@ Response (200):
 ```json
 {
   "id": "u_abc123",
-  "username": "john_doe"
+  "username": "john_doe",
+  "twitchUserId": "12345678",
+  "profileImageUrl": "https://example.com/avatar.png",
+  "channelDescription": "Welcome to my channel!",
+  "scope": "chat:read chat:write user:read"
 }
 ```
 
 **Error responses:**
-- `400` — Username is required (POST only)
+- `400` — Username and twitchUserId are required (POST only)
 - `404` — User not found (GET only)
 - `500` — Server error
+
+---
+
+### UserRepository New Methods
+
+The `UserRepository` now supports additional query methods:
+
+#### Get user's subscriptions (channels)
+```typescript
+// Returns all channels a user is subscribed to
+const channels = await userRepo.getChannelsByUserId(userId);
+// Returns: channelDTO[]
+```
+
+#### Get user's badges
+```typescript
+// Returns all badges owned by a user
+const badges = await userRepo.getBadgesByUserId(userId);
+// Returns: badgeDTO[]
+```
+
+#### Get user's achievements
+```typescript
+// Returns all achievements (progress records) for a user
+const achievements = await userRepo.getAchievementsByUserId(userId);
+// Returns: achievedDTO[]
+```
+
+#### Get users by channel (inverse lookup)
+```typescript
+// Returns all users subscribed to a channel
+const users = await userRepo.getUsersByChannelId(channelId);
+// Returns: userDTO[]
+```
+
+#### Get users by badge (inverse lookup)
+```typescript
+// Returns all users who own a specific badge
+const users = await userRepo.getUsersByBadgeId(badgeId);
+// Returns: userDTO[]
+```
+
+#### Get users by achievement (inverse lookup)
+```typescript
+// Returns all users who have a specific achievement
+const users = await userRepo.getUsersByAchievementId(achievementId);
+// Returns: userDTO[]
+```
 
 ---
 
@@ -513,7 +582,11 @@ All types are defined in `src/database/database.ts`. Here's the complete type re
 // User
 type userDTO = { 
   id: string; 
-  username: string 
+  username: string;
+  twitchUserId: string;              // Required - Twitch User ID
+  profileImageUrl: string | null;    // Optional - Profile avatar URL
+  channelDescription: string | null; // Optional - Channel bio
+  scope: string | null;              // Optional - OAuth scopes (space-separated)
 };
 
 // Channel
@@ -579,7 +652,23 @@ All database adapters (`MockDatabase`, `PrismaDatabase`) implement this interfac
 interface database {
   // User operations
   getUserById(id: string): Promise<userDTO | null>;
-  addUser(username: string): Promise<userDTO>;
+  addUser(user: {
+    username: string;
+    twitchUserId: string;
+    profileImageUrl?: string | null;
+    channelDescription?: string | null;
+    scope?: string | null;
+  }): Promise<userDTO>;
+
+  // User query methods (get related entities)
+  getChannelsByUserId(userId: string): Promise<channelDTO[]>;
+  getBadgesByUserId(userId: string): Promise<badgeDTO[]>;
+  getAchievementsByUserId(userId: string): Promise<achievedDTO[]>;
+
+  // Inverse lookups (get users by related entity)
+  getUsersByChannelId(channelId: string): Promise<userDTO[]>;
+  getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;
+  getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
 
   // Channel operations
   getChannelById(id: string): Promise<channelDTO | null>;

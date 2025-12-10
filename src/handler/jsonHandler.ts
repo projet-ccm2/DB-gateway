@@ -12,8 +12,20 @@ import type {
 // Central repo shape for all actions
 export type GatewayRepo = {
   user: {
-    addUser(username: string): Promise<userDTO>;
+    addUser(user: {
+      username: string;
+      twitchUserId: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+    }): Promise<userDTO>;
     getUserById(id: string): Promise<userDTO | null>;
+    getChannelsByUserId(userId: string): Promise<channelDTO[]>;
+    getBadgesByUserId(userId: string): Promise<badgeDTO[]>;
+    getAchievementsByUserId(userId: string): Promise<achievedDTO[]>;
+    getUsersByChannelId(channelId: string): Promise<userDTO[]>;
+    getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;
+    getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
   };
   channel: {
     addChannel(name: string): Promise<channelDTO>;
@@ -83,8 +95,15 @@ export async function handleJsonMessage(repo: GatewayRepo, msg: any) {
     switch (action) {
       // User
       case "createUser": {
-        if (!payload.username) return missing("username");
-        const user = await repo.user.addUser(payload.username);
+        if (!payload.username || !payload.twitchUserId)
+          return missing("username", "twitchUserId");
+        const user = await repo.user.addUser({
+          username: payload.username,
+          twitchUserId: payload.twitchUserId,
+          profileImageUrl: payload.profileImageUrl ?? null,
+          channelDescription: payload.channelDescription ?? null,
+          scope: payload.scope ?? null,
+        });
         return { ok: true, user };
       }
       case "getUser": {
@@ -92,6 +111,42 @@ export async function handleJsonMessage(repo: GatewayRepo, msg: any) {
         if (!id) return missing("userId");
         const user = await repo.user.getUserById(id);
         return { ok: true, user };
+      }
+      case "getChannelsByUserId": {
+        const userId = payload.userId;
+        if (!userId) return missing("userId");
+        const channels = await repo.user.getChannelsByUserId(userId);
+        return { ok: true, channels };
+      }
+      case "getBadgesByUserId": {
+        const userId = payload.userId;
+        if (!userId) return missing("userId");
+        const badges = await repo.user.getBadgesByUserId(userId);
+        return { ok: true, badges };
+      }
+      case "getAchievementsByUserId": {
+        const userId = payload.userId;
+        if (!userId) return missing("userId");
+        const achievements = await repo.user.getAchievementsByUserId(userId);
+        return { ok: true, achievements };
+      }
+      case "getUsersByChannelId": {
+        const channelId = payload.channelId;
+        if (!channelId) return missing("channelId");
+        const users = await repo.user.getUsersByChannelId(channelId);
+        return { ok: true, users };
+      }
+      case "getUsersByBadgeId": {
+        const badgeId = payload.badgeId;
+        if (!badgeId) return missing("badgeId");
+        const users = await repo.user.getUsersByBadgeId(badgeId);
+        return { ok: true, users };
+      }
+      case "getUsersByAchievementId": {
+        const achievementId = payload.achievementId;
+        if (!achievementId) return missing("achievementId");
+        const users = await repo.user.getUsersByAchievementId(achievementId);
+        return { ok: true, users };
       }
 
       // Channel

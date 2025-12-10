@@ -20,7 +20,10 @@ describe("repositories (unit, mock)", () => {
   const possRepo = new PossessesRepository(db);
 
   test("user channel type achievement badge achieved are possesses add/get flow", async () => {
-    const user = await userRepo.addUser("u1");
+    const user = await userRepo.addUser({
+      username: "u1",
+      twitchUserId: "twitch_u1",
+    });
     expect(user).toHaveProperty("id");
 
     const ch = await channelRepo.addChannel("c1");

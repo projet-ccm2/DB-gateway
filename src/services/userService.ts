@@ -1,5 +1,5 @@
 import { UserRepository } from "../repositories/userRepository";
-import type { userDTO } from "../database/database";
+import type { userDTO, channelDTO, badgeDTO, achievedDTO } from "../database/database";
 
 export class UserService {
   constructor(private repo: UserRepository) {}
@@ -8,7 +8,37 @@ export class UserService {
     return this.repo.getUserById(id);
   }
 
-  async addUser(username: string): Promise<userDTO> {
-    return this.repo.addUser(username);
+  async addUser(user: {
+    username: string;
+    twitchUserId: string;
+    profileImageUrl?: string | null;
+    channelDescription?: string | null;
+    scope?: string | null;
+  }): Promise<userDTO> {
+    return this.repo.addUser(user);
+  }
+
+  async getChannelsByUserId(userId: string): Promise<channelDTO[]> {
+    return this.repo.getChannelsByUserId(userId);
+  }
+
+  async getBadgesByUserId(userId: string): Promise<badgeDTO[]> {
+    return this.repo.getBadgesByUserId(userId);
+  }
+
+  async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
+    return this.repo.getAchievementsByUserId(userId);
+  }
+
+  async getUsersByChannelId(channelId: string): Promise<userDTO[]> {
+    return this.repo.getUsersByChannelId(channelId);
+  }
+
+  async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {
+    return this.repo.getUsersByBadgeId(badgeId);
+  }
+
+  async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
+    return this.repo.getUsersByAchievementId(achievementId);
   }
 }

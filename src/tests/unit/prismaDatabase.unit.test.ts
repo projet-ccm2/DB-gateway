@@ -34,10 +34,18 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._users.get(id) ?? null,
               create: async ({ data }) => {
                 const id = "u_" + Math.random().toString(36).slice(2, 8);
-                const row = { id, username: data.username };
+                const row = {
+                  id,
+                  username: data.username,
+                  twitchUserId: data.twitchUserId,
+                  profileImageUrl: data.profileImageUrl ?? null,
+                  channelDescription: data.channelDescription ?? null,
+                  scope: data.scope ?? null,
+                };
                 this._users.set(id, row);
                 return row;
               },
+              findMany: async () => [],
             };
 
             this.channel = {
@@ -112,6 +120,21 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._achieved.set(key, row);
                 return row;
               },
+              findMany: async ({ where, include }) => {
+                const results = [];
+                for (const [, v] of this._achieved) {
+                  if (where?.userId && v.userId !== where.userId) continue;
+                  if (
+                    where?.achievementId &&
+                    v.achievementId !== where.achievementId
+                  )
+                    continue;
+                  const row = { ...v };
+                  if (include?.user) row.user = this._users.get(v.userId);
+                  results.push(row);
+                }
+                return results;
+              },
             };
 
             this.are = {
@@ -130,6 +153,19 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._are.set(key, row);
                 return row;
               },
+              findMany: async ({ where, include }) => {
+                const results = [];
+                for (const [, v] of this._are) {
+                  if (where?.userId && v.userId !== where.userId) continue;
+                  if (where?.channelId && v.channelId !== where.channelId)
+                    continue;
+                  const row = { ...v };
+                  if (include?.channel) row.channel = this._channels.get(v.channelId);
+                  if (include?.user) row.user = this._users.get(v.userId);
+                  results.push(row);
+                }
+                return results;
+              },
             };
 
             this.possesses = {
@@ -147,6 +183,18 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._possesses.set(key, row);
                 return row;
               },
+              findMany: async ({ where, include }) => {
+                const results = [];
+                for (const [, v] of this._possesses) {
+                  if (where?.userId && v.userId !== where.userId) continue;
+                  if (where?.badgeId && v.badgeId !== where.badgeId) continue;
+                  const row = { ...v };
+                  if (include?.badge) row.badge = this._badges.get(v.badgeId);
+                  if (include?.user) row.user = this._users.get(v.userId);
+                  results.push(row);
+                }
+                return results;
+              },
             };
 
             this.$disconnect = async () => {};
@@ -160,8 +208,12 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       const db = new PrismaDatabase();
 
       // User paths
-      const addedUser = await db.addUser("alice");
+      const addedUser = await db.addUser({
+        username: "alice",
+        twitchUserId: "twitch_alice",
+      });
       expect(addedUser.username).toBe("alice");
+      expect(addedUser.twitchUserId).toBe("twitch_alice");
       const gotUser = await db.getUserById(addedUser.id);
       expect(gotUser?.id).toBe(addedUser.id);
       expect(await db.getUserById("nope")).toBeNull();

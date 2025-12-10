@@ -26,8 +26,21 @@ export class MockDatabase implements database {
     return this.users.find((u) => u.id === id) ?? null;
   }
 
-  async addUser(username: string): Promise<userDTO> {
-    const newUser: userDTO = { id: randomUUID(), username };
+  async addUser(user: {
+    username: string;
+    twitchUserId: string;
+    profileImageUrl?: string | null;
+    channelDescription?: string | null;
+    scope?: string | null;
+  }): Promise<userDTO> {
+    const newUser: userDTO = {
+      id: randomUUID(),
+      username: user.username,
+      twitchUserId: user.twitchUserId,
+      profileImageUrl: user.profileImageUrl ?? null,
+      channelDescription: user.channelDescription ?? null,
+      scope: user.scope ?? null,
+    };
     this.users.push(newUser);
     return newUser;
   }
@@ -174,5 +187,54 @@ export class MockDatabase implements database {
     };
     this.possesses.push(np);
     return np;
+  }
+
+  // ============ NEW: Get by User ID ============
+
+  async getChannelsByUserId(userId: string): Promise<channelDTO[]> {
+    // Find all Are records for this user, then return corresponding channels
+    const userChannelIds = this.are
+      .filter((a) => a.userId === userId)
+      .map((a) => a.channelId);
+    return this.channels.filter((c) => userChannelIds.includes(c.id));
+  }
+
+  async getBadgesByUserId(userId: string): Promise<badgeDTO[]> {
+    // Find all Possesses records for this user, then return corresponding badges
+    const userBadgeIds = this.possesses
+      .filter((p) => p.userId === userId)
+      .map((p) => p.badgeId);
+    return this.badges.filter((b) => userBadgeIds.includes(b.id));
+  }
+
+  async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
+    // Return all Achieved records for this user
+    return this.achieved.filter((a) => a.userId === userId);
+  }
+
+  // ============ NEW: Inverse lookups (get users by entity) ============
+
+  async getUsersByChannelId(channelId: string): Promise<userDTO[]> {
+    // Find all Are records for this channel, then return corresponding users
+    const channelUserIds = this.are
+      .filter((a) => a.channelId === channelId)
+      .map((a) => a.userId);
+    return this.users.filter((u) => channelUserIds.includes(u.id));
+  }
+
+  async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {
+    // Find all Possesses records for this badge, then return corresponding users
+    const badgeUserIds = this.possesses
+      .filter((p) => p.badgeId === badgeId)
+      .map((p) => p.userId);
+    return this.users.filter((u) => badgeUserIds.includes(u.id));
+  }
+
+  async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
+    // Find all Achieved records for this achievement, then return corresponding users
+    const achievementUserIds = this.achieved
+      .filter((a) => a.achievementId === achievementId)
+      .map((a) => a.userId);
+    return this.users.filter((u) => achievementUserIds.includes(u.id));
   }
 }

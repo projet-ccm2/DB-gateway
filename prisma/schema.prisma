@@ -8,8 +8,12 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(uuid()) @map("User_ID") @db.VarChar(36)
-  username String  @map("User_Username") @db.VarChar(50)
+  id                  String  @id @default(uuid()) @map("User_ID") @db.VarChar(36)
+  username            String  @map("User_Username") @db.VarChar(50)
+  twitchUserId        String  @map("Twitch_User_ID") @db.VarChar(50)
+  profileImageUrl     String? @map("Profile_Image_Url") @db.VarChar(255)
+  channelDescription  String? @map("Channel_Description") @db.VarChar(500)
+  scope               String? @map("Scope") @db.VarChar(500)
 
   // relations
   achieved   Achieved[]  @relation("user_achieved")

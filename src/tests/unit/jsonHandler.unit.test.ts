@@ -22,12 +22,49 @@ function makeRepoMock(): GatewayRepo {
 
   return {
     user: {
-      addUser: async (username: string) => {
-        const u = { id: "u_" + username, username };
+      addUser: async (user: {
+        username: string;
+        twitchUserId: string;
+        profileImageUrl?: string | null;
+        channelDescription?: string | null;
+        scope?: string | null;
+      }) => {
+        const u: userDTO = {
+          id: "u_" + user.username,
+          username: user.username,
+          twitchUserId: user.twitchUserId,
+          profileImageUrl: user.profileImageUrl ?? null,
+          channelDescription: user.channelDescription ?? null,
+          scope: user.scope ?? null,
+        };
         users.push(u);
         return u;
       },
       getUserById: async (id: string) => users.find((u) => u.id === id) ?? null,
+      getChannelsByUserId: async (userId: string) =>
+        channels.filter((c) =>
+          are.some((a) => a.userId === userId && a.channelId === c.id),
+        ),
+      getBadgesByUserId: async (userId: string) =>
+        badges.filter((b) =>
+          possesses.some((p) => p.userId === userId && p.badgeId === b.id),
+        ),
+      getAchievementsByUserId: async (userId: string) =>
+        achieved.filter((a) => a.userId === userId),
+      getUsersByChannelId: async (channelId: string) =>
+        users.filter((u) =>
+          are.some((a) => a.channelId === channelId && a.userId === u.id),
+        ),
+      getUsersByBadgeId: async (badgeId: string) =>
+        users.filter((u) =>
+          possesses.some((p) => p.badgeId === badgeId && p.userId === u.id),
+        ),
+      getUsersByAchievementId: async (achievementId: string) =>
+        users.filter((u) =>
+          achieved.some(
+            (a) => a.achievementId === achievementId && a.userId === u.id,
+          ),
+        ),
     },
     channel: {
       addChannel: async (name: string) => {
@@ -112,7 +149,7 @@ describe("jsonHandler full coverage", () => {
   test("user create/get", async () => {
     const create = await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { username: "bob" },
+      payload: { username: "bob", twitchUserId: "twitch_bob" },
     });
     expect(create.ok).toBe(true);
 
@@ -121,6 +158,180 @@ describe("jsonHandler full coverage", () => {
       payload: { userId: "u_bob" },
     });
     expect(get.ok).toBe(true);
+  });
+
+  test("user create with all fields", async () => {
+    const create = await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        username: "alice",
+        twitchUserId: "twitch_alice",
+        profileImageUrl: "https://img.com/alice.png",
+        channelDescription: "Alice's channel",
+        scope: "chat:read",
+      },
+    });
+    expect(create.ok).toBe(true);
+    expect(create.user!.profileImageUrl).toBe("https://img.com/alice.png");
+    expect(create.user!.channelDescription).toBe("Alice's channel");
+    expect(create.user!.scope).toBe("chat:read");
+  });
+
+  test("getChannelsByUserId", async () => {
+    // Create user and channel
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: { username: "chuser", twitchUserId: "twitch_chuser" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { name: "testchan" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createAre",
+      payload: { userId: "u_chuser", channelId: "c_testchan", userType: "mod" },
+    });
+
+    const result = await handleJsonMessage(repo, {
+      action: "getChannelsByUserId",
+      payload: { userId: "u_chuser" },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.channels!).toHaveLength(1);
+    expect(result.channels![0].name).toBe("testchan");
+  });
+
+  test("getBadgesByUserId", async () => {
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: { username: "badgeuser", twitchUserId: "twitch_badgeuser" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createBadge",
+      payload: { title: "testbadge", img: "badge.png" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createPossesses",
+      payload: {
+        userId: "u_badgeuser",
+        badgeId: "b_testbadge",
+        acquiredDate: "2024-01-01T00:00:00Z",
+      },
+    });
+
+    const result = await handleJsonMessage(repo, {
+      action: "getBadgesByUserId",
+      payload: { userId: "u_badgeuser" },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.badges!).toHaveLength(1);
+    expect(result.badges![0].title).toBe("testbadge");
+  });
+
+  test("getAchievementsByUserId", async () => {
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: { username: "achuser", twitchUserId: "twitch_achuser" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createAchieved",
+      payload: {
+        achievementId: "a1",
+        userId: "u_achuser",
+        count: 1,
+        finished: true,
+        labelActive: true,
+        acquiredDate: "2024-01-01T00:00:00Z",
+      },
+    });
+
+    const result = await handleJsonMessage(repo, {
+      action: "getAchievementsByUserId",
+      payload: { userId: "u_achuser" },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.achievements!).toHaveLength(1);
+    expect(result.achievements![0].achievementId).toBe("a1");
+  });
+
+  test("getUsersByChannelId", async () => {
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: { username: "chanmember", twitchUserId: "twitch_chanmember" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { name: "popchan" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createAre",
+      payload: {
+        userId: "u_chanmember",
+        channelId: "c_popchan",
+        userType: "subscriber",
+      },
+    });
+
+    const result = await handleJsonMessage(repo, {
+      action: "getUsersByChannelId",
+      payload: { channelId: "c_popchan" },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.users!).toHaveLength(1);
+    expect(result.users![0].username).toBe("chanmember");
+  });
+
+  test("getUsersByBadgeId", async () => {
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: { username: "badgeholder", twitchUserId: "twitch_badgeholder" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createBadge",
+      payload: { title: "rarebadge", img: "rare.png" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createPossesses",
+      payload: {
+        userId: "u_badgeholder",
+        badgeId: "b_rarebadge",
+        acquiredDate: "2024-01-01T00:00:00Z",
+      },
+    });
+
+    const result = await handleJsonMessage(repo, {
+      action: "getUsersByBadgeId",
+      payload: { badgeId: "b_rarebadge" },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.users!).toHaveLength(1);
+    expect(result.users![0].username).toBe("badgeholder");
+  });
+
+  test("getUsersByAchievementId", async () => {
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: { username: "achiever", twitchUserId: "twitch_achiever" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createAchieved",
+      payload: {
+        achievementId: "achtest1",
+        userId: "u_achiever",
+        count: 1,
+        finished: true,
+        labelActive: true,
+        acquiredDate: "2024-01-01T00:00:00Z",
+      },
+    });
+
+    const result = await handleJsonMessage(repo, {
+      action: "getUsersByAchievementId",
+      payload: { achievementId: "achtest1" },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.users!).toHaveLength(1);
+    expect(result.users![0].username).toBe("achiever");
   });
 
   test("channel create/get", async () => {

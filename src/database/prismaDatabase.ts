@@ -23,12 +23,40 @@ export class PrismaDatabase implements database {
   async getUserById(id: string): Promise<userDTO | null> {
     const u = await this.prisma.user.findUnique({ where: { id } });
     if (!u) return null;
-    return { id: u.id, username: u.username };
+    return {
+      id: u.id,
+      username: u.username,
+      twitchUserId: u.twitchUserId,
+      profileImageUrl: u.profileImageUrl,
+      channelDescription: u.channelDescription,
+      scope: u.scope,
+    };
   }
 
-  async addUser(username: string): Promise<userDTO> {
-    const u = await this.prisma.user.create({ data: { username } });
-    return { id: u.id, username: u.username };
+  async addUser(user: {
+    username: string;
+    twitchUserId: string;
+    profileImageUrl?: string | null;
+    channelDescription?: string | null;
+    scope?: string | null;
+  }): Promise<userDTO> {
+    const u = await this.prisma.user.create({
+      data: {
+        username: user.username,
+        twitchUserId: user.twitchUserId,
+        profileImageUrl: user.profileImageUrl ?? null,
+        channelDescription: user.channelDescription ?? null,
+        scope: user.scope ?? null,
+      },
+    });
+    return {
+      id: u.id,
+      username: u.username,
+      twitchUserId: u.twitchUserId,
+      profileImageUrl: u.profileImageUrl,
+      channelDescription: u.channelDescription,
+      scope: u.scope,
+    };
   }
 
   // Channel
@@ -224,6 +252,92 @@ export class PrismaDatabase implements database {
       badgeId: np.badgeId,
       acquiredDate: np.acquiredDate.toISOString(),
     };
+  }
+
+  // ============ NEW: Get by User ID ============
+
+  async getChannelsByUserId(userId: string): Promise<channelDTO[]> {
+    const areRecords = await this.prisma.are.findMany({
+      where: { userId },
+      include: { channel: true },
+    });
+    return areRecords.map((r: any) => ({
+      id: r.channel.id,
+      name: r.channel.name,
+    }));
+  }
+
+  async getBadgesByUserId(userId: string): Promise<badgeDTO[]> {
+    const possessRecords = await this.prisma.possesses.findMany({
+      where: { userId },
+      include: { badge: true },
+    });
+    return possessRecords.map((r: any) => ({
+      id: r.badge.id,
+      title: r.badge.title,
+      img: r.badge.img,
+    }));
+  }
+
+  async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
+    const achievedRecords = await this.prisma.achieved.findMany({
+      where: { userId },
+    });
+    return achievedRecords.map((r: any) => ({
+      achievementId: r.achievementId,
+      userId: r.userId,
+      count: r.count,
+      finished: r.finished,
+      labelActive: r.labelActive,
+      acquiredDate: r.acquiredDate.toISOString(),
+    }));
+  }
+
+  // ============ NEW: Inverse lookups (get users by entity) ============
+
+  async getUsersByChannelId(channelId: string): Promise<userDTO[]> {
+    const areRecords = await this.prisma.are.findMany({
+      where: { channelId },
+      include: { user: true },
+    });
+    return areRecords.map((r: any) => ({
+      id: r.user.id,
+      username: r.user.username,
+      twitchUserId: r.user.twitchUserId,
+      profileImageUrl: r.user.profileImageUrl,
+      channelDescription: r.user.channelDescription,
+      scope: r.user.scope,
+    }));
+  }
+
+  async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {
+    const possessRecords = await this.prisma.possesses.findMany({
+      where: { badgeId },
+      include: { user: true },
+    });
+    return possessRecords.map((r: any) => ({
+      id: r.user.id,
+      username: r.user.username,
+      twitchUserId: r.user.twitchUserId,
+      profileImageUrl: r.user.profileImageUrl,
+      channelDescription: r.user.channelDescription,
+      scope: r.user.scope,
+    }));
+  }
+
+  async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
+    const achievedRecords = await this.prisma.achieved.findMany({
+      where: { achievementId },
+      include: { user: true },
+    });
+    return achievedRecords.map((r: any) => ({
+      id: r.user.id,
+      username: r.user.username,
+      twitchUserId: r.user.twitchUserId,
+      profileImageUrl: r.user.profileImageUrl,
+      channelDescription: r.user.channelDescription,
+      scope: r.user.scope,
+    }));
   }
 
   async disconnect(): Promise<void> {

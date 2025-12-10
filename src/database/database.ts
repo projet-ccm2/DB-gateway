@@ -1,4 +1,11 @@
-export type userDTO = { id: string; username: string };
+export type userDTO = {
+  id: string;
+  username: string;
+  twitchUserId: string;
+  profileImageUrl: string | null;
+  channelDescription: string | null;
+  scope: string | null;
+};
 export type channelDTO = { id: string; name: string };
 export type typeAchievementDTO = { id: string; label: string; data: string };
 export type achievementDTO = {
@@ -28,7 +35,13 @@ export type possessesDTO = {
 export interface database {
   // User
   getUserById(id: string): Promise<userDTO | null>;
-  addUser(username: string): Promise<userDTO>;
+  addUser(user: {
+    username: string;
+    twitchUserId: string;
+    profileImageUrl?: string | null;
+    channelDescription?: string | null;
+    scope?: string | null;
+  }): Promise<userDTO>;
 
   // Channel
   getChannelById(id: string): Promise<channelDTO | null>;
@@ -84,4 +97,14 @@ export interface database {
     badgeId: string;
     acquiredDate: string;
   }): Promise<possessesDTO>;
+
+  // ============ NEW: Get by User ID ============
+  getChannelsByUserId(userId: string): Promise<channelDTO[]>;
+  getBadgesByUserId(userId: string): Promise<badgeDTO[]>;
+  getAchievementsByUserId(userId: string): Promise<achievedDTO[]>;
+
+  // ============ NEW: Inverse lookups (get users by entity) ============
+  getUsersByChannelId(channelId: string): Promise<userDTO[]>;
+  getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;
+  getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
 }
