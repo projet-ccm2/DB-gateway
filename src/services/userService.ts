@@ -1,5 +1,10 @@
 import { UserRepository } from "../repositories/userRepository";
-import type { userDTO, channelDTO, badgeDTO, achievedDTO } from "../database/database";
+import type {
+  userDTO,
+  channelDTO,
+  badgeDTO,
+  achievedDTO,
+} from "../database/database";
 
 export class UserService {
   constructor(private repo: UserRepository) {}

@@ -98,9 +98,9 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
     const achievements = await service.getAchievementsByUserId(user.id);
     expect(achievements.length).toBeGreaterThanOrEqual(1);
-    expect(
-      achievements.some((a) => a.achievementId === achievement.id),
-    ).toBe(true);
+    expect(achievements.some((a) => a.achievementId === achievement.id)).toBe(
+      true,
+    );
   });
 
   it("should return users for a channel via getUsersByChannelId", async () => {

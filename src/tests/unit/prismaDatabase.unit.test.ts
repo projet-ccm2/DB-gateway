@@ -160,7 +160,8 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                   if (where?.channelId && v.channelId !== where.channelId)
                     continue;
                   const row = { ...v };
-                  if (include?.channel) row.channel = this._channels.get(v.channelId);
+                  if (include?.channel)
+                    row.channel = this._channels.get(v.channelId);
                   if (include?.user) row.user = this._users.get(v.userId);
                   results.push(row);
                 }

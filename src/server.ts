@@ -26,7 +26,13 @@ const { repo } = createMockGateway();
 
 app.post("/users", async (req: any, res: any) => {
   try {
-    const { username, twitchUserId, profileImageUrl, channelDescription, scope } = req.body as {
+    const {
+      username,
+      twitchUserId,
+      profileImageUrl,
+      channelDescription,
+      scope,
+    } = req.body as {
       username?: string;
       twitchUserId?: string;
       profileImageUrl?: string;
@@ -34,7 +40,9 @@ app.post("/users", async (req: any, res: any) => {
       scope?: string;
     };
     if (!username || !twitchUserId)
-      return res.status(400).json({ error: "username and twitchUserId required" });
+      return res
+        .status(400)
+        .json({ error: "username and twitchUserId required" });
     const user = await repo.addUser({
       username,
       twitchUserId,
