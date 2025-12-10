@@ -420,11 +420,18 @@ npm run server:start
 
 Server runs on `http://localhost:3000`
 
-### Currently Implemented Endpoints
+---
 
-#### Users
+### Users
+
+---
 
 **Create a user**
+```http
+POST /users
+```
+
+Example:
 ```http
 POST /users
 Content-Type: application/json
@@ -438,15 +445,6 @@ Content-Type: application/json
 }
 ```
 
-Required fields:
-- `username` — Display name
-- `twitchUserId` — Twitch User ID
-
-Optional fields:
-- `profileImageUrl` — Profile avatar URL (nullable)
-- `channelDescription` — Channel bio/description (nullable)
-- `scope` — OAuth scopes accepted by user (nullable, space-separated)
-
 Response (201):
 ```json
 {
@@ -458,6 +456,19 @@ Response (201):
   "scope": "chat:read chat:write user:read"
 }
 ```
+
+**Required fields:**
+- `username` — Display name
+- `twitchUserId` — Twitch User ID
+
+**Optional fields:**
+- `profileImageUrl` — Profile avatar URL (nullable)
+- `channelDescription` — Channel bio/description (nullable)
+- `scope` — OAuth scopes accepted by user (nullable, space-separated)
+
+**Error responses:**
+- `400` — Username and twitchUserId are required
+- `500` — Server error
 
 ---
 
@@ -484,91 +495,623 @@ Response (200):
 ```
 
 **Error responses:**
-- `400` — Username and twitchUserId are required (POST only)
-- `404` — User not found (GET only)
+- `404` — User not found
 - `500` — Server error
 
 ---
 
-### UserRepository New Methods
-
-The `UserRepository` now supports additional query methods:
-
-#### Get user's subscriptions (channels)
-```typescript
-// Returns all channels a user is subscribed to
-const channels = await userRepo.getChannelsByUserId(userId);
-// Returns: channelDTO[]
+**Get channels by user ID**
+```http
+GET /users/{userId}/channels
 ```
 
-#### Get user's badges
-```typescript
-// Returns all badges owned by a user
-const badges = await userRepo.getBadgesByUserId(userId);
-// Returns: badgeDTO[]
+Example:
+```http
+GET /users/u_abc123/channels
 ```
 
-#### Get user's achievements
-```typescript
-// Returns all achievements (progress records) for a user
-const achievements = await userRepo.getAchievementsByUserId(userId);
-// Returns: achievedDTO[]
+Response (200):
+```json
+{
+  "channels": [
+    { "id": "c_xyz789", "name": "general" },
+    { "id": "c_def456", "name": "gaming" }
+  ]
+}
 ```
 
-#### Get users by channel (inverse lookup)
-```typescript
-// Returns all users subscribed to a channel
-const users = await userRepo.getUsersByChannelId(channelId);
-// Returns: userDTO[]
-```
-
-#### Get users by badge (inverse lookup)
-```typescript
-// Returns all users who own a specific badge
-const users = await userRepo.getUsersByBadgeId(badgeId);
-// Returns: userDTO[]
-```
-
-#### Get users by achievement (inverse lookup)
-```typescript
-// Returns all users who have a specific achievement
-const users = await userRepo.getUsersByAchievementId(achievementId);
-// Returns: userDTO[]
-```
+**Error responses:**
+- `404` — User not found
+- `500` — Server error
 
 ---
 
-### Planned Endpoints (Implementation Pattern)
+**Get badges by user ID**
+```http
+GET /users/{userId}/badges
+```
 
-The gateway is designed to support all tables from the database schema. Follow the same pattern as Users to implement:
+Example:
+```http
+GET /users/u_abc123/badges
+```
 
-**Channels:**
-- `POST /channels` — Create channel with `{ name: string }`
-- `GET /channels/{id}` — Get channel by ID
+Response (200):
+```json
+{
+  "badges": [
+    { "id": "b_gold1", "title": "Gold Subscriber", "img": "gold.png" },
+    { "id": "b_mod1", "title": "Moderator", "img": "mod.png" }
+  ]
+}
+```
 
-**TypeAchievements:**
-- `POST /typeachievements` — Create type with `{ label, data }`
-- `GET /typeachievements/{id}` — Get type by ID
+**Error responses:**
+- `404` — User not found
+- `500` — Server error
 
-**Achievements:**
-- `POST /achievements` — Create achievement with `{ title, description, goal, reward, label }`
-- `GET /achievements/{id}` — Get achievement by ID
+---
 
-**Badges:**
-- `POST /badges` — Create badge with `{ title, img }`
-- `GET /badges/{id}` — Get badge by ID
+**Get achievements by user ID**
+```http
+GET /users/{userId}/achievements
+```
 
-**User-Achievement Relations (Achieved):**
-- `POST /users/{userId}/achievements/{achievementId}` — Record achievement with `{ count, finished, labelActive, acquiredDate }`
-- `GET /users/{userId}/achievements/{achievementId}` — Get achievement progress
+Example:
+```http
+GET /users/u_abc123/achievements
+```
 
-**Channel Membership (Are):**
-- `POST /users/{userId}/channels/{channelId}` — Add user to channel with `{ userType }`
-- `GET /users/{userId}/channels/{channelId}` — Get membership
+Response (200):
+```json
+{
+  "achievements": [
+    {
+      "achievementId": "a_first1",
+      "userId": "u_abc123",
+      "count": 5,
+      "finished": true,
+      "labelActive": true,
+      "acquiredDate": "2024-01-15T10:30:00.000Z"
+    }
+  ]
+}
+```
 
-**User Badges (Possesses):**
-- `POST /users/{userId}/badges/{badgeId}` — Award badge with `{ acquiredDate }`
-- `GET /users/{userId}/badges/{badgeId}` — Get badge possession
+**Error responses:**
+- `404` — User not found
+- `500` — Server error
+
+---
+
+**Get users by channel ID**
+```http
+GET /channels/{channelId}/users
+```
+
+Example:
+```http
+GET /channels/c_xyz789/users
+```
+
+Response (200):
+```json
+{
+  "users": [
+    {
+      "id": "u_abc123",
+      "username": "john_doe",
+      "twitchUserId": "12345678",
+      "profileImageUrl": "https://example.com/avatar.png",
+      "channelDescription": "Welcome to my channel!",
+      "scope": "chat:read chat:write"
+    }
+  ]
+}
+```
+
+**Error responses:**
+- `404` — Channel not found
+- `500` — Server error
+
+---
+
+**Get users by badge ID**
+```http
+GET /badges/{badgeId}/users
+```
+
+Example:
+```http
+GET /badges/b_gold1/users
+```
+
+Response (200):
+```json
+{
+  "users": [
+    {
+      "id": "u_abc123",
+      "username": "john_doe",
+      "twitchUserId": "12345678",
+      "profileImageUrl": null,
+      "channelDescription": null,
+      "scope": null
+    }
+  ]
+}
+```
+
+**Error responses:**
+- `404` — Badge not found
+- `500` — Server error
+
+---
+
+**Get users by achievement ID**
+```http
+GET /achievements/{achievementId}/users
+```
+
+Example:
+```http
+GET /achievements/a_first1/users
+```
+
+Response (200):
+```json
+{
+  "users": [
+    {
+      "id": "u_abc123",
+      "username": "john_doe",
+      "twitchUserId": "12345678",
+      "profileImageUrl": null,
+      "channelDescription": null,
+      "scope": null
+    }
+  ]
+}
+```
+
+**Error responses:**
+- `404` — Achievement not found
+- `500` — Server error
+
+---
+
+### Channels
+
+---
+
+**Create a channel**
+```http
+POST /channels
+```
+
+Example:
+```http
+POST /channels
+Content-Type: application/json
+
+{
+  "name": "general"
+}
+```
+
+Response (201):
+```json
+{
+  "id": "c_xyz789",
+  "name": "general"
+}
+```
+
+**Error responses:**
+- `400` — Name is required
+- `500` — Server error
+
+---
+
+**Get channel by ID**
+```http
+GET /channels/{id}
+```
+
+Example:
+```http
+GET /channels/c_xyz789
+```
+
+Response (200):
+```json
+{
+  "id": "c_xyz789",
+  "name": "general"
+}
+```
+
+**Error responses:**
+- `404` — Channel not found
+- `500` — Server error
+
+---
+
+### Type Achievements
+
+---
+
+**Create a type achievement**
+```http
+POST /typeachievements
+```
+
+Example:
+```http
+POST /typeachievements
+Content-Type: application/json
+
+{
+  "label": "streaming",
+  "data": "{ \"category\": \"live\" }"
+}
+```
+
+Response (201):
+```json
+{
+  "id": "t_str123",
+  "label": "streaming",
+  "data": "{ \"category\": \"live\" }"
+}
+```
+
+**Error responses:**
+- `400` — Label and data are required
+- `500` — Server error
+
+---
+
+**Get type achievement by ID**
+```http
+GET /typeachievements/{id}
+```
+
+Example:
+```http
+GET /typeachievements/t_str123
+```
+
+Response (200):
+```json
+{
+  "id": "t_str123",
+  "label": "streaming",
+  "data": "{ \"category\": \"live\" }"
+}
+```
+
+**Error responses:**
+- `404` — Type achievement not found
+- `500` — Server error
+
+---
+
+### Achievements
+
+---
+
+**Create an achievement**
+```http
+POST /achievements
+```
+
+Example:
+```http
+POST /achievements
+Content-Type: application/json
+
+{
+  "title": "First Steps",
+  "description": "Complete the tutorial",
+  "goal": 1,
+  "reward": 100,
+  "label": "beginner"
+}
+```
+
+Response (201):
+```json
+{
+  "id": "a_first1",
+  "title": "First Steps",
+  "description": "Complete the tutorial",
+  "goal": 1,
+  "reward": 100,
+  "label": "beginner"
+}
+```
+
+**Error responses:**
+- `400` — Title, description, goal, reward, and label are required
+- `500` — Server error
+
+---
+
+**Get achievement by ID**
+```http
+GET /achievements/{id}
+```
+
+Example:
+```http
+GET /achievements/a_first1
+```
+
+Response (200):
+```json
+{
+  "id": "a_first1",
+  "title": "First Steps",
+  "description": "Complete the tutorial",
+  "goal": 1,
+  "reward": 100,
+  "label": "beginner"
+}
+```
+
+**Error responses:**
+- `404` — Achievement not found
+- `500` — Server error
+
+---
+
+### Badges
+
+---
+
+**Create a badge**
+```http
+POST /badges
+```
+
+Example:
+```http
+POST /badges
+Content-Type: application/json
+
+{
+  "title": "Gold Subscriber",
+  "img": "gold_badge.png"
+}
+```
+
+Response (201):
+```json
+{
+  "id": "b_gold1",
+  "title": "Gold Subscriber",
+  "img": "gold_badge.png"
+}
+```
+
+**Error responses:**
+- `400` — Title and img are required
+- `500` — Server error
+
+---
+
+**Get badge by ID**
+```http
+GET /badges/{id}
+```
+
+Example:
+```http
+GET /badges/b_gold1
+```
+
+Response (200):
+```json
+{
+  "id": "b_gold1",
+  "title": "Gold Subscriber",
+  "img": "gold_badge.png"
+}
+```
+
+**Error responses:**
+- `404` — Badge not found
+- `500` — Server error
+
+---
+
+### User-Achievement Relations (Achieved)
+
+---
+
+**Record achievement progress**
+```http
+POST /users/{userId}/achievements/{achievementId}
+```
+
+Example:
+```http
+POST /users/u_abc123/achievements/a_first1
+Content-Type: application/json
+
+{
+  "count": 1,
+  "finished": true,
+  "labelActive": true,
+  "acquiredDate": "2024-01-15T10:30:00.000Z"
+}
+```
+
+Response (201):
+```json
+{
+  "achievementId": "a_first1",
+  "userId": "u_abc123",
+  "count": 1,
+  "finished": true,
+  "labelActive": true,
+  "acquiredDate": "2024-01-15T10:30:00.000Z"
+}
+```
+
+**Error responses:**
+- `400` — Count, finished, labelActive, and acquiredDate are required
+- `404` — User or achievement not found
+- `500` — Server error
+
+---
+
+**Get achievement progress**
+```http
+GET /users/{userId}/achievements/{achievementId}
+```
+
+Example:
+```http
+GET /users/u_abc123/achievements/a_first1
+```
+
+Response (200):
+```json
+{
+  "achievementId": "a_first1",
+  "userId": "u_abc123",
+  "count": 1,
+  "finished": true,
+  "labelActive": true,
+  "acquiredDate": "2024-01-15T10:30:00.000Z"
+}
+```
+
+**Error responses:**
+- `404` — Record not found
+- `500` — Server error
+
+---
+
+### Channel Membership (Are)
+
+---
+
+**Add user to channel**
+```http
+POST /users/{userId}/channels/{channelId}
+```
+
+Example:
+```http
+POST /users/u_abc123/channels/c_xyz789
+Content-Type: application/json
+
+{
+  "userType": "moderator"
+}
+```
+
+Response (201):
+```json
+{
+  "userId": "u_abc123",
+  "channelId": "c_xyz789",
+  "userType": "moderator"
+}
+```
+
+**Error responses:**
+- `400` — UserType is required
+- `404` — User or channel not found
+- `500` — Server error
+
+---
+
+**Get channel membership**
+```http
+GET /users/{userId}/channels/{channelId}
+```
+
+Example:
+```http
+GET /users/u_abc123/channels/c_xyz789
+```
+
+Response (200):
+```json
+{
+  "userId": "u_abc123",
+  "channelId": "c_xyz789",
+  "userType": "moderator"
+}
+```
+
+**Error responses:**
+- `404` — Membership not found
+- `500` — Server error
+
+---
+
+### User Badges (Possesses)
+
+---
+
+**Award badge to user**
+```http
+POST /users/{userId}/badges/{badgeId}
+```
+
+Example:
+```http
+POST /users/u_abc123/badges/b_gold1
+Content-Type: application/json
+
+{
+  "acquiredDate": "2024-01-15T10:30:00.000Z"
+}
+```
+
+Response (201):
+```json
+{
+  "userId": "u_abc123",
+  "badgeId": "b_gold1",
+  "acquiredDate": "2024-01-15T10:30:00.000Z"
+}
+```
+
+**Error responses:**
+- `400` — AcquiredDate is required
+- `404` — User or badge not found
+- `500` — Server error
+
+---
+
+**Get badge possession**
+```http
+GET /users/{userId}/badges/{badgeId}
+```
+
+Example:
+```http
+GET /users/u_abc123/badges/b_gold1
+```
+
+Response (200):
+```json
+{
+  "userId": "u_abc123",
+  "badgeId": "b_gold1",
+  "acquiredDate": "2024-01-15T10:30:00.000Z"
+}
+```
+
+**Error responses:**
+- `404` — Badge possession not found
+- `500` — Server error
 
 ---
 
