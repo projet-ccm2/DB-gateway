@@ -2,6 +2,7 @@ import type {
   userDTO,
   channelDTO,
   userChannelDTO,
+  channelUserDTO,
   typeAchievementDTO,
   achievementDTO,
   badgeDTO,
@@ -24,7 +25,7 @@ export type GatewayRepo = {
     getChannelsByUserId(userId: string): Promise<userChannelDTO[]>;
     getBadgesByUserId(userId: string): Promise<badgeDTO[]>;
     getAchievementsByUserId(userId: string): Promise<achievedDTO[]>;
-    getUsersByChannelId(channelId: string): Promise<userDTO[]>;
+    getUsersByChannelId(channelId: string): Promise<channelUserDTO[]>;
     getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;
     getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
   };

@@ -2,6 +2,7 @@ import {
   database,
   userDTO,
   userChannelDTO,
+  channelUserDTO,
   badgeDTO,
   achievedDTO,
 } from "../database/database";
@@ -39,7 +40,7 @@ export class UserRepository {
 
   // ============ NEW: Inverse lookups (get users by entity) ============
 
-  async getUsersByChannelId(channelId: string): Promise<userDTO[]> {
+  async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
     return this.db.getUsersByChannelId(channelId);
   }
 

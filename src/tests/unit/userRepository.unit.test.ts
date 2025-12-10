@@ -257,7 +257,7 @@ describe("userRepository (unit, mock db)", () => {
     expect(users).toEqual([]);
   });
 
-  it("should return users for a channel", async () => {
+  it("should return users with userType for a channel", async () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
 
@@ -286,6 +286,58 @@ describe("userRepository (unit, mock db)", () => {
     expect(users).toHaveLength(2);
     expect(users.map((u) => u.username)).toContain("User1");
     expect(users.map((u) => u.username)).toContain("User2");
+
+    // Verify userType is included
+    const user1Result = users.find((u) => u.username === "User1");
+    const user2Result = users.find((u) => u.username === "User2");
+    expect(user1Result?.userType).toBe("subscriber");
+    expect(user2Result?.userType).toBe("viewer");
+  });
+
+  it("should return correct userType for each user in channel", async () => {
+    const mockDb = new MockDatabase();
+    const service = new UserRepository(mockDb);
+
+    const admin = await service.addUser({
+      username: "AdminUser",
+      twitchUserId: "twitch_admin",
+    });
+    const mod = await service.addUser({
+      username: "ModUser",
+      twitchUserId: "twitch_mod",
+    });
+    const regular = await service.addUser({
+      username: "RegularUser",
+      twitchUserId: "twitch_regular",
+    });
+    const channel = await mockDb.addChannel({ name: "TestChannel" });
+
+    await mockDb.addAre({
+      userId: admin.id,
+      channelId: channel.id,
+      userType: "admin",
+    });
+    await mockDb.addAre({
+      userId: mod.id,
+      channelId: channel.id,
+      userType: "moderator",
+    });
+    await mockDb.addAre({
+      userId: regular.id,
+      channelId: channel.id,
+      userType: "user",
+    });
+
+    const users = await service.getUsersByChannelId(channel.id);
+    expect(users).toHaveLength(3);
+
+    const adminResult = users.find((u) => u.username === "AdminUser");
+    const modResult = users.find((u) => u.username === "ModUser");
+    const regularResult = users.find((u) => u.username === "RegularUser");
+
+    expect(adminResult?.userType).toBe("admin");
+    expect(modResult?.userType).toBe("moderator");
+    expect(regularResult?.userType).toBe("user");
   });
 
   // ============ NEW: Tests for getUsersByBadgeId ============

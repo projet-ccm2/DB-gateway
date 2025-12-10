@@ -3,6 +3,7 @@ import {
   userDTO,
   channelDTO,
   userChannelDTO,
+  channelUserDTO,
   typeAchievementDTO,
   achievementDTO,
   badgeDTO,
@@ -223,12 +224,22 @@ export class MockDatabase implements database {
 
   // ============ NEW: Inverse lookups (get users by entity) ============
 
-  async getUsersByChannelId(channelId: string): Promise<userDTO[]> {
-    // Find all Are records for this channel, then return corresponding users
-    const channelUserIds = this.are
+  async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
+    // Find all Are records for this channel, then return corresponding users with userType
+    return this.are
       .filter((a) => a.channelId === channelId)
-      .map((a) => a.userId);
-    return this.users.filter((u) => channelUserIds.includes(u.id));
+      .map((a) => {
+        const user = this.users.find((u) => u.id === a.userId);
+        return {
+          id: user!.id,
+          username: user!.username,
+          twitchUserId: user!.twitchUserId,
+          profileImageUrl: user!.profileImageUrl,
+          channelDescription: user!.channelDescription,
+          scope: user!.scope,
+          userType: a.userType,
+        };
+      });
   }
 
   async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {

@@ -55,9 +55,20 @@ function makeRepoMock(): GatewayRepo {
       getAchievementsByUserId: async (userId: string) =>
         achieved.filter((a) => a.userId === userId),
       getUsersByChannelId: async (channelId: string) =>
-        users.filter((u) =>
-          are.some((a) => a.channelId === channelId && a.userId === u.id),
-        ),
+        are
+          .filter((a) => a.channelId === channelId)
+          .map((a) => {
+            const user = users.find((u) => u.id === a.userId);
+            return {
+              id: user!.id,
+              username: user!.username,
+              twitchUserId: user!.twitchUserId,
+              profileImageUrl: user!.profileImageUrl ?? null,
+              channelDescription: user!.channelDescription ?? null,
+              scope: user!.scope ?? null,
+              userType: a.userType,
+            };
+          }),
       getUsersByBadgeId: async (badgeId: string) =>
         users.filter((u) =>
           possesses.some((p) => p.badgeId === badgeId && p.userId === u.id),
@@ -262,7 +273,7 @@ describe("jsonHandler full coverage", () => {
     expect(result.achievements![0].achievementId).toBe("a1");
   });
 
-  test("getUsersByChannelId", async () => {
+  test("getUsersByChannelId with userType", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
       payload: { username: "chanmember", twitchUserId: "twitch_chanmember" },
@@ -287,6 +298,7 @@ describe("jsonHandler full coverage", () => {
     expect(result.ok).toBe(true);
     expect(result.users!).toHaveLength(1);
     expect(result.users![0].username).toBe("chanmember");
+    expect((result.users![0] as any).userType).toBe("subscriber");
   });
 
   test("getUsersByBadgeId", async () => {

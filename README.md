@@ -598,6 +598,8 @@ Response (200):
 GET /channels/{channelId}/users
 ```
 
+Returns all users who are members of the channel, along with their role in that channel.
+
 Example:
 ```http
 GET /channels/c_xyz789/users
@@ -613,11 +615,32 @@ Response (200):
       "twitchUserId": "12345678",
       "profileImageUrl": "https://example.com/avatar.png",
       "channelDescription": "Welcome to my channel!",
-      "scope": "chat:read chat:write"
+      "scope": "chat:read chat:write",
+      "userType": "admin"
+    },
+    {
+      "id": "u_def456",
+      "username": "jane_mod",
+      "twitchUserId": "87654321",
+      "profileImageUrl": null,
+      "channelDescription": null,
+      "scope": null,
+      "userType": "moderator"
     }
   ]
 }
 ```
+
+**Response fields:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | User ID |
+| `username` | string | Username |
+| `twitchUserId` | string | Twitch User ID |
+| `profileImageUrl` | string \| null | Profile avatar URL |
+| `channelDescription` | string \| null | Channel bio |
+| `scope` | string \| null | OAuth scopes |
+| `userType` | string | User's role in this channel (e.g., "admin", "moderator", "user") |
 
 **Error responses:**
 - `404` — Channel not found
@@ -1154,6 +1177,17 @@ type userChannelDTO = {
   userType: string; // User's role in channel (e.g., "admin", "moderator", "user")
 };
 
+// Channel ↔ User relation with role (returned by getUsersByChannelId)
+type channelUserDTO = {
+  id: string;                        // User ID
+  username: string;                  // Username
+  twitchUserId: string;              // Twitch User ID
+  profileImageUrl: string | null;    // Profile avatar URL
+  channelDescription: string | null; // Channel bio
+  scope: string | null;              // OAuth scopes
+  userType: string;                  // User's role in channel (e.g., "admin", "moderator", "user")
+};
+
 // Type/Category of Achievement
 type typeAchievementDTO = { 
   id: string; 
@@ -1225,7 +1259,7 @@ interface database {
   getAchievementsByUserId(userId: string): Promise<achievedDTO[]>;
 
   // Inverse lookups (get users by related entity)
-  getUsersByChannelId(channelId: string): Promise<userDTO[]>;
+  getUsersByChannelId(channelId: string): Promise<channelUserDTO[]>;
   getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;
   getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
 

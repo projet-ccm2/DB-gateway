@@ -4,6 +4,7 @@ import {
   userDTO,
   channelDTO,
   userChannelDTO,
+  channelUserDTO,
   typeAchievementDTO,
   achievementDTO,
   badgeDTO,
@@ -297,7 +298,7 @@ export class PrismaDatabase implements database {
 
   // ============ NEW: Inverse lookups (get users by entity) ============
 
-  async getUsersByChannelId(channelId: string): Promise<userDTO[]> {
+  async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
     const areRecords = await this.prisma.are.findMany({
       where: { channelId },
       include: { user: true },
@@ -309,6 +310,7 @@ export class PrismaDatabase implements database {
       profileImageUrl: r.user.profileImageUrl,
       channelDescription: r.user.channelDescription,
       scope: r.user.scope,
+      userType: r.userType,
     }));
   }
 
