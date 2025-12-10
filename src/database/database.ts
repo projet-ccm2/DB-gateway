@@ -8,7 +8,15 @@ export type userDTO = {
 };
 export type channelDTO = { id: string; name: string };
 export type userChannelDTO = { id: string; name: string; userType: string }; // Channel with user's role
-export type channelUserDTO = { id: string; username: string; twitchUserId: string; profileImageUrl: string | null; channelDescription: string | null; scope: string | null; userType: string }; // User with role in channel
+export type channelUserDTO = {
+  id: string;
+  username: string;
+  twitchUserId: string;
+  profileImageUrl: string | null;
+  channelDescription: string | null;
+  scope: string | null;
+  userType: string;
+}; // User with role in channel
 export type typeAchievementDTO = { id: string; label: string; data: string };
 export type achievementDTO = {
   id: string;
