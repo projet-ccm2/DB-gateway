@@ -38,7 +38,7 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     expect(fetched?.scope).toBe("chat:read user:read");
   });
 
-  it("should return channels for a user via getChannelsByUserId", async () => {
+  it("should return channels with userType for a user via getChannelsByUserId", async () => {
     const user = await service.addUser({
       username: "ChannelIntegUser",
       twitchUserId: "twitch_integ_003",
@@ -52,7 +52,39 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
     const channels = await service.getChannelsByUserId(user.id);
     expect(channels.length).toBeGreaterThanOrEqual(1);
-    expect(channels.some((c) => c.name === "IntegChannel")).toBe(true);
+
+    const integChannel = channels.find((c) => c.name === "IntegChannel");
+    expect(integChannel).toBeDefined();
+    expect(integChannel?.userType).toBe("subscriber");
+  });
+
+  it("should return correct userType for multiple channels via getChannelsByUserId", async () => {
+    const user = await service.addUser({
+      username: "MultiChannelIntegUser",
+      twitchUserId: "twitch_integ_003b",
+    });
+    const modChannel = await db.addChannel({ name: "ModeratorChannel" });
+    const adminChannel = await db.addChannel({ name: "AdminChannel" });
+
+    await db.addAre({
+      userId: user.id,
+      channelId: modChannel.id,
+      userType: "moderator",
+    });
+    await db.addAre({
+      userId: user.id,
+      channelId: adminChannel.id,
+      userType: "admin",
+    });
+
+    const channels = await service.getChannelsByUserId(user.id);
+    expect(channels.length).toBeGreaterThanOrEqual(2);
+
+    const mod = channels.find((c) => c.name === "ModeratorChannel");
+    const admin = channels.find((c) => c.name === "AdminChannel");
+
+    expect(mod?.userType).toBe("moderator");
+    expect(admin?.userType).toBe("admin");
   });
 
   it("should return badges for a user via getBadgesByUserId", async () => {

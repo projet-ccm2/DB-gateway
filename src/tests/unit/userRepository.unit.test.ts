@@ -74,7 +74,7 @@ describe("userRepository (unit, mock db)", () => {
     expect(channels).toEqual([]);
   });
 
-  it("should return channels for a user", async () => {
+  it("should return channels with userType for a user", async () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
 
@@ -98,8 +98,56 @@ describe("userRepository (unit, mock db)", () => {
 
     const channels = await service.getChannelsByUserId(user.id);
     expect(channels).toHaveLength(2);
+
+    // Verify channel names
     expect(channels.map((c) => c.name)).toContain("Channel One");
     expect(channels.map((c) => c.name)).toContain("Channel Two");
+
+    // Verify userType (role) is included
+    const channelOne = channels.find((c) => c.name === "Channel One");
+    const channelTwo = channels.find((c) => c.name === "Channel Two");
+    expect(channelOne?.userType).toBe("viewer");
+    expect(channelTwo?.userType).toBe("moderator");
+  });
+
+  it("should return correct userType for each channel", async () => {
+    const mockDb = new MockDatabase();
+    const service = new UserRepository(mockDb);
+
+    const user = await service.addUser({
+      username: "MultiRoleUser",
+      twitchUserId: "twitch112",
+    });
+    const adminChannel = await mockDb.addChannel({ name: "Admin Channel" });
+    const modChannel = await mockDb.addChannel({ name: "Mod Channel" });
+    const userChannel = await mockDb.addChannel({ name: "User Channel" });
+
+    await mockDb.addAre({
+      userId: user.id,
+      channelId: adminChannel.id,
+      userType: "admin",
+    });
+    await mockDb.addAre({
+      userId: user.id,
+      channelId: modChannel.id,
+      userType: "moderator",
+    });
+    await mockDb.addAre({
+      userId: user.id,
+      channelId: userChannel.id,
+      userType: "user",
+    });
+
+    const channels = await service.getChannelsByUserId(user.id);
+    expect(channels).toHaveLength(3);
+
+    const admin = channels.find((c) => c.name === "Admin Channel");
+    const mod = channels.find((c) => c.name === "Mod Channel");
+    const regular = channels.find((c) => c.name === "User Channel");
+
+    expect(admin?.userType).toBe("admin");
+    expect(mod?.userType).toBe("moderator");
+    expect(regular?.userType).toBe("user");
   });
 
   // ============ NEW: Tests for getBadgesByUserId ============

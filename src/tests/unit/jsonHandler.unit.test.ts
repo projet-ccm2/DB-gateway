@@ -42,9 +42,12 @@ function makeRepoMock(): GatewayRepo {
       },
       getUserById: async (id: string) => users.find((u) => u.id === id) ?? null,
       getChannelsByUserId: async (userId: string) =>
-        channels.filter((c) =>
-          are.some((a) => a.userId === userId && a.channelId === c.id),
-        ),
+        are
+          .filter((a) => a.userId === userId)
+          .map((a) => {
+            const ch = channels.find((c) => c.id === a.channelId);
+            return { id: ch!.id, name: ch!.name, userType: a.userType };
+          }),
       getBadgesByUserId: async (userId: string) =>
         badges.filter((b) =>
           possesses.some((p) => p.userId === userId && p.badgeId === b.id),
@@ -177,7 +180,7 @@ describe("jsonHandler full coverage", () => {
     expect(create.user!.scope).toBe("chat:read");
   });
 
-  test("getChannelsByUserId", async () => {
+  test("getChannelsByUserId with userType", async () => {
     // Create user and channel
     await handleJsonMessage(repo, {
       action: "createUser",
@@ -189,7 +192,11 @@ describe("jsonHandler full coverage", () => {
     });
     await handleJsonMessage(repo, {
       action: "createAre",
-      payload: { userId: "u_chuser", channelId: "c_testchan", userType: "mod" },
+      payload: {
+        userId: "u_chuser",
+        channelId: "c_testchan",
+        userType: "moderator",
+      },
     });
 
     const result = await handleJsonMessage(repo, {
@@ -199,6 +206,7 @@ describe("jsonHandler full coverage", () => {
     expect(result.ok).toBe(true);
     expect(result.channels!).toHaveLength(1);
     expect(result.channels![0].name).toBe("testchan");
+    expect(result.channels![0].userType).toBe("moderator");
   });
 
   test("getBadgesByUserId", async () => {

@@ -1,7 +1,7 @@
 import {
   database,
   userDTO,
-  channelDTO,
+  userChannelDTO,
   badgeDTO,
   achievedDTO,
 } from "../database/database";
@@ -25,7 +25,7 @@ export class UserRepository {
 
   // ============ NEW: Get related entities by User ID ============
 
-  async getChannelsByUserId(userId: string): Promise<channelDTO[]> {
+  async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {
     return this.db.getChannelsByUserId(userId);
   }
 

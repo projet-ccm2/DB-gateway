@@ -3,6 +3,7 @@ import {
   database,
   userDTO,
   channelDTO,
+  userChannelDTO,
   typeAchievementDTO,
   achievementDTO,
   badgeDTO,
@@ -256,7 +257,7 @@ export class PrismaDatabase implements database {
 
   // ============ NEW: Get by User ID ============
 
-  async getChannelsByUserId(userId: string): Promise<channelDTO[]> {
+  async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {
     const areRecords = await this.prisma.are.findMany({
       where: { userId },
       include: { channel: true },
@@ -264,6 +265,7 @@ export class PrismaDatabase implements database {
     return areRecords.map((r: any) => ({
       id: r.channel.id,
       name: r.channel.name,
+      userType: r.userType,
     }));
   }
 

@@ -505,6 +505,8 @@ Response (200):
 GET /users/{userId}/channels
 ```
 
+Returns all channels the user is a member of, along with their role in each channel.
+
 Example:
 ```http
 GET /users/u_abc123/channels
@@ -514,11 +516,18 @@ Response (200):
 ```json
 {
   "channels": [
-    { "id": "c_xyz789", "name": "general" },
-    { "id": "c_def456", "name": "gaming" }
+    { "id": "c_xyz789", "name": "general", "userType": "admin" },
+    { "id": "c_def456", "name": "gaming", "userType": "moderator" }
   ]
 }
 ```
+
+**Response fields:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Channel ID |
+| `name` | string | Channel name |
+| `userType` | string | User's role in this channel (e.g., "admin", "moderator", "user") |
 
 **Error responses:**
 - `404` — User not found
@@ -1138,6 +1147,13 @@ type channelDTO = {
   name: string 
 };
 
+// User ↔ Channel relation with role (returned by getChannelsByUserId)
+type userChannelDTO = {
+  id: string;       // Channel ID
+  name: string;     // Channel name
+  userType: string; // User's role in channel (e.g., "admin", "moderator", "user")
+};
+
 // Type/Category of Achievement
 type typeAchievementDTO = { 
   id: string; 
@@ -1204,7 +1220,7 @@ interface database {
   }): Promise<userDTO>;
 
   // User query methods (get related entities)
-  getChannelsByUserId(userId: string): Promise<channelDTO[]>;
+  getChannelsByUserId(userId: string): Promise<userChannelDTO[]>;
   getBadgesByUserId(userId: string): Promise<badgeDTO[]>;
   getAchievementsByUserId(userId: string): Promise<achievedDTO[]>;
 

@@ -2,6 +2,7 @@ import {
   database,
   userDTO,
   channelDTO,
+  userChannelDTO,
   typeAchievementDTO,
   achievementDTO,
   badgeDTO,
@@ -191,12 +192,20 @@ export class MockDatabase implements database {
 
   // ============ NEW: Get by User ID ============
 
-  async getChannelsByUserId(userId: string): Promise<channelDTO[]> {
-    // Find all Are records for this user, then return corresponding channels
-    const userChannelIds = this.are
-      .filter((a) => a.userId === userId)
-      .map((a) => a.channelId);
-    return this.channels.filter((c) => userChannelIds.includes(c.id));
+  async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {
+    // Find all Are records for this user, then return corresponding channels with userType
+    const userAreRecords = this.are.filter((a) => a.userId === userId);
+    return userAreRecords
+      .map((areRecord) => {
+        const channel = this.channels.find((c) => c.id === areRecord.channelId);
+        if (!channel) return null;
+        return {
+          id: channel.id,
+          name: channel.name,
+          userType: areRecord.userType,
+        };
+      })
+      .filter((c): c is userChannelDTO => c !== null);
   }
 
   async getBadgesByUserId(userId: string): Promise<badgeDTO[]> {

@@ -7,6 +7,7 @@ export type userDTO = {
   scope: string | null;
 };
 export type channelDTO = { id: string; name: string };
+export type userChannelDTO = { id: string; name: string; userType: string }; // Channel with user's role
 export type typeAchievementDTO = { id: string; label: string; data: string };
 export type achievementDTO = {
   id: string;
@@ -99,7 +100,7 @@ export interface database {
   }): Promise<possessesDTO>;
 
   // ============ NEW: Get by User ID ============
-  getChannelsByUserId(userId: string): Promise<channelDTO[]>;
+  getChannelsByUserId(userId: string): Promise<userChannelDTO[]>;
   getBadgesByUserId(userId: string): Promise<badgeDTO[]>;
   getAchievementsByUserId(userId: string): Promise<achievedDTO[]>;
 
