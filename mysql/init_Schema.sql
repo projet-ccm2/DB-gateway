@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS _Achieved(
     Count          INT NOT NULL,
     Finished       BOOL NOT NULL,
     Label_Active   BOOL NOT NULL,
-    Aquired_Date   DATETIME NOT NULL,
+    Acquired_Date   DATETIME NOT NULL,
     CONSTRAINT _Achieved_PK PRIMARY KEY (Achievement_ID,User_ID),
     CONSTRAINT _Achieved_Achievements_FK FOREIGN KEY (Achievement_ID) REFERENCES Achievements(Achievement_ID),
     CONSTRAINT _Achieved_Users0_FK FOREIGN KEY (User_ID) REFERENCES Users(User_ID)
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS _Are(
 CREATE TABLE IF NOT EXISTS _Possesses(
     User_ID      VARCHAR(36) NOT NULL,
     Badge_ID     VARCHAR(36) NOT NULL,
-    Aquired_Date DATETIME NOT NULL,
+    Acquired_Date DATETIME NOT NULL,
     CONSTRAINT _Possesses_PK PRIMARY KEY (User_ID,Badge_ID),
     CONSTRAINT _Possesses_Users_FK FOREIGN KEY (User_ID) REFERENCES Users(User_ID),
     CONSTRAINT _Possesses_Badges0_FK FOREIGN KEY (Badge_ID) REFERENCES Badges(Badge_ID)

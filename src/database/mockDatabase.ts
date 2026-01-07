@@ -230,16 +230,21 @@ export class MockDatabase implements database {
       .filter((a) => a.channelId === channelId)
       .map((a) => {
         const user = this.users.find((u) => u.id === a.userId);
+        if (!user) {
+          // If the user referenced in the 'are' record does not exist, skip this entry
+          return null;
+        }
         return {
-          id: user!.id,
-          username: user!.username,
-          twitchUserId: user!.twitchUserId,
-          profileImageUrl: user!.profileImageUrl,
-          channelDescription: user!.channelDescription,
-          scope: user!.scope,
+          id: user.id,
+          username: user.username,
+          twitchUserId: user.twitchUserId,
+          profileImageUrl: user.profileImageUrl,
+          channelDescription: user.channelDescription,
+          scope: user.scope,
           userType: a.userType,
         };
-      });
+      })
+      .filter((u): u is channelUserDTO => u !== null);
   }
 
   async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {
@@ -256,5 +261,9 @@ export class MockDatabase implements database {
       .filter((a) => a.achievementId === achievementId)
       .map((a) => a.userId);
     return this.users.filter((u) => achievementUserIds.includes(u.id));
+  }
+  async disconnect(): Promise<void> {
+    // No-op for mock database; nothing to disconnect.
+    return;
   }
 }

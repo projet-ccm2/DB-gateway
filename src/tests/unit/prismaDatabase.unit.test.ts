@@ -1,3 +1,10 @@
+/**
+ * @file Tests for PrismaDatabase adapter with mocked PrismaClient
+ *
+ * This test file mocks the entire PrismaClient at runtime using jest.doMock.
+ * TypeScript cannot infer types for dynamically mocked modules inside jest.isolateModules.
+ * The ts-nocheck directive is intentional as the mock structure doesn't match Prisma's generated types.
+ */
 // @ts-nocheck
 describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
   jest.isolateModules(() => {

@@ -26,7 +26,7 @@
     "test:integration": "jest --runInBand src/tests/integration",
     "test": "jest --runInBand",
     "prettier": "npx prettier . --write",
-    "db:init": "npm run npx prisma db push && ts-node src/prisma/seed.ts",
+    "db:init": "npx prisma db push && ts-node src/prisma/seed.ts",
     "server:start": "ts-node src/server.ts",
     "test:coverage": "jest --runInBand --coverage src/tests/unit",
     "test:coverage:full": "jest --runInBand --coverage"

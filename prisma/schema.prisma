@@ -88,7 +88,7 @@ model Achieved {
   count         Int      @map("Count")
   finished      Boolean  @map("Finished")
   labelActive   Boolean  @map("Label_Active")
-  acquiredDate   DateTime @map("Aquired_Date")
+  acquiredDate   DateTime @map("Acquired_Date")
 
   user        User        @relation("user_achieved", fields: [userId], references: [id])
   achievement Achievement @relation(fields: [achievementId], references: [id])
@@ -112,7 +112,7 @@ model Are {
 model Possesses {
   userId      String   @map("User_ID") @db.VarChar(36)
   badgeId     String   @map("Badge_ID") @db.VarChar(36)
-  acquiredDate DateTime @map("Aquired_Date")
+  acquiredDate DateTime @map("Acquired_Date")
 
   user  User  @relation("user_possesses", fields: [userId], references: [id])
   badge Badge @relation(fields: [badgeId], references: [id])
