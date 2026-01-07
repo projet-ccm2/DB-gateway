@@ -1,7 +1,7 @@
-import { database, badgeDTO } from "../database/database";
+import { Database, badgeDTO } from "../database/database";
 
 export class BadgeRepository {
-  constructor(private db: database) {}
+  constructor(private readonly db: Database) {}
 
   async getById(id: string): Promise<badgeDTO | null> {
     return this.db.getBadgeById(id);

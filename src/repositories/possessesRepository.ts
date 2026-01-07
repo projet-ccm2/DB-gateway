@@ -1,7 +1,7 @@
-import { database, possessesDTO } from "../database/database";
+import { Database, possessesDTO } from "../database/database";
 
 export class PossessesRepository {
-  constructor(private db: database) {}
+  constructor(private readonly db: Database) {}
 
   async get(userId: string, badgeId: string): Promise<possessesDTO | null> {
     return this.db.getPossesses(userId, badgeId);

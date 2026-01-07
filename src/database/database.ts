@@ -42,7 +42,7 @@ export type possessesDTO = {
   acquiredDate: string;
 };
 
-export interface database {
+export interface Database {
   // User
   getUserById(id: string): Promise<userDTO | null>;
   addUser(user: {

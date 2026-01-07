@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import {
-  database,
+  Database,
   userDTO,
   channelDTO,
   userChannelDTO,
@@ -14,9 +14,9 @@ import {
 } from "./database";
 
 // Wrap the generated Prisma client with a simple adapter to satisfy our database interface
-export class PrismaDatabase implements database {
+export class PrismaDatabase implements Database {
   // Generated client expects an options object; allow any for simplicity
-  private prisma: any;
+  private readonly prisma: any;
 
   constructor() {
     this.prisma = new PrismaClient({});

@@ -1,5 +1,5 @@
 import {
-  database,
+  Database,
   userDTO,
   userChannelDTO,
   channelUserDTO,
@@ -8,7 +8,7 @@ import {
 } from "../database/database";
 
 export class UserRepository {
-  constructor(private db: database) {}
+  constructor(private readonly db: Database) {}
 
   async getUserById(id: string): Promise<userDTO | null> {
     return this.db.getUserById(id);

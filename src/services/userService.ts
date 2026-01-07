@@ -7,7 +7,7 @@ import type {
 } from "../database/database";
 
 export class UserService {
-  constructor(private repo: UserRepository) {}
+  constructor(private readonly repo: UserRepository) {}
 
   async getUserById(id: string): Promise<userDTO | null> {
     return this.repo.getUserById(id);

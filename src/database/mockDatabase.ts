@@ -1,5 +1,5 @@
 import {
-  database,
+  Database,
   userDTO,
   channelDTO,
   userChannelDTO,
@@ -11,17 +11,17 @@ import {
   areDTO,
   possessesDTO,
 } from "./database";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
-export class MockDatabase implements database {
-  private users: userDTO[] = [];
-  private channels: channelDTO[] = [];
-  private types: typeAchievementDTO[] = [];
-  private achievements: achievementDTO[] = [];
-  private badges: badgeDTO[] = [];
-  private achieved: achievedDTO[] = [];
-  private are: areDTO[] = [];
-  private possesses: possessesDTO[] = [];
+export class MockDatabase implements Database {
+  private readonly users: userDTO[] = [];
+  private readonly channels: channelDTO[] = [];
+  private readonly types: typeAchievementDTO[] = [];
+  private readonly achievements: achievementDTO[] = [];
+  private readonly badges: badgeDTO[] = [];
+  private readonly achieved: achievedDTO[] = [];
+  private readonly are: areDTO[] = [];
+  private readonly possesses: possessesDTO[] = [];
 
   // User
   async getUserById(id: string): Promise<userDTO | null> {
@@ -211,10 +211,10 @@ export class MockDatabase implements database {
 
   async getBadgesByUserId(userId: string): Promise<badgeDTO[]> {
     // Find all Possesses records for this user, then return corresponding badges
-    const userBadgeIds = this.possesses
-      .filter((p) => p.userId === userId)
-      .map((p) => p.badgeId);
-    return this.badges.filter((b) => userBadgeIds.includes(b.id));
+    const userBadgeIds = new Set(
+      this.possesses.filter((p) => p.userId === userId).map((p) => p.badgeId),
+    );
+    return this.badges.filter((b) => userBadgeIds.has(b.id));
   }
 
   async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
@@ -249,18 +249,20 @@ export class MockDatabase implements database {
 
   async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {
     // Find all Possesses records for this badge, then return corresponding users
-    const badgeUserIds = this.possesses
-      .filter((p) => p.badgeId === badgeId)
-      .map((p) => p.userId);
-    return this.users.filter((u) => badgeUserIds.includes(u.id));
+    const badgeUserIds = new Set(
+      this.possesses.filter((p) => p.badgeId === badgeId).map((p) => p.userId),
+    );
+    return this.users.filter((u) => badgeUserIds.has(u.id));
   }
 
   async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
     // Find all Achieved records for this achievement, then return corresponding users
-    const achievementUserIds = this.achieved
-      .filter((a) => a.achievementId === achievementId)
-      .map((a) => a.userId);
-    return this.users.filter((u) => achievementUserIds.includes(u.id));
+    const achievementUserIds = new Set(
+      this.achieved
+        .filter((a) => a.achievementId === achievementId)
+        .map((a) => a.userId),
+    );
+    return this.users.filter((u) => achievementUserIds.has(u.id));
   }
   async disconnect(): Promise<void> {
     // No-op for mock database; nothing to disconnect.

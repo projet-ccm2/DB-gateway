@@ -1,7 +1,7 @@
-import { database, typeAchievementDTO } from "../database/database";
+import { Database, typeAchievementDTO } from "../database/database";
 
 export class TypeAchievementRepository {
-  constructor(private db: database) {}
+  constructor(private readonly db: Database) {}
 
   async getById(id: string): Promise<typeAchievementDTO | null> {
     return this.db.getTypeAchievementById(id);
