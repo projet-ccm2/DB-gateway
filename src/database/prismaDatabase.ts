@@ -15,8 +15,8 @@ import {
 
 // Wrap the generated Prisma client with a simple adapter to satisfy our database interface
 export class PrismaDatabase implements Database {
-  // Generated client expects an options object; allow any for simplicity
-  private readonly prisma: any;
+  // Use correct PrismaClient type for prisma property
+  private readonly prisma: PrismaClient;
 
   constructor() {
     this.prisma = new PrismaClient({});
@@ -158,7 +158,8 @@ export class PrismaDatabase implements Database {
     userId: string,
   ): Promise<achievedDTO | null> {
     const a = await this.prisma.achieved.findUnique({
-      where: { achievementIdUserId: { achievementId, userId } },
+      // eslint-disable-next-line camelcase
+      where: { achievementId_userId: { achievementId, userId } },
     });
     if (!a) return null;
     return {
@@ -201,7 +202,8 @@ export class PrismaDatabase implements Database {
 
   async getAre(userId: string, channelId: string): Promise<areDTO | null> {
     const r = await this.prisma.are.findUnique({
-      where: { userIdChannelId: { userId, channelId } },
+      // eslint-disable-next-line camelcase
+      where: { userId_channelId: { userId, channelId } },
     });
     if (!r) return null;
     return { userId: r.userId, channelId: r.channelId, userType: r.userType };
@@ -227,7 +229,8 @@ export class PrismaDatabase implements Database {
     badgeId: string,
   ): Promise<possessesDTO | null> {
     const p = await this.prisma.possesses.findUnique({
-      where: { userIdBadgeId: { userId, badgeId } },
+      // eslint-disable-next-line camelcase
+      where: { userId_badgeId: { userId, badgeId } },
     });
     if (!p) return null;
     return {
@@ -348,6 +351,3 @@ export class PrismaDatabase implements Database {
     if (this.prisma?.$disconnect) await this.prisma.$disconnect();
   }
 }
-
-// Backwards-compat: some tests / code expect a lowercase export name
-// legacy alias removed: project now uses PascalCase `PrismaDatabase` throughout

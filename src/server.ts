@@ -1,28 +1,18 @@
-// @ts-nocheck
-import express from "express";
-import { createMockGateway } from "./index";
+const express = require("express");
+
+import { createPrismaGateway } from "./index";
+import { logger } from "./utils/logger";
 
 const app = express();
-// use a minimal json parser compatible with our lightweight types
-app.use((req, _res, next) => {
-  try {
-    let data = "";
-    req.on("data", (chunk: any) => (data += chunk));
-    req.on("end", () => {
-      try {
-        (req as any).body = data ? JSON.parse(data) : {};
-      } catch {
-        (req as any).body = {};
-      }
-      next();
-    });
-  } catch {
-    next();
-  }
-});
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// For demo we use a mock gateway by default. In production you can swap to prisma gateway.
-const { repo } = createMockGateway();
+const { repo } = createPrismaGateway();
+
+// Health check route
+app.get("/health", (_req: any, res: any) => {
+  res.status(200).json({ status: "ok" });
+});
 
 app.post("/users", async (req: any, res: any) => {
   try {
@@ -52,7 +42,8 @@ app.post("/users", async (req: any, res: any) => {
     });
     res.status(201).json(user);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    logger.error("POST /users error", { error: err });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -62,15 +53,9 @@ app.get("/users/:id", async (req: any, res: any) => {
     if (!user) return res.status(404).json({ error: "not found" });
     res.json(user);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    logger.error("GET /users/:id error", { error: err });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 export default app;
-
-if (require.main === module) {
-  const port = process.env.PORT ? Number(process.env.PORT) : 3000;
-  app.listen(port, () =>
-    console.log(`Server listening on http://localhost:${port}`),
-  );
-}

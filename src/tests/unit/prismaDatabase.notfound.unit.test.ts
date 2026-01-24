@@ -1,16 +1,11 @@
-/**
- * @file Tests for PrismaDatabase not-found branches
- *
- * This test file mocks the entire PrismaClient at runtime using jest.doMock.
- * TypeScript cannot infer types for dynamically mocked modules inside jest.isolateModules.
- * The ts-nocheck directive is intentional as the mock structure doesn't match Prisma's generated types.
- */
-// @ts-nocheck
+// Dynamic Jest mock structure does not match Prisma types; use 'any' for mock classes and snake_case keys with eslint-disable-next-line camelcase where needed.
 describe("prismaDatabase not-found branches", () => {
   jest.isolateModules(() => {
     jest.doMock("@prisma/client", () => {
       return {
         PrismaClient: class {
+          // Use 'any' for dynamic properties to satisfy TypeScript
+          [key: string]: any;
           constructor() {
             this.user = { findUnique: async () => null };
             this.channel = { findUnique: async () => null };

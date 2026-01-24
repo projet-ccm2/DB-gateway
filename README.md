@@ -61,7 +61,7 @@ You should see something like:
 
 ```
 CONTAINER ID   IMAGE       COMMAND                  STATUS                    PORTS
-xxxxxx          mysql:8.0   "docker-entrypoint.s…"   Up (healthy)              0.0.0.0:3307->3306/tcp
+xxxxxx          mysql:8.0   "docker-entrypoint.s…"   Up (healthy)              0.0.0.0:3306->3306/tcp
 ```
 
 ---
@@ -77,7 +77,7 @@ xxxxxx          mysql:8.0   "docker-entrypoint.s…"   Up (healthy)             
 | Field        | Value          |
 | ------------ | -------------- |
 | **Host**     | `localhost`    |
-| **Port**     | `3307`         |
+| **Port**     | `3306`         |
 | **Database** | `test_db`      |
 | **User**     | `root`         |
 | **Password** | `rootpassword` |
@@ -182,7 +182,7 @@ npx eslint . --fix
 
 ## 🧠 Notes
 
-- The MySQL DB is available at **port 3307**.
+- The MySQL DB is available at **port 3306**.
 - The DB is reset each time you run `npm run dev:db:down`.
 
 ---
@@ -268,7 +268,7 @@ to talk to the DB, and returns responses. The current code implements this patte
 - `src/services/userService.ts` — small service layer wrapper
 - `src/handler/jsonHandler.ts` — example of a message handler (injected repo)
 - `src/prisma/seed.ts` — seed script (inserts a seed user)
-- `docker-compose.yml` + `.env` — test DB orchestration (MySQL on host port 3307)
+- `docker-compose.yml` + `.env` — test DB orchestration (MySQL on host port 3306)
 
 ## ⚡ Quick Start (Developer Machine)
 
@@ -284,7 +284,7 @@ npm install
 npm run dev:db
 ```
 
-This starts MySQL on `localhost:3307`.
+This starts MySQL on `localhost:3306`.
 
 ### 3. Run Tests
 
@@ -321,7 +321,7 @@ npm run init:all
 `init:all` will:
 
 - start the MySQL test container (defined in `docker-compose.test.yml`),
-- wait until port 3307 is reachable,
+- wait until port 3306 is reachable,
 - generate the Prisma client,
 - push the Prisma schema to the DB (`prisma db push`),
 - insert a seed user.

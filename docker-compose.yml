@@ -4,11 +4,8 @@ services:
   mysql:
     image: mysql:8.0
     container_name: mysql_db_gateway
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: app
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppass
+    env_file:
+      - .env
     ports:
       - "3306:3306"
     volumes:

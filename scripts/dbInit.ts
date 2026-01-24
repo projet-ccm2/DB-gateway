@@ -55,7 +55,13 @@ const myEnv = Object.assign({}, process.env, env);
         dbPass = decodeURIComponent(parsed.password) || dbPass;
         dbName = parsed.pathname ? parsed.pathname.replace(/^\//, "") : dbName;
       } catch (e) {
-        // ignore parse error and use defaults
+        console.warn(
+          "Warning: Failed to parse DATABASE_URL. Using default database connection settings instead.",
+          "DATABASE_URL:",
+          env.DATABASE_URL,
+          "Error:",
+          e instanceof Error ? e.message : e,
+        );
       }
     }
 

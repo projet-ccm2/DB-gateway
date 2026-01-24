@@ -1,16 +1,11 @@
-/**
- * @file Tests for PrismaDatabase adapter with mocked PrismaClient
- *
- * This test file mocks the entire PrismaClient at runtime using jest.doMock.
- * TypeScript cannot infer types for dynamically mocked modules inside jest.isolateModules.
- * The ts-nocheck directive is intentional as the mock structure doesn't match Prisma's generated types.
- */
-// @ts-nocheck
+// Dynamic Jest mock structure does not match Prisma types; use 'any' for mock classes and snake_case keys with eslint-disable-next-line camelcase where needed.
 describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
   jest.isolateModules(() => {
     jest.doMock("@prisma/client", () => {
       return {
         PrismaClient: class {
+          // Use 'any' for dynamic properties to satisfy TypeScript
+          [key: string]: any;
           constructor() {
             // simple in-memory stores
             this._users = new Map();
@@ -22,24 +17,10 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             this._are = new Map();
             this._possesses = new Map();
 
-            // adapters
-            const mkFind =
-              (store) =>
-              async ({ where: { id } }) =>
-                store.get(id) ?? null;
-            const mkCreate =
-              (store, shapeFn) =>
-              async ({ data }) => {
-                const id = (Math.random() + 1).toString(36).slice(2, 10);
-                const row = { id, ...shapeFn(data) };
-                store.set(id, row);
-                return row;
-              };
-
             this.user = {
-              findUnique: async ({ where: { id } }) =>
-                this._users.get(id) ?? null,
-              create: async ({ data }) => {
+              findUnique: async ({ where }: { where: { id: string } }) =>
+                this._users.get(where.id) ?? null,
+              create: async ({ data }: { data: any }) => {
                 const id = "u_" + Math.random().toString(36).slice(2, 8);
                 const row = {
                   id,
@@ -56,9 +37,9 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.channel = {
-              findUnique: async ({ where: { id } }) =>
-                this._channels.get(id) ?? null,
-              create: async ({ data }) => {
+              findUnique: async ({ where }: { where: { id: string } }) =>
+                this._channels.get(where.id) ?? null,
+              create: async ({ data }: { data: any }) => {
                 const id = "c_" + Math.random().toString(36).slice(2, 8);
                 const row = { id, name: data.name };
                 this._channels.set(id, row);
@@ -67,9 +48,9 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.typeAchievement = {
-              findUnique: async ({ where: { id } }) =>
-                this._types.get(id) ?? null,
-              create: async ({ data }) => {
+              findUnique: async ({ where }: { where: { id: string } }) =>
+                this._types.get(where.id) ?? null,
+              create: async ({ data }: { data: any }) => {
                 const id = "t_" + Math.random().toString(36).slice(2, 8);
                 const row = { id, label: data.label, data: data.data };
                 this._types.set(id, row);
@@ -78,9 +59,9 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.achievement = {
-              findUnique: async ({ where: { id } }) =>
-                this._achievements.get(id) ?? null,
-              create: async ({ data }) => {
+              findUnique: async ({ where }: { where: { id: string } }) =>
+                this._achievements.get(where.id) ?? null,
+              create: async ({ data }: { data: any }) => {
                 const id = "a_" + Math.random().toString(36).slice(2, 8);
                 const row = {
                   id,
@@ -96,9 +77,9 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.badge = {
-              findUnique: async ({ where: { id } }) =>
-                this._badges.get(id) ?? null,
-              create: async ({ data }) => {
+              findUnique: async ({ where }: { where: { id: string } }) =>
+                this._badges.get(where.id) ?? null,
+              create: async ({ data }: { data: any }) => {
                 const id = "b_" + Math.random().toString(36).slice(2, 8);
                 const row = { id, title: data.title, img: data.img };
                 this._badges.set(id, row);
@@ -107,14 +88,23 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.achieved = {
-              findUnique: async ({ where: { achievementIdUserId } }) => {
+              findUnique: async ({
+                where,
+              }: {
+                where: {
+                  achievementId_userId: {
+                    achievementId: string;
+                    userId: string;
+                  };
+                };
+              }) => {
                 const key =
-                  achievementIdUserId.achievementId +
+                  where.achievementId_userId.achievementId +
                   "|" +
-                  achievementIdUserId.userId;
+                  where.achievementId_userId.userId;
                 return this._achieved.get(key) ?? null;
               },
-              create: async ({ data }) => {
+              create: async ({ data }: { data: any }) => {
                 const key = data.achievementId + "|" + data.userId;
                 const row = {
                   achievementId: data.achievementId,
@@ -127,7 +117,13 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._achieved.set(key, row);
                 return row;
               },
-              findMany: async ({ where, include }) => {
+              findMany: async ({
+                where,
+                include,
+              }: {
+                where?: any;
+                include?: any;
+              }) => {
                 const results = [];
                 for (const [, v] of this._achieved) {
                   if (where?.userId && v.userId !== where.userId) continue;
@@ -145,12 +141,20 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.are = {
-              findUnique: async ({ where: { userIdChannelId } }) => {
+              findUnique: async ({
+                where,
+              }: {
+                where: {
+                  userId_channelId: { userId: string; channelId: string };
+                };
+              }) => {
                 const key =
-                  userIdChannelId.userId + "|" + userIdChannelId.channelId;
+                  where.userId_channelId.userId +
+                  "|" +
+                  where.userId_channelId.channelId;
                 return this._are.get(key) ?? null;
               },
-              create: async ({ data }) => {
+              create: async ({ data }: { data: any }) => {
                 const key = data.userId + "|" + data.channelId;
                 const row = {
                   userId: data.userId,
@@ -160,7 +164,13 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._are.set(key, row);
                 return row;
               },
-              findMany: async ({ where, include }) => {
+              findMany: async ({
+                where,
+                include,
+              }: {
+                where?: any;
+                include?: any;
+              }) => {
                 const results = [];
                 for (const [, v] of this._are) {
                   if (where?.userId && v.userId !== where.userId) continue;
@@ -177,11 +187,18 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.possesses = {
-              findUnique: async ({ where: { userIdBadgeId } }) => {
-                const key = userIdBadgeId.userId + "|" + userIdBadgeId.badgeId;
+              findUnique: async ({
+                where,
+              }: {
+                where: { userId_badgeId: { userId: string; badgeId: string } };
+              }) => {
+                const key =
+                  where.userId_badgeId.userId +
+                  "|" +
+                  where.userId_badgeId.badgeId;
                 return this._possesses.get(key) ?? null;
               },
-              create: async ({ data }) => {
+              create: async ({ data }: { data: any }) => {
                 const key = data.userId + "|" + data.badgeId;
                 const row = {
                   userId: data.userId,
@@ -191,7 +208,13 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._possesses.set(key, row);
                 return row;
               },
-              findMany: async ({ where, include }) => {
+              findMany: async ({
+                where,
+                include,
+              }: {
+                where?: any;
+                include?: any;
+              }) => {
                 const results = [];
                 for (const [, v] of this._possesses) {
                   if (where?.userId && v.userId !== where.userId) continue;
