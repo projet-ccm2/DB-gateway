@@ -15,11 +15,60 @@ import {
 
 // Wrap the generated Prisma client with a simple adapter to satisfy our database interface
 export class PrismaDatabase implements Database {
+  // Get all achievements for a channel
+  async getAchievementsByChannelId(
+    channelId: string,
+  ): Promise<achievementDTO[]> {
+    const achievements = await this.prisma.achievement.findMany({
+      where: { channelId },
+    });
+    return achievements.map((a: any) => ({
+      id: a.id,
+      title: a.title,
+      description: a.description,
+      goal: a.goal,
+      reward: a.reward,
+      label: a.label,
+    }));
+  }
+
+  // Get all achieved records for a user and a list of channelIds
+  async getAchievedByUserAndChannels(
+    userId: string,
+    channelIds: string[],
+  ): Promise<achievedDTO[]> {
+    const achieved = await this.prisma.achieved.findMany({
+      where: {
+        userId,
+        achievement: {
+          channelId: { in: channelIds },
+        },
+      },
+      include: { achievement: true },
+    });
+    return achieved.map((r: any) => ({
+      achievementId: r.achievementId,
+      userId: r.userId,
+      count: r.count,
+      finished: r.finished,
+      labelActive: r.labelActive,
+      acquiredDate: r.acquiredDate.toISOString(),
+    }));
+  }
   // Use correct PrismaClient type for prisma property
   private readonly prisma: PrismaClient;
 
   constructor() {
     this.prisma = new PrismaClient({});
+  }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async getUserById(id: string): Promise<userDTO | null> {
@@ -112,6 +161,7 @@ export class PrismaDatabase implements Database {
     goal: number;
     reward: number;
     label: string;
+    channelId: string;
   }): Promise<achievementDTO> {
     const na = await this.prisma.achievement.create({
       data: {
@@ -120,6 +170,7 @@ export class PrismaDatabase implements Database {
         goal: a.goal,
         reward: a.reward,
         label: a.label,
+        channelId: a.channelId,
         public: false,
         downloads: 0,
         visits: 0,

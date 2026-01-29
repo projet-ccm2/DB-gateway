@@ -500,6 +500,75 @@ Response (200):
 
 ---
 
+**Get achievements by channel ID**
+```http
+GET /channels/{channelId}/achievements
+```
+
+Example:
+```http
+GET /channels/c_xyz789/achievements
+```
+
+Response (200):
+```json
+{
+  "achievements": [
+    {
+      "id": "a_first1",
+      "title": "First Steps",
+      "description": "Complete the tutorial",
+      "goal": 1,
+      "reward": 100,
+      "label": "beginner",
+      "channelId": "c_xyz789"
+    }
+  ]
+}
+```
+
+**Error responses:**
+- `404` — Channel not found
+- `500` — Server error
+
+---
+
+**Get achieved records by user and channel IDs**
+```http
+GET /users/{userId}/achieved?channels={channelId1},{channelId2},...
+```
+
+Example:
+```http
+GET /users/u_abc123/achieved?channels=c_xyz789,c_def456
+```
+
+Response (200):
+```json
+{
+  "achieved": [
+    {
+      "achievementId": "a_first1",
+      "userId": "u_abc123",
+      "count": 5,
+      "finished": true,
+      "labelActive": true,
+      "acquiredDate": "2024-01-15T10:30:00.000Z",
+      "channelId": "c_xyz789"
+    }
+  ]
+}
+```
+
+**Query parameters:**
+- `channels` — Comma-separated list of channel IDs to filter by (required)
+
+**Error responses:**
+- `404` — User not found
+- `500` — Server error
+
+---
+
 **Get channels by user ID**
 ```http
 GET /users/{userId}/channels

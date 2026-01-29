@@ -43,6 +43,11 @@ export type possessesDTO = {
 };
 
 export interface Database {
+  getAchievementsByChannelId(channelId: string): Promise<achievementDTO[]>;
+  getAchievedByUserAndChannels(
+    userId: string,
+    channelIds: string[],
+  ): Promise<achievedDTO[]>;
   // User
   getUserById(id: string): Promise<userDTO | null>;
   addUser(user: {
@@ -72,6 +77,7 @@ export interface Database {
     goal: number;
     reward: number;
     label: string;
+    channelId: string;
   }): Promise<achievementDTO>;
 
   // Badge

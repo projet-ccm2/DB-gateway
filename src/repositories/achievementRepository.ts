@@ -13,6 +13,7 @@ export class AchievementRepository {
     goal: number;
     reward: number;
     label: string;
+    channelId: string;
   }): Promise<achievementDTO> {
     return this.db.addAchievement(a);
   }

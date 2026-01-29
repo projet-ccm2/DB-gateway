@@ -38,6 +38,7 @@ describe("repositories (unit, mock)", () => {
       goal: 10,
       reward: 5,
       label: "lab",
+      channelId: ch.id,
     });
     expect(a).toHaveProperty("id");
 

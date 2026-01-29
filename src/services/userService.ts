@@ -4,6 +4,8 @@ import type {
   channelDTO,
   badgeDTO,
   achievedDTO,
+  userChannelDTO,
+  channelUserDTO,
 } from "../database/database";
 
 export class UserService {
@@ -23,7 +25,7 @@ export class UserService {
     return this.repo.addUser(user);
   }
 
-  async getChannelsByUserId(userId: string): Promise<channelDTO[]> {
+  async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {
     return this.repo.getChannelsByUserId(userId);
   }
 
@@ -35,7 +37,7 @@ export class UserService {
     return this.repo.getAchievementsByUserId(userId);
   }
 
-  async getUsersByChannelId(channelId: string): Promise<userDTO[]> {
+  async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
     return this.repo.getUsersByChannelId(channelId);
   }
 

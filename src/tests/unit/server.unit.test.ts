@@ -1,5 +1,10 @@
 import request from "supertest";
-import app from "../../server";
+import { createApp } from "../../server";
+import { createMockGateway } from "../../index";
+import { describe, test, expect } from "@jest/globals";
+
+const { repo } = createMockGateway();
+const app = createApp({ repo });
 
 describe("server (unit) - mock-backed", () => {
   test("POST /users creates a user and GET /users/:id returns it", async () => {

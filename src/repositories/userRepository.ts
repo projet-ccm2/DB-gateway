@@ -5,9 +5,22 @@ import {
   channelUserDTO,
   badgeDTO,
   achievedDTO,
+  achievementDTO,
 } from "../database/database";
 
 export class UserRepository {
+  async getAchievementsByChannelId(
+    channelId: string,
+  ): Promise<achievementDTO[]> {
+    return this.db.getAchievementsByChannelId(channelId);
+  }
+
+  async getAchievedByUserAndChannels(
+    userId: string,
+    channelIds: string[],
+  ): Promise<achievedDTO[]> {
+    return this.db.getAchievedByUserAndChannels(userId, channelIds);
+  }
   constructor(private readonly db: Database) {}
 
   async getUserById(id: string): Promise<userDTO | null> {

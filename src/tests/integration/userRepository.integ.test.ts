@@ -6,7 +6,115 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
   const service = new UserRepository(db);
 
   afterAll(async () => {
-    await (db as any).prisma?.$disconnect();
+    await db.disconnect();
+  });
+
+  it("should return all achievements for a channel via getAchievementsByChannelId", async () => {
+    const channel = await db.addChannel({ name: "TestChannelForAchievements" });
+    const achievement1 = await db.addAchievement({
+      title: "ChannelAch1",
+      description: "First channel achievement",
+      goal: 1,
+      reward: 10,
+      label: "label1",
+      channelId: channel.id,
+    });
+    const achievement2 = await db.addAchievement({
+      title: "ChannelAch2",
+      description: "Second channel achievement",
+      goal: 2,
+      reward: 20,
+      label: "label2",
+      channelId: channel.id,
+    });
+    // Add an achievement for a different channel to ensure filtering
+    const otherChannel = await db.addChannel({
+      name: "OtherChannelForAchievements",
+    });
+    await db.addAchievement({
+      title: "OtherChannelAch",
+      description: "Other channel achievement",
+      goal: 3,
+      reward: 30,
+      label: "label3",
+      channelId: otherChannel.id,
+    });
+    const achievements = await service.getAchievementsByChannelId(channel.id);
+    expect(achievements.length).toBeGreaterThanOrEqual(2);
+    const titles = achievements.map((a) => a.title);
+    expect(titles).toContain("ChannelAch1");
+    expect(titles).toContain("ChannelAch2");
+    expect(titles).not.toContain("OtherChannelAch");
+  });
+
+  it("should return all achieved records for a user and channelIds via getAchievedByUserAndChannels", async () => {
+    const user = await service.addUser({
+      username: "AchievedUser",
+      twitchUserId: "twitch_achieved_user",
+    });
+    const channel1 = await db.addChannel({ name: "AchievedChannel1" });
+    const channel2 = await db.addChannel({ name: "AchievedChannel2" });
+    const achievement1 = await db.addAchievement({
+      title: "Achieved1",
+      description: "desc1",
+      goal: 1,
+      reward: 10,
+      label: "l1",
+      channelId: channel1.id,
+    });
+    const achievement2 = await db.addAchievement({
+      title: "Achieved2",
+      description: "desc2",
+      goal: 2,
+      reward: 20,
+      label: "l2",
+      channelId: channel2.id,
+    });
+    // Add achieved records for both achievements
+    await db.addAchieved({
+      achievementId: achievement1.id,
+      userId: user.id,
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: new Date().toISOString(),
+    });
+    await db.addAchieved({
+      achievementId: achievement2.id,
+      userId: user.id,
+      count: 2,
+      finished: true,
+      labelActive: false,
+      acquiredDate: new Date().toISOString(),
+    });
+    // Add an achieved record for a different user
+    const otherUser = await service.addUser({
+      username: "OtherUser",
+      twitchUserId: "twitch_other_user",
+    });
+    await db.addAchieved({
+      achievementId: achievement1.id,
+      userId: otherUser.id,
+      count: 1,
+      finished: false,
+      labelActive: false,
+      acquiredDate: new Date().toISOString(),
+    });
+    // Query for both channels
+    const achieved = await service.getAchievedByUserAndChannels(user.id, [
+      channel1.id,
+      channel2.id,
+    ]);
+    expect(achieved.length).toBe(2);
+    const achIds = achieved.map((a) => a.achievementId);
+    expect(achIds).toContain(achievement1.id);
+    expect(achIds).toContain(achievement2.id);
+    // Query for only one channel
+    const achievedOne = await service.getAchievedByUserAndChannels(user.id, [
+      channel1.id,
+    ]);
+    expect(achievedOne.length).toBe(1);
+    expect(achievedOne[0].achievementId).toBe(achievement1.id);
   });
 
   it("should add and read a user from real MySQL via Prisma", async () => {
@@ -112,12 +220,14 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       username: "AchievementIntegUser",
       twitchUserId: "twitch_integ_005",
     });
+    const channel = await db.addChannel({ name: "AchievementUserChannel" });
     const achievement = await db.addAchievement({
       title: "IntegAchievement",
       description: "Integration test achievement",
       goal: 10,
       reward: 100,
       label: "test",
+      channelId: channel.id,
     });
     await db.addAchieved({
       achievementId: achievement.id,
@@ -213,12 +323,14 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       username: "AchievementHolder",
       twitchUserId: "twitch_integ_008",
     });
+    const channel = await db.addChannel({ name: "HolderAchievementChannel" });
     const achievement = await db.addAchievement({
       title: "HolderAchievement",
       description: "Test holder",
       goal: 1,
       reward: 50,
       label: "holder",
+      channelId: channel.id,
     });
     await db.addAchieved({
       achievementId: achievement.id,

@@ -59,8 +59,6 @@ describe("userRepository (unit, mock db)", () => {
     expect(b.username).toBe("Robert");
   });
 
-  // ============ NEW: Tests for getChannelsByUserId ============
-
   it("should return empty array when user has no channels", async () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
@@ -150,8 +148,6 @@ describe("userRepository (unit, mock db)", () => {
     expect(regular?.userType).toBe("user");
   });
 
-  // ============ NEW: Tests for getBadgesByUserId ============
-
   it("should return empty array when user has no badges", async () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
@@ -199,8 +195,6 @@ describe("userRepository (unit, mock db)", () => {
     expect(badges.map((b) => b.title)).toContain("Silver Badge");
   });
 
-  // ============ NEW: Tests for getAchievementsByUserId ============
-
   it("should return empty array when user has no achievements", async () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
@@ -244,8 +238,6 @@ describe("userRepository (unit, mock db)", () => {
     expect(achievements[0].achievementId).toBe(achievement1.id);
     expect(achievements[0].finished).toBe(true);
   });
-
-  // ============ NEW: Tests for getUsersByChannelId ============
 
   it("should return empty array when channel has no users", async () => {
     const mockDb = new MockDatabase();
@@ -340,8 +332,6 @@ describe("userRepository (unit, mock db)", () => {
     expect(regularResult?.userType).toBe("user");
   });
 
-  // ============ NEW: Tests for getUsersByBadgeId ============
-
   it("should return empty array when badge has no owners", async () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
@@ -388,8 +378,6 @@ describe("userRepository (unit, mock db)", () => {
     expect(users.map((u) => u.username)).toContain("BadgeOwner1");
     expect(users.map((u) => u.username)).toContain("BadgeOwner2");
   });
-
-  // ============ NEW: Tests for getUsersByAchievementId ============
 
   it("should return empty array when achievement has no completers", async () => {
     const mockDb = new MockDatabase();

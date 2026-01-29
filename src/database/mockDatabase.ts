@@ -14,6 +14,24 @@ import {
 import { randomUUID } from "node:crypto";
 
 export class MockDatabase implements Database {
+  async getAchievementsByChannelId(
+    channelId: string,
+  ): Promise<achievementDTO[]> {
+    return this.achievements.filter((a: any) =>
+      a.channelId ? a.channelId === channelId : true,
+    );
+  }
+
+  async getAchievedByUserAndChannels(
+    userId: string,
+    channelIds: string[],
+  ): Promise<achievedDTO[]> {
+    return this.achieved.filter(
+      (a: any) =>
+        a.userId === userId &&
+        (a.channelId ? channelIds.includes(a.channelId) : true),
+    );
+  }
   private readonly users: userDTO[] = [];
   private readonly channels: channelDTO[] = [];
   private readonly types: typeAchievementDTO[] = [];

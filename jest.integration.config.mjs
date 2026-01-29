@@ -22,10 +22,12 @@ export default {
       statements: 80,
     },
   },
-  testMatch: ["**/src/**/*.test.{ts,tsx}", "**/src/**/*.spec.{ts,tsx}"],
+  testMatch: ["**/src/tests/integration/**/*.test.{ts,tsx}", "**/src/tests/integration/**/*.spec.{ts,tsx}"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   setupFilesAfterEnv: [
-    // general setup (unit tests)
+    // general setup (integration tests)
     "<rootDir>/src/tests/setup.ts"
   ],
+  globalSetup: "<rootDir>/src/tests/globalSetup.ts",
+  globalTeardown: "<rootDir>/src/tests/globalTeardown.ts",
 };
