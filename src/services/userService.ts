@@ -1,7 +1,6 @@
 import { UserRepository } from "../repositories/userRepository";
 import type {
   userDTO,
-  channelDTO,
   badgeDTO,
   achievedDTO,
   userChannelDTO,
