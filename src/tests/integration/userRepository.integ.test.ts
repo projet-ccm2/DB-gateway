@@ -27,7 +27,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       label: "label2",
       channelId: channel.id,
     });
-    // Add an achievement for a different channel to ensure filtering
     const otherChannel = await db.addChannel({
       name: "OtherChannelForAchievements",
     });
@@ -70,7 +69,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       label: "l2",
       channelId: channel2.id,
     });
-    // Add achieved records for both achievements
     await db.addAchieved({
       achievementId: achievement1.id,
       userId: user.id,
@@ -87,7 +85,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       labelActive: false,
       acquiredDate: new Date().toISOString(),
     });
-    // Add an achieved record for a different user
     const otherUser = await service.addUser({
       username: "OtherUser",
       twitchUserId: "twitch_other_user",
@@ -100,7 +97,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       labelActive: false,
       acquiredDate: new Date().toISOString(),
     });
-    // Query for both channels
     const achieved = await service.getAchievedByUserAndChannels(user.id, [
       channel1.id,
       channel2.id,
@@ -109,7 +105,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     const achIds = achieved.map((a) => a.achievementId);
     expect(achIds).toContain(achievement1.id);
     expect(achIds).toContain(achievement2.id);
-    // Query for only one channel
     const achievedOne = await service.getAchievedByUserAndChannels(user.id, [
       channel1.id,
     ]);
@@ -261,7 +256,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     expect(users.length).toBeGreaterThanOrEqual(1);
     expect(users.some((u) => u.username === "ChannelMember")).toBe(true);
 
-    // Verify userType is included
     const channelMember = users.find((u) => u.username === "ChannelMember");
     expect(channelMember?.userType).toBe("viewer");
   });

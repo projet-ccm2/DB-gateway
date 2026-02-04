@@ -13,26 +13,32 @@ import {
   possessesDTO,
 } from "./database";
 
-// Wrap the generated Prisma client with a simple adapter to satisfy our database interface
 export class PrismaDatabase implements Database {
-  // Get all achievements for a channel
   async getAchievementsByChannelId(
     channelId: string,
   ): Promise<achievementDTO[]> {
     const achievements = await this.prisma.achievement.findMany({
       where: { channelId },
     });
-    return achievements.map((a: any) => ({
-      id: a.id,
-      title: a.title,
-      description: a.description,
-      goal: a.goal,
-      reward: a.reward,
-      label: a.label,
-    }));
+    return achievements.map(
+      (a: {
+        id: string;
+        title: string;
+        description: string;
+        goal: number;
+        reward: number;
+        label: string;
+      }) => ({
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        goal: a.goal,
+        reward: a.reward,
+        label: a.label,
+      }),
+    );
   }
 
-  // Get all achieved records for a user and a list of channelIds
   async getAchievedByUserAndChannels(
     userId: string,
     channelIds: string[],
@@ -46,20 +52,30 @@ export class PrismaDatabase implements Database {
       },
       include: { achievement: true },
     });
-    return achieved.map((r: any) => ({
-      achievementId: r.achievementId,
-      userId: r.userId,
-      count: r.count,
-      finished: r.finished,
-      labelActive: r.labelActive,
-      acquiredDate: r.acquiredDate.toISOString(),
-    }));
+    return achieved.map(
+      (r: {
+        achievementId: string;
+        userId: string;
+        count: number;
+        finished: boolean;
+        labelActive: boolean;
+        acquiredDate: Date;
+      }) => ({
+        achievementId: r.achievementId,
+        userId: r.userId,
+        count: r.count,
+        finished: r.finished,
+        labelActive: r.labelActive,
+        acquiredDate: r.acquiredDate.toISOString(),
+      }),
+    );
   }
-  // Use correct PrismaClient type for prisma property
   private readonly prisma: PrismaClient;
 
-  constructor() {
-    this.prisma = new PrismaClient({});
+  constructor(databaseUrl?: string) {
+    this.prisma = databaseUrl
+      ? new PrismaClient({ datasources: { db: { url: databaseUrl } } })
+      : new PrismaClient();
   }
 
   async healthCheck(): Promise<boolean> {
@@ -110,7 +126,6 @@ export class PrismaDatabase implements Database {
     };
   }
 
-  // Channel
   async getChannelById(id: string): Promise<channelDTO | null> {
     const c = await this.prisma.channel.findUnique({ where: { id } });
     if (!c) return null;
@@ -124,7 +139,6 @@ export class PrismaDatabase implements Database {
     return { id: c.id, name: c.name };
   }
 
-  // TypeAchievement
   async getTypeAchievementById(id: string): Promise<typeAchievementDTO | null> {
     const t = await this.prisma.typeAchievement.findUnique({ where: { id } });
     if (!t) return null;
@@ -141,7 +155,6 @@ export class PrismaDatabase implements Database {
     return { id: nt.id, label: nt.label, data: nt.data };
   }
 
-  // Achievement
   async getAchievementById(id: string): Promise<achievementDTO | null> {
     const a = await this.prisma.achievement.findUnique({ where: { id } });
     if (!a) return null;
@@ -161,7 +174,7 @@ export class PrismaDatabase implements Database {
     goal: number;
     reward: number;
     label: string;
-    channelId: string;
+    channelId?: string | null;
   }): Promise<achievementDTO> {
     const na = await this.prisma.achievement.create({
       data: {
@@ -170,7 +183,7 @@ export class PrismaDatabase implements Database {
         goal: a.goal,
         reward: a.reward,
         label: a.label,
-        channelId: a.channelId,
+        channelId: a.channelId ?? undefined,
         public: false,
         downloads: 0,
         visits: 0,
@@ -189,7 +202,6 @@ export class PrismaDatabase implements Database {
     };
   }
 
-  // Badge
   async getBadgeById(id: string): Promise<badgeDTO | null> {
     const b = await this.prisma.badge.findUnique({ where: { id } });
     if (!b) return null;
@@ -203,13 +215,11 @@ export class PrismaDatabase implements Database {
     return { id: nb.id, title: nb.title, img: nb.img };
   }
 
-  // Achieved, Are, Possesses: basic implementations
   async getAchieved(
     achievementId: string,
     userId: string,
   ): Promise<achievedDTO | null> {
     const a = await this.prisma.achieved.findUnique({
-      // eslint-disable-next-line camelcase
       where: { achievementId_userId: { achievementId, userId } },
     });
     if (!a) return null;
@@ -253,7 +263,6 @@ export class PrismaDatabase implements Database {
 
   async getAre(userId: string, channelId: string): Promise<areDTO | null> {
     const r = await this.prisma.are.findUnique({
-      // eslint-disable-next-line camelcase
       where: { userId_channelId: { userId, channelId } },
     });
     if (!r) return null;
@@ -280,7 +289,6 @@ export class PrismaDatabase implements Database {
     badgeId: string,
   ): Promise<possessesDTO | null> {
     const p = await this.prisma.possesses.findUnique({
-      // eslint-disable-next-line camelcase
       where: { userId_badgeId: { userId, badgeId } },
     });
     if (!p) return null;
@@ -310,18 +318,18 @@ export class PrismaDatabase implements Database {
     };
   }
 
-  // ============ NEW: Get by User ID ============
-
   async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {
     const areRecords = await this.prisma.are.findMany({
       where: { userId },
       include: { channel: true },
     });
-    return areRecords.map((r: any) => ({
-      id: r.channel.id,
-      name: r.channel.name,
-      userType: r.userType,
-    }));
+    return areRecords.map(
+      (r: { channel: { id: string; name: string }; userType: string }) => ({
+        id: r.channel.id,
+        name: r.channel.name,
+        userType: r.userType,
+      }),
+    );
   }
 
   async getBadgesByUserId(userId: string): Promise<badgeDTO[]> {
@@ -329,43 +337,64 @@ export class PrismaDatabase implements Database {
       where: { userId },
       include: { badge: true },
     });
-    return possessRecords.map((r: any) => ({
-      id: r.badge.id,
-      title: r.badge.title,
-      img: r.badge.img,
-    }));
+    return possessRecords.map(
+      (r: { badge: { id: string; title: string; img: string } }) => ({
+        id: r.badge.id,
+        title: r.badge.title,
+        img: r.badge.img,
+      }),
+    );
   }
 
   async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
     const achievedRecords = await this.prisma.achieved.findMany({
       where: { userId },
     });
-    return achievedRecords.map((r: any) => ({
-      achievementId: r.achievementId,
-      userId: r.userId,
-      count: r.count,
-      finished: r.finished,
-      labelActive: r.labelActive,
-      acquiredDate: r.acquiredDate.toISOString(),
-    }));
+    return achievedRecords.map(
+      (r: {
+        achievementId: string;
+        userId: string;
+        count: number;
+        finished: boolean;
+        labelActive: boolean;
+        acquiredDate: Date;
+      }) => ({
+        achievementId: r.achievementId,
+        userId: r.userId,
+        count: r.count,
+        finished: r.finished,
+        labelActive: r.labelActive,
+        acquiredDate: r.acquiredDate.toISOString(),
+      }),
+    );
   }
-
-  // ============ NEW: Inverse lookups (get users by entity) ============
 
   async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
     const areRecords = await this.prisma.are.findMany({
       where: { channelId },
       include: { user: true },
     });
-    return areRecords.map((r: any) => ({
-      id: r.user.id,
-      username: r.user.username,
-      twitchUserId: r.user.twitchUserId,
-      profileImageUrl: r.user.profileImageUrl,
-      channelDescription: r.user.channelDescription,
-      scope: r.user.scope,
-      userType: r.userType,
-    }));
+    return areRecords.map(
+      (r: {
+        user: {
+          id: string;
+          username: string;
+          twitchUserId: string;
+          profileImageUrl: string | null;
+          channelDescription: string | null;
+          scope: string | null;
+        };
+        userType: string;
+      }) => ({
+        id: r.user.id,
+        username: r.user.username,
+        twitchUserId: r.user.twitchUserId,
+        profileImageUrl: r.user.profileImageUrl,
+        channelDescription: r.user.channelDescription,
+        scope: r.user.scope,
+        userType: r.userType,
+      }),
+    );
   }
 
   async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {
@@ -373,14 +402,25 @@ export class PrismaDatabase implements Database {
       where: { badgeId },
       include: { user: true },
     });
-    return possessRecords.map((r: any) => ({
-      id: r.user.id,
-      username: r.user.username,
-      twitchUserId: r.user.twitchUserId,
-      profileImageUrl: r.user.profileImageUrl,
-      channelDescription: r.user.channelDescription,
-      scope: r.user.scope,
-    }));
+    return possessRecords.map(
+      (r: {
+        user: {
+          id: string;
+          username: string;
+          twitchUserId: string;
+          profileImageUrl: string | null;
+          channelDescription: string | null;
+          scope: string | null;
+        };
+      }) => ({
+        id: r.user.id,
+        username: r.user.username,
+        twitchUserId: r.user.twitchUserId,
+        profileImageUrl: r.user.profileImageUrl,
+        channelDescription: r.user.channelDescription,
+        scope: r.user.scope,
+      }),
+    );
   }
 
   async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
@@ -388,14 +428,25 @@ export class PrismaDatabase implements Database {
       where: { achievementId },
       include: { user: true },
     });
-    return achievedRecords.map((r: any) => ({
-      id: r.user.id,
-      username: r.user.username,
-      twitchUserId: r.user.twitchUserId,
-      profileImageUrl: r.user.profileImageUrl,
-      channelDescription: r.user.channelDescription,
-      scope: r.user.scope,
-    }));
+    return achievedRecords.map(
+      (r: {
+        user: {
+          id: string;
+          username: string;
+          twitchUserId: string;
+          profileImageUrl: string | null;
+          channelDescription: string | null;
+          scope: string | null;
+        };
+      }) => ({
+        id: r.user.id,
+        username: r.user.username,
+        twitchUserId: r.user.twitchUserId,
+        profileImageUrl: r.user.profileImageUrl,
+        channelDescription: r.user.channelDescription,
+        scope: r.user.scope,
+      }),
+    );
   }
 
   async disconnect(): Promise<void> {

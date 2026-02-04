@@ -37,8 +37,6 @@ export class UserRepository {
     return this.db.addUser(user);
   }
 
-  // ============ NEW: Get related entities by User ID ============
-
   async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {
     return this.db.getChannelsByUserId(userId);
   }
@@ -50,8 +48,6 @@ export class UserRepository {
   async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
     return this.db.getAchievementsByUserId(userId);
   }
-
-  // ============ NEW: Inverse lookups (get users by entity) ============
 
   async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
     return this.db.getUsersByChannelId(channelId);

@@ -1,7 +1,24 @@
 # 🧱 DB-Gateway
 
 Gateway between backend services and the project database (MySQL).  
-This service receives JSON payloads and interacts with the database accordingly.
+This service exposes REST HTTP routes and receives JSON payloads to interact with the database.
+
+---
+
+## 📚 API Documentation (Swagger-style)
+
+La documentation détaillée de chaque route HTTP est dans le dossier **[\`doc/\`](./doc/)** :
+
+- **[Index des routes](./doc/README.md)** — liste de toutes les routes avec liens vers chaque ressource
+- [Health](./doc/health.md)
+- [Users](./doc/users.md)
+- [Channels](./doc/channels.md)
+- [Type Achievements](./doc/type-achievements.md)
+- [Achievements](./doc/achievements.md)
+- [Badges](./doc/badges.md)
+- [Achieved](./doc/achieved.md)
+- [Are](./doc/are.md)
+- [Possesses](./doc/possesses.md)
 
 ---
 
