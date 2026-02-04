@@ -1,4 +1,4 @@
-import type { GatewayRepo, HandlerFn, Payload } from "../types";
+import type { HandlerFn } from "../types";
 import { missing, str } from "../payload";
 
 export const areHandlers: Record<string, HandlerFn> = {

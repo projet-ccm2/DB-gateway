@@ -1,5 +1,4 @@
-import type { JsonHandlerResult } from "./types";
-import type { Payload } from "./types";
+import type { JsonHandlerResult, Payload } from "./types";
 
 export function str(p: Payload, ...keys: string[]): string | undefined {
   for (const k of keys) {

@@ -220,6 +220,7 @@ export class PrismaDatabase implements Database {
     userId: string,
   ): Promise<achievedDTO | null> {
     const a = await this.prisma.achieved.findUnique({
+      // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
       where: { achievementId_userId: { achievementId, userId } },
     });
     if (!a) return null;
@@ -263,6 +264,7 @@ export class PrismaDatabase implements Database {
 
   async getAre(userId: string, channelId: string): Promise<areDTO | null> {
     const r = await this.prisma.are.findUnique({
+      // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
       where: { userId_channelId: { userId, channelId } },
     });
     if (!r) return null;
@@ -289,6 +291,7 @@ export class PrismaDatabase implements Database {
     badgeId: string,
   ): Promise<possessesDTO | null> {
     const p = await this.prisma.possesses.findUnique({
+      // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
       where: { userId_badgeId: { userId, badgeId } },
     });
     if (!p) return null;

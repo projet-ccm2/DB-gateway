@@ -4,9 +4,9 @@ describe("handler/payload", () => {
   test("str returns first non-empty string for given keys", () => {
     expect(str({ a: "x", b: "y" }, "a")).toBe("x");
     expect(str({ a: "", b: "y" }, "a", "b")).toBe("y");
-    expect(str({ userId: "u1", User_ID: "u2" }, "userId", "User_ID")).toBe(
-      "u1",
-    );
+    const withFallbackKey = { userId: "u1" };
+    (withFallbackKey as Record<string, string>)["User_ID"] = "u2";
+    expect(str(withFallbackKey, "userId", "User_ID")).toBe("u1");
   });
 
   test("str returns undefined when no key has string", () => {

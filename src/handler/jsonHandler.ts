@@ -1,12 +1,7 @@
 import { actionHandlers } from "./actions";
-import type {
-  GatewayRepo,
-  JsonHandlerResult,
-  JsonMessage,
-  Payload,
-} from "./types";
+import type { GatewayRepo, JsonHandlerResult, JsonMessage } from "./types";
 
-export type { GatewayRepo, JsonHandlerResult, JsonMessage };
+export type { GatewayRepo, JsonHandlerResult, JsonMessage } from "./types";
 
 export async function handleJsonMessage(
   repo: GatewayRepo,
@@ -18,7 +13,7 @@ export async function handleJsonMessage(
     if (!handler) {
       return { ok: false, error: "unknown action" };
     }
-    return await handler(repo, payload as Payload);
+    return await handler(repo, payload);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return { ok: false, error: message };
