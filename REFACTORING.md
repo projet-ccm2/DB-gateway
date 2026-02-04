@@ -300,33 +300,33 @@ Ce document résume les changements effectués lors du grand refactoring du proj
 
 ## Résumé des fichiers créés / modifiés
 
-| Fichier | Action |
-|---------|--------|
-| `src/config/environment.ts` | Créé (Config, port, databaseUrl, cors) |
-| `src/controllers/helpers.ts` | Créé |
-| `src/controllers/healthController.ts` … `possessesController.ts` | Créés |
-| `src/database/database.ts` | Modifié (healthCheck, channelId optionnel) |
-| `src/database/mockDatabase.ts` | Modifié (healthCheck, typage), puis déplacé vers `src/tests/mocks/` |
-| `src/database/prismaDatabase.ts` | Modifié (channelId optionnel, typage map, constructeur sans `{}` si pas d’URL) |
-| `src/index.ts` | Point d’entrée unique (Gateway, createPrismaGateway, createApp, main ; remplace startServer) |
-| `src/startServer.ts` | Supprimé (fusionné dans index) |
-| `src/routes/index.ts` | Créé (mountRoutes) |
-| `src/routes/healthRoutes.ts` … `possessesRoutes.ts` | Créés (createXxxRoutes(db)) |
-| `src/handler/types/` (gatewayRepo, handlerFn, jsonMessage, jsonHandlerResult, payload, index) | Créés |
-| `src/handler/payload.ts` | Créé |
-| `src/handler/actions/*.ts` + `index.ts` | Créés (handlers par ressource) |
-| `src/handler/jsonHandler.ts` | Refait (payload/msg typés, JsonHandlerResult) |
-| `src/repositories/achievementRepository.ts` | Modifié (channelId optionnel) |
-| `src/types/global.d.ts` | Modifié (unknown au lieu de any) |
-| `src/tests/mocks/mockDatabase.ts`, `index.ts` | Créés (createMockGateway, mocks dédiés aux tests) |
-| `src/tests/unit/*.ts` | Modifié (suppression any) |
-| `src/tests/unit/` | Restructuré (config, database, repositories, controllers, routes, handler, index, services, utils ; un fichier par module) |
-| `src/tests/integration/*.integ.test.ts` | Créés (user, channel, typeAchievement, achievement, badge, achieved, are, possesses, database) |
-| `doc/README.md` + `doc/*.md` | Créés |
-| `README.md` | Modifié (lien vers doc/) |
-| `REFACTORING.md` | Ce fichier |
-| `package.json` | start, server:start, test, test:unit, test:integration, test:coverage, test:coverage:full |
+| Fichier                                                                                       | Action                                                                                                                     |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `src/config/environment.ts`                                                                   | Créé (Config, port, databaseUrl, cors)                                                                                     |
+| `src/controllers/helpers.ts`                                                                  | Créé                                                                                                                       |
+| `src/controllers/healthController.ts` … `possessesController.ts`                              | Créés                                                                                                                      |
+| `src/database/database.ts`                                                                    | Modifié (healthCheck, channelId optionnel)                                                                                 |
+| `src/database/mockDatabase.ts`                                                                | Modifié (healthCheck, typage), puis déplacé vers `src/tests/mocks/`                                                        |
+| `src/database/prismaDatabase.ts`                                                              | Modifié (channelId optionnel, typage map, constructeur sans `{}` si pas d’URL)                                             |
+| `src/index.ts`                                                                                | Point d’entrée unique (Gateway, createPrismaGateway, createApp, main ; remplace startServer)                               |
+| `src/startServer.ts`                                                                          | Supprimé (fusionné dans index)                                                                                             |
+| `src/routes/index.ts`                                                                         | Créé (mountRoutes)                                                                                                         |
+| `src/routes/healthRoutes.ts` … `possessesRoutes.ts`                                           | Créés (createXxxRoutes(db))                                                                                                |
+| `src/handler/types/` (gatewayRepo, handlerFn, jsonMessage, jsonHandlerResult, payload, index) | Créés                                                                                                                      |
+| `src/handler/payload.ts`                                                                      | Créé                                                                                                                       |
+| `src/handler/actions/*.ts` + `index.ts`                                                       | Créés (handlers par ressource)                                                                                             |
+| `src/handler/jsonHandler.ts`                                                                  | Refait (payload/msg typés, JsonHandlerResult)                                                                              |
+| `src/repositories/achievementRepository.ts`                                                   | Modifié (channelId optionnel)                                                                                              |
+| `src/types/global.d.ts`                                                                       | Modifié (unknown au lieu de any)                                                                                           |
+| `src/tests/mocks/mockDatabase.ts`, `index.ts`                                                 | Créés (createMockGateway, mocks dédiés aux tests)                                                                          |
+| `src/tests/unit/*.ts`                                                                         | Modifié (suppression any)                                                                                                  |
+| `src/tests/unit/`                                                                             | Restructuré (config, database, repositories, controllers, routes, handler, index, services, utils ; un fichier par module) |
+| `src/tests/integration/*.integ.test.ts`                                                       | Créés (user, channel, typeAchievement, achievement, badge, achieved, are, possesses, database)                             |
+| `doc/README.md` + `doc/*.md`                                                                  | Créés                                                                                                                      |
+| `README.md`                                                                                   | Modifié (lien vers doc/)                                                                                                   |
+| `REFACTORING.md`                                                                              | Ce fichier                                                                                                                 |
+| `package.json`                                                                                | start, server:start, test, test:unit, test:integration, test:coverage, test:coverage:full                                  |
 
 ---
 
-*Refactoring effectué pour rendre le code propre, lisible, sans `any`, avec toutes les routes exposées et une documentation API centralisée dans `doc/`.*
+_Refactoring effectué pour rendre le code propre, lisible, sans `any`, avec toutes les routes exposées et une documentation API centralisée dans `doc/`._

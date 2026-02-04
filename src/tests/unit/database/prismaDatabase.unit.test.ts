@@ -63,7 +63,10 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
           _types!: Map<string, MockTypeData & { id: string }>;
           _achievements!: Map<string, MockAchievementData & { id: string }>;
           _badges!: Map<string, MockBadgeData & { id: string }>;
-          _achieved!: Map<string, MockAchievedData & { achievementId: string; userId: string }>;
+          _achieved!: Map<
+            string,
+            MockAchievedData & { achievementId: string; userId: string }
+          >;
           _are!: Map<string, MockAreData>;
           _possesses!: Map<string, MockPossessesData>;
 

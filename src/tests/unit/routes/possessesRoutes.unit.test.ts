@@ -11,13 +11,11 @@ describe("possessesRoutes (unit)", () => {
     const app = express();
     app.use(express.json());
     app.use("/", createPossessesRoutes(db));
-    const res = await request(app)
-      .post("/")
-      .send({
-        userId: user.id,
-        badgeId: badge.id,
-        acquiredDate: new Date().toISOString(),
-      });
+    const res = await request(app).post("/").send({
+      userId: user.id,
+      badgeId: badge.id,
+      acquiredDate: new Date().toISOString(),
+    });
     expect(res.status).toBe(201);
     expect(res.body.badgeId).toBe(badge.id);
   });

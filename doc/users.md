@@ -6,13 +6,13 @@ Crée un utilisateur.
 
 ### Body (JSON)
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| username | string | oui | Nom d’utilisateur |
-| twitchUserId | string | oui | Identifiant Twitch |
-| profileImageUrl | string \| null | non | URL de l’avatar |
-| channelDescription | string \| null | non | Description de la chaîne |
-| scope | string \| null | non | Scope OAuth |
+| Champ              | Type           | Obligatoire | Description              |
+| ------------------ | -------------- | ----------- | ------------------------ |
+| username           | string         | oui         | Nom d’utilisateur        |
+| twitchUserId       | string         | oui         | Identifiant Twitch       |
+| profileImageUrl    | string \| null | non         | URL de l’avatar          |
+| channelDescription | string \| null | non         | Description de la chaîne |
+| scope              | string \| null | non         | Scope OAuth              |
 
 ### Réponses
 
@@ -53,9 +53,9 @@ Retourne un utilisateur par ID.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID de l’utilisateur (UUID) |
+| Nom | Type   | Description                |
+| --- | ------ | -------------------------- |
+| id  | string | ID de l’utilisateur (UUID) |
 
 ### Réponses
 
@@ -85,9 +85,9 @@ Liste les chaînes auxquelles l’utilisateur est lié, avec son rôle.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID de l’utilisateur |
+| Nom | Type   | Description         |
+| --- | ------ | ------------------- |
+| id  | string | ID de l’utilisateur |
 
 ### Réponses
 
@@ -119,9 +119,9 @@ Liste les badges possédés par l’utilisateur.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID de l’utilisateur |
+| Nom | Type   | Description         |
+| --- | ------ | ------------------- |
+| id  | string | ID de l’utilisateur |
 
 ### Réponses
 
@@ -153,9 +153,9 @@ Liste les achievements réalisés par l’utilisateur (enregistrements « achiev
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID de l’utilisateur |
+| Nom | Type   | Description         |
+| --- | ------ | ------------------- |
+| id  | string | ID de l’utilisateur |
 
 ### Réponses
 

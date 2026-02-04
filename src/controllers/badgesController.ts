@@ -1,12 +1,7 @@
 import { Request, Response } from "express";
 import type { BadgeRepository } from "../repositories/badgeRepository";
 import type { UserRepository } from "../repositories/userRepository";
-import {
-  BAD_REQUEST,
-  NOT_FOUND,
-  paramId,
-  sendInternalError,
-} from "./helpers";
+import { BAD_REQUEST, NOT_FOUND, paramId, sendInternalError } from "./helpers";
 
 export function createBadgesController(
   badgeRepo: BadgeRepository,

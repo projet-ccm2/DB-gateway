@@ -159,21 +159,25 @@ SELECT * FROM Users;
 ### Run Tests
 
 **All tests**
+
 ```bash
 npm test
 ```
 
 **Unit tests only** (fast, no Docker)
+
 ```bash
 npm run test:unit
 ```
 
 **Integration tests only** (requires Docker DB)
+
 ```bash
 npm run test:integration
 ```
 
 **Coverage report**
+
 ```bash
 npm run test:coverage:full
 ```
@@ -181,16 +185,19 @@ npm run test:coverage:full
 ### Code Quality
 
 **Format with Prettier**
+
 ```bash
 npm run prettier
 ```
 
 **Build to JavaScript**
+
 ```bash
 npm run build
 ```
 
 **Fix ESLint errors**
+
 ```bash
 npx eslint . --fix
 ```
@@ -238,35 +245,41 @@ to talk to the DB, and returns responses. The current code implements this patte
 ### Core Files
 
 **Database & Models**
+
 - `src/database/database.ts` — Database interface + all DTOs (types)
 - `src/database/mockDatabase.ts` — In-memory implementation for unit tests
 - `src/database/prismaDatabase.ts` — Prisma implementation for real MySQL
 - `prisma/schema.prisma` — Prisma schema (matches legacy SQL schema)
 
 **API & Business Logic**
+
 - `src/server.ts` — Express server with REST endpoints
 - `src/repositories/*.ts` — Repository layer (UserRepository, etc.)
 - `src/services/*.ts` — Service layer (optional business logic wrapper)
 - `src/handler/jsonHandler.ts` — Message handler example
 
 **Configuration**
+
 - `src/config/environment.ts` — Environment variables
 - `src/index.ts` — Gateway factories (createMockGateway, createPrismaGateway)
 - `.env` — Environment config for development
 - `.env.test` — Environment config for testing
 
 **Database Setup**
+
 - `docker-compose.yml` — Development database configuration
 - `mysql/init_Schema.sql` — Initial SQL schema (legacy)
 - `src/prisma/seed.ts` — Seed script (populates test data)
 
 **Testing**
+
 - `src/tests/unit/*.test.ts` — Unit tests (uses MockDatabase)
 - `src/tests/integration/*.test.ts` — Integration tests (uses PrismaDatabase + testcontainers)
 - `jest.config.mjs` — Jest configuration
 - `src/tests/setup.ts` — Global test setup/teardown
 
 **Other**
+
 - `src/utils/logger.ts` — Winston logger utility
 - `src/types/express.d.ts` — Express type definitions
 - `eslint.config.mjs` — ESLint configuration
@@ -348,12 +361,14 @@ npm run init:all
 Steps:
 
 1. **Init database with schema + seed:**
+
    ```bash
    npm run dev:db
    npm run db:init
    ```
 
 2. **Run tests:**
+
    ```bash
    npm test
    ```
@@ -377,15 +392,19 @@ Steps:
 ## 🆘 Troubleshooting
 
 **Tests failing?**
+
 ```bash
 npm test
 ```
+
 Tests don't require Docker — they use in-memory mocks. If tests fail, check TypeScript compilation:
+
 ```bash
 npm run build
 ```
 
 **Database connection issues?**
+
 ```bash
 # Check if Docker container is running
 docker ps
@@ -398,6 +417,7 @@ npm run dev:db
 ```
 
 **Prisma issues?**
+
 ```bash
 # Regenerate Prisma client
 npm run prisma:gen
@@ -444,11 +464,13 @@ Server runs on `http://localhost:3000`
 ---
 
 **Create a user**
+
 ```http
 POST /users
 ```
 
 Example:
+
 ```http
 POST /users
 Content-Type: application/json
@@ -463,6 +485,7 @@ Content-Type: application/json
 ```
 
 Response (201):
+
 ```json
 {
   "id": "u_abc123",
@@ -475,31 +498,37 @@ Response (201):
 ```
 
 **Required fields:**
+
 - `username` — Display name
 - `twitchUserId` — Twitch User ID
 
 **Optional fields:**
+
 - `profileImageUrl` — Profile avatar URL (nullable)
 - `channelDescription` — Channel bio/description (nullable)
 - `scope` — OAuth scopes accepted by user (nullable, space-separated)
 
 **Error responses:**
+
 - `400` — Username and twitchUserId are required
 - `500` — Server error
 
 ---
 
 **Get user by ID**
+
 ```http
 GET /users/{id}
 ```
 
 Example:
+
 ```http
 GET /users/u_abc123
 ```
 
 Response (200):
+
 ```json
 {
   "id": "u_abc123",
@@ -512,22 +541,26 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — User not found
 - `500` — Server error
 
 ---
 
 **Get achievements by channel ID**
+
 ```http
 GET /channels/{channelId}/achievements
 ```
 
 Example:
+
 ```http
 GET /channels/c_xyz789/achievements
 ```
 
 Response (200):
+
 ```json
 {
   "achievements": [
@@ -545,22 +578,26 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Channel not found
 - `500` — Server error
 
 ---
 
 **Get achieved records by user and channel IDs**
+
 ```http
 GET /users/{userId}/achieved?channels={channelId1},{channelId2},...
 ```
 
 Example:
+
 ```http
 GET /users/u_abc123/achieved?channels=c_xyz789,c_def456
 ```
 
 Response (200):
+
 ```json
 {
   "achieved": [
@@ -578,15 +615,18 @@ Response (200):
 ```
 
 **Query parameters:**
+
 - `channels` — Comma-separated list of channel IDs to filter by (required)
 
 **Error responses:**
+
 - `404` — User not found
 - `500` — Server error
 
 ---
 
 **Get channels by user ID**
+
 ```http
 GET /users/{userId}/channels
 ```
@@ -594,11 +634,13 @@ GET /users/{userId}/channels
 Returns all channels the user is a member of, along with their role in each channel.
 
 Example:
+
 ```http
 GET /users/u_abc123/channels
 ```
 
 Response (200):
+
 ```json
 {
   "channels": [
@@ -616,22 +658,26 @@ Response (200):
 | `userType` | string | User's role in this channel (e.g., "admin", "moderator", "user") |
 
 **Error responses:**
+
 - `404` — User not found
 - `500` — Server error
 
 ---
 
 **Get badges by user ID**
+
 ```http
 GET /users/{userId}/badges
 ```
 
 Example:
+
 ```http
 GET /users/u_abc123/badges
 ```
 
 Response (200):
+
 ```json
 {
   "badges": [
@@ -642,22 +688,26 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — User not found
 - `500` — Server error
 
 ---
 
 **Get achievements by user ID**
+
 ```http
 GET /users/{userId}/achievements
 ```
 
 Example:
+
 ```http
 GET /users/u_abc123/achievements
 ```
 
 Response (200):
+
 ```json
 {
   "achievements": [
@@ -674,12 +724,14 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — User not found
 - `500` — Server error
 
 ---
 
 **Get users by channel ID**
+
 ```http
 GET /channels/{channelId}/users
 ```
@@ -687,11 +739,13 @@ GET /channels/{channelId}/users
 Returns all users who are members of the channel, along with their role in that channel.
 
 Example:
+
 ```http
 GET /channels/c_xyz789/users
 ```
 
 Response (200):
+
 ```json
 {
   "users": [
@@ -729,22 +783,26 @@ Response (200):
 | `userType` | string | User's role in this channel (e.g., "admin", "moderator", "user") |
 
 **Error responses:**
+
 - `404` — Channel not found
 - `500` — Server error
 
 ---
 
 **Get users by badge ID**
+
 ```http
 GET /badges/{badgeId}/users
 ```
 
 Example:
+
 ```http
 GET /badges/b_gold1/users
 ```
 
 Response (200):
+
 ```json
 {
   "users": [
@@ -761,22 +819,26 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Badge not found
 - `500` — Server error
 
 ---
 
 **Get users by achievement ID**
+
 ```http
 GET /achievements/{achievementId}/users
 ```
 
 Example:
+
 ```http
 GET /achievements/a_first1/users
 ```
 
 Response (200):
+
 ```json
 {
   "users": [
@@ -793,6 +855,7 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Achievement not found
 - `500` — Server error
 
@@ -803,11 +866,13 @@ Response (200):
 ---
 
 **Create a channel**
+
 ```http
 POST /channels
 ```
 
 Example:
+
 ```http
 POST /channels
 Content-Type: application/json
@@ -818,6 +883,7 @@ Content-Type: application/json
 ```
 
 Response (201):
+
 ```json
 {
   "id": "c_xyz789",
@@ -826,22 +892,26 @@ Response (201):
 ```
 
 **Error responses:**
+
 - `400` — Name is required
 - `500` — Server error
 
 ---
 
 **Get channel by ID**
+
 ```http
 GET /channels/{id}
 ```
 
 Example:
+
 ```http
 GET /channels/c_xyz789
 ```
 
 Response (200):
+
 ```json
 {
   "id": "c_xyz789",
@@ -850,6 +920,7 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Channel not found
 - `500` — Server error
 
@@ -860,11 +931,13 @@ Response (200):
 ---
 
 **Create a type achievement**
+
 ```http
 POST /typeachievements
 ```
 
 Example:
+
 ```http
 POST /typeachievements
 Content-Type: application/json
@@ -876,6 +949,7 @@ Content-Type: application/json
 ```
 
 Response (201):
+
 ```json
 {
   "id": "t_str123",
@@ -885,22 +959,26 @@ Response (201):
 ```
 
 **Error responses:**
+
 - `400` — Label and data are required
 - `500` — Server error
 
 ---
 
 **Get type achievement by ID**
+
 ```http
 GET /typeachievements/{id}
 ```
 
 Example:
+
 ```http
 GET /typeachievements/t_str123
 ```
 
 Response (200):
+
 ```json
 {
   "id": "t_str123",
@@ -910,6 +988,7 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Type achievement not found
 - `500` — Server error
 
@@ -920,11 +999,13 @@ Response (200):
 ---
 
 **Create an achievement**
+
 ```http
 POST /achievements
 ```
 
 Example:
+
 ```http
 POST /achievements
 Content-Type: application/json
@@ -939,6 +1020,7 @@ Content-Type: application/json
 ```
 
 Response (201):
+
 ```json
 {
   "id": "a_first1",
@@ -951,22 +1033,26 @@ Response (201):
 ```
 
 **Error responses:**
+
 - `400` — Title, description, goal, reward, and label are required
 - `500` — Server error
 
 ---
 
 **Get achievement by ID**
+
 ```http
 GET /achievements/{id}
 ```
 
 Example:
+
 ```http
 GET /achievements/a_first1
 ```
 
 Response (200):
+
 ```json
 {
   "id": "a_first1",
@@ -979,6 +1065,7 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Achievement not found
 - `500` — Server error
 
@@ -989,11 +1076,13 @@ Response (200):
 ---
 
 **Create a badge**
+
 ```http
 POST /badges
 ```
 
 Example:
+
 ```http
 POST /badges
 Content-Type: application/json
@@ -1005,6 +1094,7 @@ Content-Type: application/json
 ```
 
 Response (201):
+
 ```json
 {
   "id": "b_gold1",
@@ -1014,22 +1104,26 @@ Response (201):
 ```
 
 **Error responses:**
+
 - `400` — Title and img are required
 - `500` — Server error
 
 ---
 
 **Get badge by ID**
+
 ```http
 GET /badges/{id}
 ```
 
 Example:
+
 ```http
 GET /badges/b_gold1
 ```
 
 Response (200):
+
 ```json
 {
   "id": "b_gold1",
@@ -1039,6 +1133,7 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Badge not found
 - `500` — Server error
 
@@ -1049,11 +1144,13 @@ Response (200):
 ---
 
 **Record achievement progress**
+
 ```http
 POST /users/{userId}/achievements/{achievementId}
 ```
 
 Example:
+
 ```http
 POST /users/u_abc123/achievements/a_first1
 Content-Type: application/json
@@ -1067,6 +1164,7 @@ Content-Type: application/json
 ```
 
 Response (201):
+
 ```json
 {
   "achievementId": "a_first1",
@@ -1079,6 +1177,7 @@ Response (201):
 ```
 
 **Error responses:**
+
 - `400` — Count, finished, labelActive, and acquiredDate are required
 - `404` — User or achievement not found
 - `500` — Server error
@@ -1086,16 +1185,19 @@ Response (201):
 ---
 
 **Get achievement progress**
+
 ```http
 GET /users/{userId}/achievements/{achievementId}
 ```
 
 Example:
+
 ```http
 GET /users/u_abc123/achievements/a_first1
 ```
 
 Response (200):
+
 ```json
 {
   "achievementId": "a_first1",
@@ -1108,6 +1210,7 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Record not found
 - `500` — Server error
 
@@ -1118,11 +1221,13 @@ Response (200):
 ---
 
 **Add user to channel**
+
 ```http
 POST /users/{userId}/channels/{channelId}
 ```
 
 Example:
+
 ```http
 POST /users/u_abc123/channels/c_xyz789
 Content-Type: application/json
@@ -1133,6 +1238,7 @@ Content-Type: application/json
 ```
 
 Response (201):
+
 ```json
 {
   "userId": "u_abc123",
@@ -1142,6 +1248,7 @@ Response (201):
 ```
 
 **Error responses:**
+
 - `400` — UserType is required
 - `404` — User or channel not found
 - `500` — Server error
@@ -1149,16 +1256,19 @@ Response (201):
 ---
 
 **Get channel membership**
+
 ```http
 GET /users/{userId}/channels/{channelId}
 ```
 
 Example:
+
 ```http
 GET /users/u_abc123/channels/c_xyz789
 ```
 
 Response (200):
+
 ```json
 {
   "userId": "u_abc123",
@@ -1168,6 +1278,7 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Membership not found
 - `500` — Server error
 
@@ -1178,11 +1289,13 @@ Response (200):
 ---
 
 **Award badge to user**
+
 ```http
 POST /users/{userId}/badges/{badgeId}
 ```
 
 Example:
+
 ```http
 POST /users/u_abc123/badges/b_gold1
 Content-Type: application/json
@@ -1193,6 +1306,7 @@ Content-Type: application/json
 ```
 
 Response (201):
+
 ```json
 {
   "userId": "u_abc123",
@@ -1202,6 +1316,7 @@ Response (201):
 ```
 
 **Error responses:**
+
 - `400` — AcquiredDate is required
 - `404` — User or badge not found
 - `500` — Server error
@@ -1209,16 +1324,19 @@ Response (201):
 ---
 
 **Get badge possession**
+
 ```http
 GET /users/{userId}/badges/{badgeId}
 ```
 
 Example:
+
 ```http
 GET /users/u_abc123/badges/b_gold1
 ```
 
 Response (200):
+
 ```json
 {
   "userId": "u_abc123",
@@ -1228,6 +1346,7 @@ Response (200):
 ```
 
 **Error responses:**
+
 - `404` — Badge possession not found
 - `500` — Server error
 
@@ -1241,44 +1360,44 @@ All types are defined in `src/database/database.ts`. Here's the complete type re
 
 ```typescript
 // User
-type userDTO = { 
-  id: string; 
+type userDTO = {
+  id: string;
   username: string;
-  twitchUserId: string;              // Required - Twitch User ID
-  profileImageUrl: string | null;    // Optional - Profile avatar URL
+  twitchUserId: string; // Required - Twitch User ID
+  profileImageUrl: string | null; // Optional - Profile avatar URL
   channelDescription: string | null; // Optional - Channel bio
-  scope: string | null;              // Optional - OAuth scopes (space-separated)
+  scope: string | null; // Optional - OAuth scopes (space-separated)
 };
 
 // Channel
-type channelDTO = { 
-  id: string; 
-  name: string 
+type channelDTO = {
+  id: string;
+  name: string;
 };
 
 // User ↔ Channel relation with role (returned by getChannelsByUserId)
 type userChannelDTO = {
-  id: string;       // Channel ID
-  name: string;     // Channel name
+  id: string; // Channel ID
+  name: string; // Channel name
   userType: string; // User's role in channel (e.g., "admin", "moderator", "user")
 };
 
 // Channel ↔ User relation with role (returned by getUsersByChannelId)
 type channelUserDTO = {
-  id: string;                        // User ID
-  username: string;                  // Username
-  twitchUserId: string;              // Twitch User ID
-  profileImageUrl: string | null;    // Profile avatar URL
+  id: string; // User ID
+  username: string; // Username
+  twitchUserId: string; // Twitch User ID
+  profileImageUrl: string | null; // Profile avatar URL
   channelDescription: string | null; // Channel bio
-  scope: string | null;              // OAuth scopes
-  userType: string;                  // User's role in channel (e.g., "admin", "moderator", "user")
+  scope: string | null; // OAuth scopes
+  userType: string; // User's role in channel (e.g., "admin", "moderator", "user")
 };
 
 // Type/Category of Achievement
-type typeAchievementDTO = { 
-  id: string; 
-  label: string; 
-  data: string; 
+type typeAchievementDTO = {
+  id: string;
+  label: string;
+  data: string;
 };
 
 // Achievement (Goal/Challenge)
@@ -1286,40 +1405,40 @@ type achievementDTO = {
   id: string;
   title: string;
   description: string;
-  goal: number;          // Target count
-  reward: number;        // Points/reward
-  label: string;         // Category
+  goal: number; // Target count
+  reward: number; // Points/reward
+  label: string; // Category
 };
 
 // Badge/Trophy
-type badgeDTO = { 
-  id: string; 
-  title: string; 
-  img: string;           // Image URL/path
+type badgeDTO = {
+  id: string;
+  title: string;
+  img: string; // Image URL/path
 };
 
 // User → Achievement progress junction
 type achievedDTO = {
   achievementId: string;
   userId: string;
-  count: number;         // Current progress
-  finished: boolean;     // Completed?
+  count: number; // Current progress
+  finished: boolean; // Completed?
   labelActive: boolean;
-  acquiredDate: string;  // ISO 8601 date
+  acquiredDate: string; // ISO 8601 date
 };
 
 // User → Channel membership junction
-type areDTO = { 
-  userId: string; 
-  channelId: string; 
-  userType: string;      // "admin", "moderator", "member"
+type areDTO = {
+  userId: string;
+  channelId: string;
+  userType: string; // "admin", "moderator", "member"
 };
 
 // User → Badge ownership junction
 type possessesDTO = {
   userId: string;
   badgeId: string;
-  acquiredDate: string;  // ISO 8601 date
+  acquiredDate: string; // ISO 8601 date
 };
 ```
 
@@ -1355,7 +1474,10 @@ interface database {
 
   // TypeAchievement operations
   getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
-  addTypeAchievement(t: { label: string; data: string }): Promise<typeAchievementDTO>;
+  addTypeAchievement(t: {
+    label: string;
+    data: string;
+  }): Promise<typeAchievementDTO>;
 
   // Achievement operations
   getAchievementById(id: string): Promise<achievementDTO | null>;
@@ -1372,7 +1494,10 @@ interface database {
   addBadge(b: { title: string; img: string }): Promise<badgeDTO>;
 
   // Achieved (User → Achievement) operations
-  getAchieved(achievementId: string, userId: string): Promise<achievedDTO | null>;
+  getAchieved(
+    achievementId: string,
+    userId: string,
+  ): Promise<achievedDTO | null>;
   addAchieved(a: {
     achievementId: string;
     userId: string;

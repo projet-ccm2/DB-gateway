@@ -2,17 +2,79 @@ import { UserService } from "../../../services/userService";
 import { UserRepository } from "../../../repositories/userRepository";
 import { MockDatabase } from "../../mocks";
 
-test("UserService add/get flow (unit)", async () => {
-  const db = new MockDatabase();
-  const repo = new UserRepository(db);
-  const service = new UserService(repo);
+describe("UserService (unit)", () => {
+  test("addUser and getUserById", async () => {
+    const db = new MockDatabase();
+    const repo = new UserRepository(db);
+    const service = new UserService(repo);
 
-  const u = await service.addUser({
-    username: "svc",
-    twitchUserId: "twitch_svc",
+    const u = await service.addUser({
+      username: "svc",
+      twitchUserId: "twitch_svc",
+    });
+    expect(u.username).toBe("svc");
+    expect(u.twitchUserId).toBe("twitch_svc");
+    const got = await service.getUserById(u.id);
+    expect(got?.id).toBe(u.id);
   });
-  expect(u.username).toBe("svc");
-  expect(u.twitchUserId).toBe("twitch_svc");
-  const got = await service.getUserById(u.id);
-  expect(got?.id).toBe(u.id);
+
+  test("getChannelsByUserId returns array", async () => {
+    const db = new MockDatabase();
+    const repo = new UserRepository(db);
+    const service = new UserService(repo);
+    const u = await service.addUser({ username: "u", twitchUserId: "t" });
+    const channels = await service.getChannelsByUserId(u.id);
+    expect(channels).toEqual([]);
+  });
+
+  test("getBadgesByUserId returns array", async () => {
+    const db = new MockDatabase();
+    const repo = new UserRepository(db);
+    const service = new UserService(repo);
+    const u = await service.addUser({ username: "u", twitchUserId: "t" });
+    const badges = await service.getBadgesByUserId(u.id);
+    expect(badges).toEqual([]);
+  });
+
+  test("getAchievementsByUserId returns array", async () => {
+    const db = new MockDatabase();
+    const repo = new UserRepository(db);
+    const service = new UserService(repo);
+    const u = await service.addUser({ username: "u", twitchUserId: "t" });
+    const achievements = await service.getAchievementsByUserId(u.id);
+    expect(achievements).toEqual([]);
+  });
+
+  test("getUsersByChannelId returns array", async () => {
+    const db = new MockDatabase();
+    const repo = new UserRepository(db);
+    const service = new UserService(repo);
+    const ch = await db.addChannel({ name: "c1" });
+    const users = await service.getUsersByChannelId(ch.id);
+    expect(users).toEqual([]);
+  });
+
+  test("getUsersByBadgeId returns array", async () => {
+    const db = new MockDatabase();
+    const repo = new UserRepository(db);
+    const service = new UserService(repo);
+    const badge = await db.addBadge({ title: "b1", img: "i1" });
+    const users = await service.getUsersByBadgeId(badge.id);
+    expect(users).toEqual([]);
+  });
+
+  test("getUsersByAchievementId returns array", async () => {
+    const db = new MockDatabase();
+    const repo = new UserRepository(db);
+    const service = new UserService(repo);
+    const ach = await db.addAchievement({
+      title: "a1",
+      description: "d",
+      goal: 1,
+      reward: 1,
+      label: "l",
+    });
+    const users = await service.getUsersByAchievementId(ach.id);
+    expect(users).toEqual([]);
+  });
 });

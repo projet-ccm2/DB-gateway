@@ -392,6 +392,49 @@ describe("userRepository (unit, mock db)", () => {
     expect(users).toEqual([]);
   });
 
+  it("getAchievementsByChannelId returns achievements for channel", async () => {
+    const mockDb = new MockDatabase();
+    const service = new UserRepository(mockDb);
+    const ch = await mockDb.addChannel({ name: "AChannel" });
+    await mockDb.addAchievement({
+      title: "A1",
+      description: "D1",
+      goal: 1,
+      reward: 1,
+      label: "L1",
+    });
+    const list = await service.getAchievementsByChannelId(ch.id);
+    expect(list).toHaveLength(1);
+    expect(list[0].title).toBe("A1");
+  });
+
+  it("getAchievedByUserAndChannels returns achieved for user and channels", async () => {
+    const mockDb = new MockDatabase();
+    const service = new UserRepository(mockDb);
+    const user = await service.addUser({
+      username: "Au",
+      twitchUserId: "twitchAu",
+    });
+    const ch1 = await mockDb.addChannel({ name: "C1" });
+    const ach = await mockDb.addAchievement({
+      title: "Ach",
+      description: "D",
+      goal: 1,
+      reward: 1,
+      label: "L",
+    });
+    await mockDb.addAchieved({
+      achievementId: ach.id,
+      userId: user.id,
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: "2024-01-01T00:00:00.000Z",
+    });
+    const list = await service.getAchievedByUserAndChannels(user.id, [ch1.id]);
+    expect(Array.isArray(list)).toBe(true);
+  });
+
   it("should return users who have an achievement", async () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);

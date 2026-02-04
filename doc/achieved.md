@@ -6,14 +6,14 @@ Enregistre ou met à jour une réalisation d’achievement par un utilisateur.
 
 ### Body (JSON)
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| achievementId | string | oui | ID de l’achievement |
-| userId | string | oui | ID de l’utilisateur |
-| count | number | oui | Compteur |
-| finished | boolean | oui | Achievement terminé ou non |
-| labelActive | boolean | oui | Libellé actif |
-| acquiredDate | string | oui | Date d’acquisition (ISO 8601) |
+| Champ         | Type    | Obligatoire | Description                   |
+| ------------- | ------- | ----------- | ----------------------------- |
+| achievementId | string  | oui         | ID de l’achievement           |
+| userId        | string  | oui         | ID de l’utilisateur           |
+| count         | number  | oui         | Compteur                      |
+| finished      | boolean | oui         | Achievement terminé ou non    |
+| labelActive   | boolean | oui         | Libellé actif                 |
+| acquiredDate  | string  | oui         | Date d’acquisition (ISO 8601) |
 
 ### Réponses
 
@@ -54,10 +54,10 @@ Retourne l’enregistrement « achieved » pour un couple (achievementId, userId
 
 ### Query
 
-| Paramètre | Type | Obligatoire | Description |
-|-----------|------|-------------|-------------|
-| achievementId | string | oui | ID de l’achievement |
-| userId | string | oui | ID de l’utilisateur |
+| Paramètre     | Type   | Obligatoire | Description         |
+| ------------- | ------ | ----------- | ------------------- |
+| achievementId | string | oui         | ID de l’achievement |
+| userId        | string | oui         | ID de l’utilisateur |
 
 ### Réponses
 

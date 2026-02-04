@@ -21,11 +21,10 @@ export class MockDatabase implements Database {
   async getAchievementsByChannelId(
     channelId: string,
   ): Promise<achievementDTO[]> {
-    return this.achievements.filter(
-      (a) =>
-        (a as achievementDTO & { channelId?: string }).channelId
-          ? (a as achievementDTO & { channelId?: string }).channelId === channelId
-          : true,
+    return this.achievements.filter((a) =>
+      (a as achievementDTO & { channelId?: string }).channelId
+        ? (a as achievementDTO & { channelId?: string }).channelId === channelId
+        : true,
     );
   }
 
@@ -34,9 +33,7 @@ export class MockDatabase implements Database {
     channelIds: string[],
   ): Promise<achievedDTO[]> {
     return this.achieved.filter(
-      (a) =>
-        a.userId === userId &&
-        (channelIds.length === 0 || true),
+      (a) => a.userId === userId && (channelIds.length === 0 || true),
     );
   }
   private readonly users: userDTO[] = [];

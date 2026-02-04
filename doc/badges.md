@@ -6,10 +6,10 @@ Crée un badge.
 
 ### Body (JSON)
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| title | string | oui | Titre du badge |
-| img | string | oui | Nom ou URL de l’image |
+| Champ | Type   | Obligatoire | Description           |
+| ----- | ------ | ----------- | --------------------- |
+| title | string | oui         | Titre du badge        |
+| img   | string | oui         | Nom ou URL de l’image |
 
 ### Réponses
 
@@ -47,9 +47,9 @@ Retourne un badge par ID.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID du badge (UUID) |
+| Nom | Type   | Description        |
+| --- | ------ | ------------------ |
+| id  | string | ID du badge (UUID) |
 
 ### Réponses
 
@@ -87,9 +87,9 @@ Liste les utilisateurs possédant ce badge.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID du badge |
+| Nom | Type   | Description |
+| --- | ------ | ----------- |
+| id  | string | ID du badge |
 
 ### Réponses
 

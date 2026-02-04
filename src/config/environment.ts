@@ -19,7 +19,9 @@ function validateConfig(): Config {
     databaseUrl: getEnv("DATABASE_URL", ""),
     cors: {
       allowedOrigins: getEnv("ALLOWED_ORIGINS", "").length
-        ? getEnv("ALLOWED_ORIGINS", "").split(",").map((s) => s.trim())
+        ? getEnv("ALLOWED_ORIGINS", "")
+            .split(",")
+            .map((s) => s.trim())
         : ["http://localhost:3000", "http://localhost:8080", "null"],
     },
   };

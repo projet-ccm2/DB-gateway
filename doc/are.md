@@ -6,11 +6,11 @@ Associe un utilisateur à une chaîne avec un type (rôle).
 
 ### Body (JSON)
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| userId | string | oui | ID de l’utilisateur |
-| channelId | string | oui | ID de la chaîne |
-| userType | string | oui | Rôle (ex. subscriber, moderator, admin) |
+| Champ     | Type   | Obligatoire | Description                             |
+| --------- | ------ | ----------- | --------------------------------------- |
+| userId    | string | oui         | ID de l’utilisateur                     |
+| channelId | string | oui         | ID de la chaîne                         |
+| userType  | string | oui         | Rôle (ex. subscriber, moderator, admin) |
 
 ### Réponses
 
@@ -48,10 +48,10 @@ Retourne l’association (user, channel, rôle) pour un couple (userId, channelI
 
 ### Query
 
-| Paramètre | Type | Obligatoire | Description |
-|-----------|------|-------------|-------------|
-| userId | string | oui | ID de l’utilisateur |
-| channelId | string | oui | ID de la chaîne |
+| Paramètre | Type   | Obligatoire | Description         |
+| --------- | ------ | ----------- | ------------------- |
+| userId    | string | oui         | ID de l’utilisateur |
+| channelId | string | oui         | ID de la chaîne     |
 
 ### Réponses
 

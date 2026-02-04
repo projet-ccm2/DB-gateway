@@ -525,4 +525,31 @@ describe("jsonHandler full coverage", () => {
 
     expect(res.ok).toBe(false);
   });
+
+  test("msg null returns unknown action", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, null);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("unknown action");
+  });
+
+  test("msg undefined returns unknown action", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, undefined);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("unknown action");
+  });
+
+  test("handler throws non-Error returns error message", async () => {
+    const repo = makeRepoMock();
+    repo.user.addUser = async () => {
+      throw "string error";
+    };
+    const res = await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: { username: "x", twitchUserId: "y" },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("string error");
+  });
 });

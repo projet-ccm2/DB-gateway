@@ -28,13 +28,21 @@ describe("healthController", () => {
   });
 
   test("get returns 500 when healthCheck throws", async () => {
-    const db = { healthCheck: async () => { throw new Error("db error"); } };
+    const db = {
+      healthCheck: async () => {
+        throw new Error("db error");
+      },
+    };
     const ctrl = createHealthController(db as never);
     const res = mockRes();
     await ctrl.get({} as Request, res);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ status: "error", db: "error", error: "db error" }),
+      expect.objectContaining({
+        status: "error",
+        db: "error",
+        error: "db error",
+      }),
     );
   });
 });

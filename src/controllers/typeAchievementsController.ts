@@ -1,11 +1,6 @@
 import { Request, Response } from "express";
 import type { TypeAchievementRepository } from "../repositories/typeAchievementRepository";
-import {
-  BAD_REQUEST,
-  NOT_FOUND,
-  paramId,
-  sendInternalError,
-} from "./helpers";
+import { BAD_REQUEST, NOT_FOUND, paramId, sendInternalError } from "./helpers";
 
 export function createTypeAchievementsController(
   repo: TypeAchievementRepository,

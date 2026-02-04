@@ -1,12 +1,7 @@
 import { Request, Response } from "express";
 import type { AchievementRepository } from "../repositories/achievementRepository";
 import type { UserRepository } from "../repositories/userRepository";
-import {
-  BAD_REQUEST,
-  NOT_FOUND,
-  paramId,
-  sendInternalError,
-} from "./helpers";
+import { BAD_REQUEST, NOT_FOUND, paramId, sendInternalError } from "./helpers";
 
 export function createAchievementsController(
   achievementRepo: AchievementRepository,
@@ -68,7 +63,9 @@ export function createAchievementsController(
       res: Response,
     ): Promise<void> => {
       try {
-        const users = await userRepo.getUsersByAchievementId(paramId(req, "id"));
+        const users = await userRepo.getUsersByAchievementId(
+          paramId(req, "id"),
+        );
         res.json(users);
       } catch (err: unknown) {
         sendInternalError(res, "GET /achievements/:id/users error", err);

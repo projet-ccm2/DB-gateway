@@ -12,13 +12,10 @@ export function getErrorMessage(err: unknown): string {
 
 export function paramId(req: Request, name: string): string {
   const p = req.params[name];
-  return Array.isArray(p) ? p[0] ?? "" : (p ?? "");
+  return Array.isArray(p) ? (p[0] ?? "") : (p ?? "");
 }
 
-export function queryString(
-  req: Request,
-  name: string,
-): string | undefined {
+export function queryString(req: Request, name: string): string | undefined {
   const q = req.query[name];
   if (q == null) return undefined;
   if (Array.isArray(q)) {

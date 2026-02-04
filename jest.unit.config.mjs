@@ -22,10 +22,13 @@ export default {
       statements: 80,
     },
   },
-  testMatch: ["**/src/tests/unit/**/*.test.{ts,tsx}", "**/src/tests/unit/**/*.spec.{ts,tsx}"],
+  testMatch: [
+    "**/src/tests/unit/**/*.test.{ts,tsx}",
+    "**/src/tests/unit/**/*.spec.{ts,tsx}",
+  ],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   setupFilesAfterEnv: [
     // general setup (unit tests)
-    "<rootDir>/src/tests/setup.ts"
-  ]
+    "<rootDir>/src/tests/setup.ts",
+  ],
 };

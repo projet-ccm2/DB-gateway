@@ -10,9 +10,7 @@ export interface Gateway {
 }
 
 export function createPrismaGateway(): Gateway {
-  const db = new PrismaDatabase(
-    config.databaseUrl || undefined,
-  );
+  const db = new PrismaDatabase(config.databaseUrl || undefined);
   return { db };
 }
 

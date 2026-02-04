@@ -1,5 +1,10 @@
 import { actionHandlers } from "./actions";
-import type { GatewayRepo, JsonHandlerResult, JsonMessage, Payload } from "./types";
+import type {
+  GatewayRepo,
+  JsonHandlerResult,
+  JsonMessage,
+  Payload,
+} from "./types";
 
 export type { GatewayRepo, JsonHandlerResult, JsonMessage };
 

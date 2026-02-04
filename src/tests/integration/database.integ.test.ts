@@ -58,16 +58,16 @@ describe("UserRepository getById edge cases (integration)", () => {
   });
 
   it("getAchievementsByChannelId with unknown channel returns empty array", async () => {
-    const achievements = await repo.getAchievementsByChannelId(
-      "unknown-channel-id",
-    );
+    const achievements =
+      await repo.getAchievementsByChannelId("unknown-channel-id");
     expect(achievements).toEqual([]);
   });
 
   it("getAchievedByUserAndChannels with unknown user returns empty array", async () => {
-    const achieved = await repo.getAchievedByUserAndChannels("unknown-user-id", [
-      "some-channel-id",
-    ]);
+    const achieved = await repo.getAchievedByUserAndChannels(
+      "unknown-user-id",
+      ["some-channel-id"],
+    );
     expect(achieved).toEqual([]);
   });
 });

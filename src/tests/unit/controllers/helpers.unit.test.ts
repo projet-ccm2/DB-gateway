@@ -2,6 +2,7 @@ import {
   getErrorMessage,
   paramId,
   queryString,
+  sendInternalError,
   BAD_REQUEST,
   NOT_FOUND,
   INTERNAL_ERROR,
@@ -31,9 +32,9 @@ describe("controllers/helpers", () => {
   });
 
   test("paramId handles array params", () => {
-    const req = { params: { id: ["first", "second"] } } as unknown as Parameters<
-      typeof paramId
-    >[0];
+    const req = {
+      params: { id: ["first", "second"] },
+    } as unknown as Parameters<typeof paramId>[0];
     expect(paramId(req, "id")).toBe("first");
   });
 
@@ -56,10 +57,27 @@ describe("controllers/helpers", () => {
     expect(queryString(req, "filter")).toBe("a");
   });
 
+  test("queryString returns undefined when value is not string", () => {
+    const req = {
+      query: { filter: 123 },
+    } as unknown as Parameters<typeof queryString>[0];
+    expect(queryString(req, "filter")).toBeUndefined();
+  });
+
   test("status constants are numbers", () => {
     expect(BAD_REQUEST).toBe(400);
     expect(NOT_FOUND).toBe(404);
     expect(INTERNAL_ERROR).toBe(500);
     expect(SERVICE_UNAVAILABLE).toBe(503);
+  });
+
+  test("sendInternalError logs and sends 500", () => {
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    } as unknown as Parameters<typeof sendInternalError>[0];
+    sendInternalError(res, "test context", new Error("boom"));
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: "Internal server error" });
   });
 });

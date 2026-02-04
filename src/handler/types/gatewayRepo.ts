@@ -33,7 +33,10 @@ export type GatewayRepo = {
     getChannelById(id: string): Promise<channelDTO | null>;
   };
   typeAchievement: {
-    addTypeAchievement(label: string, data: string): Promise<typeAchievementDTO>;
+    addTypeAchievement(
+      label: string,
+      data: string,
+    ): Promise<typeAchievementDTO>;
     getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
   };
   achievement: {

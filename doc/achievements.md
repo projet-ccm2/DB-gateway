@@ -6,14 +6,14 @@ Crée un achievement.
 
 ### Body (JSON)
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| title | string | oui | Titre |
-| description | string | oui | Description |
-| goal | number | oui | Objectif |
-| reward | number | oui | Récompense |
-| label | string | oui | Libellé |
-| channelId | string \| null | non | ID de la chaîne associée |
+| Champ       | Type           | Obligatoire | Description              |
+| ----------- | -------------- | ----------- | ------------------------ |
+| title       | string         | oui         | Titre                    |
+| description | string         | oui         | Description              |
+| goal        | number         | oui         | Objectif                 |
+| reward      | number         | oui         | Récompense               |
+| label       | string         | oui         | Libellé                  |
+| channelId   | string \| null | non         | ID de la chaîne associée |
 
 ### Réponses
 
@@ -54,9 +54,9 @@ Liste les utilisateurs ayant obtenu cet achievement.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID de l’achievement |
+| Nom | Type   | Description         |
+| --- | ------ | ------------------- |
+| id  | string | ID de l’achievement |
 
 ### Réponses
 
@@ -78,9 +78,9 @@ Retourne un achievement par ID.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID de l’achievement (UUID) |
+| Nom | Type   | Description                |
+| --- | ------ | -------------------------- |
+| id  | string | ID de l’achievement (UUID) |
 
 ### Réponses
 

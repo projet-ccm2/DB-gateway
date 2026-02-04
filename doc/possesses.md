@@ -6,11 +6,11 @@ Enregistre qu’un utilisateur possède un badge (date d’acquisition).
 
 ### Body (JSON)
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| userId | string | oui | ID de l’utilisateur |
-| badgeId | string | oui | ID du badge |
-| acquiredDate | string | oui | Date d’acquisition (ISO 8601) |
+| Champ        | Type   | Obligatoire | Description                   |
+| ------------ | ------ | ----------- | ----------------------------- |
+| userId       | string | oui         | ID de l’utilisateur           |
+| badgeId      | string | oui         | ID du badge                   |
+| acquiredDate | string | oui         | Date d’acquisition (ISO 8601) |
 
 ### Réponses
 
@@ -48,10 +48,10 @@ Retourne l’enregistrement « possesses » pour un couple (userId, badgeId).
 
 ### Query
 
-| Paramètre | Type | Obligatoire | Description |
-|-----------|------|-------------|-------------|
-| userId | string | oui | ID de l’utilisateur |
-| badgeId | string | oui | ID du badge |
+| Paramètre | Type   | Obligatoire | Description         |
+| --------- | ------ | ----------- | ------------------- |
+| userId    | string | oui         | ID de l’utilisateur |
+| badgeId   | string | oui         | ID du badge         |
 
 ### Réponses
 

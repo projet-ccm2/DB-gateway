@@ -1,4 +1,7 @@
-import { handleJsonMessage, type GatewayRepo } from "../../../handler/jsonHandler";
+import {
+  handleJsonMessage,
+  type GatewayRepo,
+} from "../../../handler/jsonHandler";
 
 test("jsonHandler unknown action returns error", async () => {
   const repo = {} as unknown as GatewayRepo;

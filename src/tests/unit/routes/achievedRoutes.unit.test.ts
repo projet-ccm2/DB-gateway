@@ -17,16 +17,14 @@ describe("achievedRoutes (unit)", () => {
     const app = express();
     app.use(express.json());
     app.use("/", createAchievedRoutes(db));
-    const res = await request(app)
-      .post("/")
-      .send({
-        achievementId: ach.id,
-        userId: user.id,
-        count: 1,
-        finished: true,
-        labelActive: false,
-        acquiredDate: new Date().toISOString(),
-      });
+    const res = await request(app).post("/").send({
+      achievementId: ach.id,
+      userId: user.id,
+      count: 1,
+      finished: true,
+      labelActive: false,
+      acquiredDate: new Date().toISOString(),
+    });
     expect(res.status).toBe(201);
     expect(res.body.achievementId).toBe(ach.id);
   });

@@ -8,13 +8,7 @@ export const achievementHandlers: Record<string, HandlerFn> = {
     const goal = num(payload, "goal");
     const reward = num(payload, "reward");
     const label = str(payload, "label");
-    if (
-      !title ||
-      !description ||
-      goal == null ||
-      reward == null ||
-      !label
-    ) {
+    if (!title || !description || goal == null || reward == null || !label) {
       return missing("title", "description", "goal", "reward", "label");
     }
     const achievement = await repo.achievement.addAchievement({

@@ -6,9 +6,9 @@ Crée une chaîne.
 
 ### Body (JSON)
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| name | string | oui | Nom de la chaîne |
+| Champ | Type   | Obligatoire | Description      |
+| ----- | ------ | ----------- | ---------------- |
+| name  | string | oui         | Nom de la chaîne |
 
 ### Réponses
 
@@ -45,9 +45,9 @@ Retourne une chaîne par ID.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID de la chaîne (UUID) |
+| Nom | Type   | Description            |
+| --- | ------ | ---------------------- |
+| id  | string | ID de la chaîne (UUID) |
 
 ### Réponses
 
@@ -84,9 +84,9 @@ Liste les utilisateurs liés à la chaîne avec leur rôle.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID de la chaîne |
+| Nom | Type   | Description     |
+| --- | ------ | --------------- |
+| id  | string | ID de la chaîne |
 
 ### Réponses
 

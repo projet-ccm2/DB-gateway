@@ -8,15 +8,13 @@ describe("achievementsRoutes (unit)", () => {
     const app = express();
     app.use(express.json());
     app.use("/", createAchievementsRoutes(new MockDatabase()));
-    const res = await request(app)
-      .post("/")
-      .send({
-        title: "T",
-        description: "D",
-        goal: 1,
-        reward: 10,
-        label: "L",
-      });
+    const res = await request(app).post("/").send({
+      title: "T",
+      description: "D",
+      goal: 1,
+      reward: 10,
+      label: "L",
+    });
     expect(res.status).toBe(201);
     expect(res.body.title).toBe("T");
   });

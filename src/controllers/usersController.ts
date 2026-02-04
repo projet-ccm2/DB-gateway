@@ -1,11 +1,6 @@
 import { Request, Response } from "express";
 import type { UserRepository } from "../repositories/userRepository";
-import {
-  BAD_REQUEST,
-  NOT_FOUND,
-  paramId,
-  sendInternalError,
-} from "./helpers";
+import { BAD_REQUEST, NOT_FOUND, paramId, sendInternalError } from "./helpers";
 
 export function createUsersController(repo: UserRepository) {
   return {
@@ -18,8 +13,13 @@ export function createUsersController(repo: UserRepository) {
           channelDescription?: string | null;
           scope?: string | null;
         };
-        const { username, twitchUserId, profileImageUrl, channelDescription, scope } =
-          body;
+        const {
+          username,
+          twitchUserId,
+          profileImageUrl,
+          channelDescription,
+          scope,
+        } = body;
         if (!username || !twitchUserId) {
           res.status(BAD_REQUEST).json({
             error: "username and twitchUserId required",

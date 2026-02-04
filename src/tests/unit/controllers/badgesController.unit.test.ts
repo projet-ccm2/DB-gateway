@@ -33,4 +33,64 @@ describe("badgesController (unit)", () => {
     await ctrl.getById(req, res);
     expect(res.status).toHaveBeenCalledWith(404);
   });
+
+  it("create returns 400 when title or img missing", async () => {
+    const req = { body: { title: "T" } } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("getById returns 200 when found", async () => {
+    const badge = await db.addBadge({ title: "Found", img: "f.png" });
+    const req = { params: { id: badge.id } } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getById(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ id: badge.id, title: "Found" }),
+    );
+  });
+
+  it("getUsersByBadgeId returns 200 and array", async () => {
+    const badge = await db.addBadge({ title: "B", img: "i.png" });
+    const req = { params: { id: badge.id } } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getUsersByBadgeId(req, res);
+    expect(res.json).toHaveBeenCalledWith([]);
+  });
+
+  it("create returns 500 when repo.add throws", async () => {
+    const throwingBadgeRepo = {
+      add: jest.fn().mockRejectedValue(new Error("db")),
+      getById: jest.fn(),
+    } as unknown as InstanceType<typeof BadgeRepository>;
+    const c = createBadgesController(throwingBadgeRepo, userRepo);
+    const req = { body: { title: "T", img: "i" } } as Request;
+    const res = mockRes();
+    await c.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("getById returns 500 when repo throws", async () => {
+    const throwingBadgeRepo = {
+      add: jest.fn(),
+      getById: jest.fn().mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof BadgeRepository>;
+    const c = createBadgesController(throwingBadgeRepo, userRepo);
+    const req = { params: { id: "x" } } as unknown as Request;
+    const res = mockRes();
+    await c.getById(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("getUsersByBadgeId returns 500 when repo throws", async () => {
+    const throwingUserRepo = {
+      getUsersByBadgeId: jest.fn().mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof UserRepository>;
+    const c = createBadgesController(badgeRepo, throwingUserRepo);
+    const req = { params: { id: "x" } } as unknown as Request;
+    const res = mockRes();
+    await c.getUsersByBadgeId(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
 });

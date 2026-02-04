@@ -4,17 +4,17 @@ Documentation au format type Swagger (Markdown) de toutes les routes HTTP expos�
 
 ## Index des routes
 
-| Ressource | Fichier | Description |
-|-----------|---------|-------------|
-| Santé | [health.md](./health.md) | Health check |
-| Utilisateurs | [users.md](./users.md) | CRUD et sous-ressources utilisateurs |
-| Chaînes | [channels.md](./channels.md) | Chaînes et utilisateurs par chaîne |
-| Types d’achievement | [type-achievements.md](./type-achievements.md) | Types d’achievement |
-| Achievements | [achievements.md](./achievements.md) | Achievements et utilisateurs par achievement |
-| Badges | [badges.md](./badges.md) | Badges et utilisateurs par badge |
-| Achieved (liaison) | [achieved.md](./achieved.md) | Liaison achievement ↔ utilisateur |
-| Are (liaison) | [are.md](./are.md) | Liaison utilisateur ↔ chaîne (rôle) |
-| Possesses (liaison) | [possesses.md](./possesses.md) | Liaison utilisateur ↔ badge |
+| Ressource           | Fichier                                        | Description                                  |
+| ------------------- | ---------------------------------------------- | -------------------------------------------- |
+| Santé               | [health.md](./health.md)                       | Health check                                 |
+| Utilisateurs        | [users.md](./users.md)                         | CRUD et sous-ressources utilisateurs         |
+| Chaînes             | [channels.md](./channels.md)                   | Chaînes et utilisateurs par chaîne           |
+| Types d’achievement | [type-achievements.md](./type-achievements.md) | Types d’achievement                          |
+| Achievements        | [achievements.md](./achievements.md)           | Achievements et utilisateurs par achievement |
+| Badges              | [badges.md](./badges.md)                       | Badges et utilisateurs par badge             |
+| Achieved (liaison)  | [achieved.md](./achieved.md)                   | Liaison achievement ↔ utilisateur           |
+| Are (liaison)       | [are.md](./are.md)                             | Liaison utilisateur ↔ chaîne (rôle)         |
+| Possesses (liaison) | [possesses.md](./possesses.md)                 | Liaison utilisateur ↔ badge                 |
 
 ## Conventions
 

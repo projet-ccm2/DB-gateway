@@ -1,12 +1,7 @@
 import { Request, Response } from "express";
 import type { ChannelRepository } from "../repositories/channelRepository";
 import type { UserRepository } from "../repositories/userRepository";
-import {
-  BAD_REQUEST,
-  NOT_FOUND,
-  paramId,
-  sendInternalError,
-} from "./helpers";
+import { BAD_REQUEST, NOT_FOUND, paramId, sendInternalError } from "./helpers";
 
 export function createChannelsController(
   channelRepo: ChannelRepository,

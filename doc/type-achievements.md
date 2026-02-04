@@ -6,10 +6,10 @@ Crée un type d’achievement.
 
 ### Body (JSON)
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| label | string | oui | Libellé du type |
-| data | string | oui | Données associées |
+| Champ | Type   | Obligatoire | Description       |
+| ----- | ------ | ----------- | ----------------- |
+| label | string | oui         | Libellé du type   |
+| data  | string | oui         | Données associées |
 
 ### Réponses
 
@@ -47,9 +47,9 @@ Retourne un type d’achievement par ID.
 
 ### Paramètres de chemin
 
-| Nom | Type | Description |
-|-----|------|-------------|
-| id | string | ID du type (UUID) |
+| Nom | Type   | Description       |
+| --- | ------ | ----------------- |
+| id  | string | ID du type (UUID) |
 
 ### Réponses
 
