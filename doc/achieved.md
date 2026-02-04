@@ -1,21 +1,21 @@
-# Achieved (liaison Achievement ↔ User)
+# Achieved (Achievement ↔ User link)
 
 ## POST /achieved
 
-Enregistre ou met à jour une réalisation d’achievement par un utilisateur.
+Creates or updates a user’s achievement completion record.
 
 ### Body (JSON)
 
-| Champ         | Type    | Obligatoire | Description                   |
-| ------------- | ------- | ----------- | ----------------------------- |
-| achievementId | string  | oui         | ID de l’achievement           |
-| userId        | string  | oui         | ID de l’utilisateur           |
-| count         | number  | oui         | Compteur                      |
-| finished      | boolean | oui         | Achievement terminé ou non    |
-| labelActive   | boolean | oui         | Libellé actif                 |
-| acquiredDate  | string  | oui         | Date d’acquisition (ISO 8601) |
+| Field         | Type    | Required | Description                 |
+| ------------- | ------- | -------- | --------------------------- |
+| achievementId | string  | yes      | Achievement ID              |
+| userId        | string  | yes      | User ID                     |
+| count         | number  | yes      | Count                       |
+| finished      | boolean | yes      | Whether achievement is done |
+| labelActive   | boolean | yes      | Label active                |
+| acquiredDate  | string  | yes      | Acquisition date (ISO 8601) |
 
-### Réponses
+### Responses
 
 **201 Created**
 
@@ -50,16 +50,16 @@ Enregistre ou met à jour une réalisation d’achievement par un utilisateur.
 
 ## GET /achieved
 
-Retourne l’enregistrement « achieved » pour un couple (achievementId, userId).
+Returns the “achieved” record for a given (achievementId, userId) pair.
 
 ### Query
 
-| Paramètre     | Type   | Obligatoire | Description         |
-| ------------- | ------ | ----------- | ------------------- |
-| achievementId | string | oui         | ID de l’achievement |
-| userId        | string | oui         | ID de l’utilisateur |
+| Parameter     | Type   | Required | Description    |
+| ------------- | ------ | -------- | -------------- |
+| achievementId | string | yes      | Achievement ID |
+| userId        | string | yes      | User ID        |
 
-### Réponses
+### Responses
 
 **200 OK**
 

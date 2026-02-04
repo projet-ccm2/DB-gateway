@@ -7,9 +7,9 @@ This service exposes REST HTTP routes and receives JSON payloads to interact wit
 
 ## 📚 API Documentation (Swagger-style)
 
-La documentation détaillée de chaque route HTTP est dans le dossier **[\`doc/\`](./doc/)** :
+Detailed documentation for each HTTP route is in the **[\`doc/\`](./doc/)** folder:
 
-- **[Index des routes](./doc/README.md)** — liste de toutes les routes avec liens vers chaque ressource
+- **[Route index](./doc/README.md)** — list of all routes with links to each resource
 - [Health](./doc/health.md)
 - [Users](./doc/users.md)
 - [Channels](./doc/channels.md)

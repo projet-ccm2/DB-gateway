@@ -2,11 +2,11 @@
 
 ## GET /health
 
-Vérifie l’état du service et de la base de données.
+Checks the service and database status.
 
-### Réponses
+### Responses
 
-**200 OK** — Service et DB opérationnels
+**200 OK** — Service and DB operational
 
 ```json
 {
@@ -15,7 +15,7 @@ Vérifie l’état du service et de la base de données.
 }
 ```
 
-**503 Service Unavailable** — Base indisponible
+**503 Service Unavailable** — Database unavailable
 
 ```json
 {
@@ -24,7 +24,7 @@ Vérifie l’état du service et de la base de données.
 }
 ```
 
-**500 Internal Server Error** — Erreur inattendue
+**500 Internal Server Error** — Unexpected error
 
 ```json
 {

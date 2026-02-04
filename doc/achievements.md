@@ -2,20 +2,20 @@
 
 ## POST /achievements
 
-Crée un achievement.
+Creates an achievement.
 
 ### Body (JSON)
 
-| Champ       | Type           | Obligatoire | Description              |
-| ----------- | -------------- | ----------- | ------------------------ |
-| title       | string         | oui         | Titre                    |
-| description | string         | oui         | Description              |
-| goal        | number         | oui         | Objectif                 |
-| reward      | number         | oui         | Récompense               |
-| label       | string         | oui         | Libellé                  |
-| channelId   | string \| null | non         | ID de la chaîne associée |
+| Field       | Type           | Required | Description           |
+| ----------- | -------------- | -------- | --------------------- |
+| title       | string         | yes      | Title                 |
+| description | string         | yes      | Description           |
+| goal        | number         | yes      | Goal                  |
+| reward      | number         | yes      | Reward                |
+| label       | string         | yes      | Label                 |
+| channelId   | string \| null | no       | Associated channel ID |
 
-### Réponses
+### Responses
 
 **201 Created**
 
@@ -50,17 +50,17 @@ Crée un achievement.
 
 ## GET /achievements/:id/users
 
-Liste les utilisateurs ayant obtenu cet achievement.
+Lists users who have completed this achievement.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description         |
-| --- | ------ | ------------------- |
-| id  | string | ID de l’achievement |
+| Name | Type   | Description    |
+| ---- | ------ | -------------- |
+| id   | string | Achievement ID |
 
-### Réponses
+### Responses
 
-**200 OK** — Tableau d’objets utilisateur (id, username, twitchUserId, profileImageUrl, channelDescription, scope).
+**200 OK** — Array of user objects (id, username, twitchUserId, profileImageUrl, channelDescription, scope).
 
 **500 Internal Server Error**
 
@@ -74,15 +74,15 @@ Liste les utilisateurs ayant obtenu cet achievement.
 
 ## GET /achievements/:id
 
-Retourne un achievement par ID.
+Returns an achievement by ID.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description                |
-| --- | ------ | -------------------------- |
-| id  | string | ID de l’achievement (UUID) |
+| Name | Type   | Description           |
+| ---- | ------ | --------------------- |
+| id   | string | Achievement ID (UUID) |
 
-### Réponses
+### Responses
 
 **200 OK**
 

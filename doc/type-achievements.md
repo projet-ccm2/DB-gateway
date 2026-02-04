@@ -2,16 +2,16 @@
 
 ## POST /type-achievements
 
-Crée un type d’achievement.
+Creates an achievement type.
 
 ### Body (JSON)
 
-| Champ | Type   | Obligatoire | Description       |
-| ----- | ------ | ----------- | ----------------- |
-| label | string | oui         | Libellé du type   |
-| data  | string | oui         | Données associées |
+| Field | Type   | Required | Description     |
+| ----- | ------ | -------- | --------------- |
+| label | string | yes      | Type label      |
+| data  | string | yes      | Associated data |
 
-### Réponses
+### Responses
 
 **201 Created**
 
@@ -43,15 +43,15 @@ Crée un type d’achievement.
 
 ## GET /type-achievements/:id
 
-Retourne un type d’achievement par ID.
+Returns an achievement type by ID.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description       |
-| --- | ------ | ----------------- |
-| id  | string | ID du type (UUID) |
+| Name | Type   | Description    |
+| ---- | ------ | -------------- |
+| id   | string | Type ID (UUID) |
 
-### Réponses
+### Responses
 
 **200 OK**
 

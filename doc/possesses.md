@@ -1,18 +1,18 @@
-# Possesses (liaison User ↔ Badge)
+# Possesses (User ↔ Badge link)
 
 ## POST /possesses
 
-Enregistre qu’un utilisateur possède un badge (date d’acquisition).
+Records that a user owns a badge (acquisition date).
 
 ### Body (JSON)
 
-| Champ        | Type   | Obligatoire | Description                   |
-| ------------ | ------ | ----------- | ----------------------------- |
-| userId       | string | oui         | ID de l’utilisateur           |
-| badgeId      | string | oui         | ID du badge                   |
-| acquiredDate | string | oui         | Date d’acquisition (ISO 8601) |
+| Field        | Type   | Required | Description                 |
+| ------------ | ------ | -------- | --------------------------- |
+| userId       | string | yes      | User ID                     |
+| badgeId      | string | yes      | Badge ID                    |
+| acquiredDate | string | yes      | Acquisition date (ISO 8601) |
 
-### Réponses
+### Responses
 
 **201 Created**
 
@@ -44,16 +44,16 @@ Enregistre qu’un utilisateur possède un badge (date d’acquisition).
 
 ## GET /possesses
 
-Retourne l’enregistrement « possesses » pour un couple (userId, badgeId).
+Returns the “possesses” record for a given (userId, badgeId) pair.
 
 ### Query
 
-| Paramètre | Type   | Obligatoire | Description         |
-| --------- | ------ | ----------- | ------------------- |
-| userId    | string | oui         | ID de l’utilisateur |
-| badgeId   | string | oui         | ID du badge         |
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| userId    | string | yes      | User ID     |
+| badgeId   | string | yes      | Badge ID    |
 
-### Réponses
+### Responses
 
 **200 OK**
 

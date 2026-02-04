@@ -2,16 +2,16 @@
 
 ## POST /badges
 
-Crée un badge.
+Creates a badge.
 
 ### Body (JSON)
 
-| Champ | Type   | Obligatoire | Description           |
-| ----- | ------ | ----------- | --------------------- |
-| title | string | oui         | Titre du badge        |
-| img   | string | oui         | Nom ou URL de l’image |
+| Field | Type   | Required | Description       |
+| ----- | ------ | -------- | ----------------- |
+| title | string | yes      | Badge title       |
+| img   | string | yes      | Image name or URL |
 
-### Réponses
+### Responses
 
 **201 Created**
 
@@ -43,15 +43,15 @@ Crée un badge.
 
 ## GET /badges/:id
 
-Retourne un badge par ID.
+Returns a badge by ID.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description        |
-| --- | ------ | ------------------ |
-| id  | string | ID du badge (UUID) |
+| Name | Type   | Description     |
+| ---- | ------ | --------------- |
+| id   | string | Badge ID (UUID) |
 
-### Réponses
+### Responses
 
 **200 OK**
 
@@ -83,17 +83,17 @@ Retourne un badge par ID.
 
 ## GET /badges/:id/users
 
-Liste les utilisateurs possédant ce badge.
+Lists users who own this badge.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description |
-| --- | ------ | ----------- |
-| id  | string | ID du badge |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | Badge ID    |
 
-### Réponses
+### Responses
 
-**200 OK** — Tableau d’objets utilisateur (id, username, twitchUserId, profileImageUrl, channelDescription, scope).
+**200 OK** — Array of user objects (id, username, twitchUserId, profileImageUrl, channelDescription, scope).
 
 **500 Internal Server Error**
 

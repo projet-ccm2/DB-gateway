@@ -1,332 +1,332 @@
-# Refactoring — Modifications et conseils
+# Refactoring — Changes and Guidelines
 
-Ce document résume les changements effectués lors du grand refactoring du projet DB-Gateway et explique les choix, avec des conseils réutilisables.
-
----
-
-## 1. Types et interdiction de `any`
-
-### Modifications
-
-- **`src/types/app.ts`** (nouveau) : Définition de `AppRepo` (interface du dépôt utilisé par le serveur HTTP), `AddUserInput`, `AddAchievementInput`, `AddAchievedInput`. Toutes les méthodes du repo sont typées.
-- **`src/server.ts`** : `createApp(repo: any)` → `createApp(repo: AppRepo)`. Handlers avec `Request` et `Response` d’Express, plus de `req: any` / `res: any`. Gestion d’erreur avec `err: unknown` et `getErrorMessage(err)`.
-- **`src/handler/jsonHandler.ts`** : `payload: any` et `msg: any` remplacés par `Payload = Record<string, unknown>`, `JsonMessage`, et par des assertions de type ciblées dans chaque handler. Type de retour explicite `JsonHandlerResult` (discriminated union).
-- **`src/database/prismaDatabase.ts`** : Suppression des `(a: any)` / `(r: any)` dans les `.map()` ; les types sont inférés par Prisma.
-- **`src/database/mockDatabase.ts`** : Suppression des `(a: any)` ; usage de types étendus (`achievementDTO & { channelId?: string }`) où nécessaire.
-- **`src/types/global.d.ts`** : `body?: any` → `body?: unknown`, `on: any` → typage de la méthode `on`.
-- **Tests** : Remplacement de `as any` par des types précis (`GatewayRepo`, `UserRepository`, interfaces de mock dans les tests Prisma).
-
-### Pourquoi
-
-- `any` désactive la vérification TypeScript et favorise les bugs en production. Le typage strict améliore la maintenabilité et l’autocomplétion.
-- Utiliser `unknown` pour les erreurs et les données non contrôlées, puis les narrow avec des gardes ou des assertions explicites.
-
-### Conseil
-
-- Règle de projet : **interdire `any`** (ESLint `@typescript-eslint/no-explicit-any`). Pour les mocks complexes, privilégier des interfaces ou `unknown` + assertions ciblées.
+This document summarizes the changes made during the major refactoring of the DB-Gateway project and explains the rationale, with reusable guidelines.
 
 ---
 
-## 2. Architecture : Gateway et Database
+## 1. Types and Banning `any`
 
-### Modifications
+### Changes
 
-- **`src/database/database.ts`** : Ajout de `healthCheck(): Promise<boolean>` dans l’interface `Database` pour que Mock et Prisma aient le même contrat.
-- **`src/index.ts`** : Export du type `Gateway` `{ db: Database }`, de `createPrismaGateway()` (retourne `{ db }` avec `PrismaDatabase`) et de `createApp(db: Database)` qui crée l’app Express et appelle `mountRoutes(app, db)`.
-- **`src/tests/mocks/index.ts`** : `createMockGateway()` retourne `Gateway` avec `db: MockDatabase` pour les tests (import du type `Gateway` depuis `index`).
+- **Controllers**: Handlers typed with Express `Request` and `Response`; error handling with `err: unknown` and `getErrorMessage(err)` (see `controllers/helpers.ts`).
+- **`src/index.ts`**: `createApp(db: Database)`; no `any` at the gateway level.
+- **`src/handler/jsonHandler.ts`**: `payload: any` and `msg: any` replaced by `Payload = Record<string, unknown>`, `JsonMessage`, and targeted type assertions in each handler. Explicit return type `JsonHandlerResult` (discriminated union).
+- **`src/database/prismaDatabase.ts`**: Removed `(a: any)` / `(r: any)` in `.map()` calls; types are inferred by Prisma.
+- **`src/database/mockDatabase.ts`**: Removed `(a: any)`; use of extended types (`achievementDTO & { channelId?: string }`) where needed.
+- **`src/types/global.d.ts`**: `body?: any` → `body?: unknown`, `on: any` → typed `on` method.
+- **Tests**: Replaced `as any` with precise types (`GatewayRepo`, `UserRepository`, mock interfaces in Prisma tests).
 
-### Pourquoi
+### Why
 
-- Un seul point d’entrée données : la `Database`. Les routes reçoivent `db` et construisent les repositories puis les controllers par ressource. Le handler JSON utilise le type `GatewayRepo` (repos imbriqués) pour un autre transport éventuel.
+- `any` disables TypeScript checking and encourages production bugs. Strict typing improves maintainability and autocompletion.
+- Use `unknown` for errors and untrusted data, then narrow with guards or explicit assertions.
 
-### Conseil
+### Guideline
 
-- Pour les tests, utiliser `createMockGateway()` depuis `src/tests/mocks` ; pour le serveur, `createPrismaGateway()` et `createApp(db)` depuis `index`.
-
----
-
-## 3. Controllers et couche routes
-
-### Modifications
-
-- **`src/controllers/`** : Chaque controller reçoit **un** repository (ex. `UserRepository`, `ChannelRepository`), pas un agrégat.
-  - **`helpers.ts`** : Constantes HTTP (BAD_REQUEST, NOT_FOUND, etc.), `paramId`, `queryString`, `getErrorMessage`, `sendInternalError`.
-  - **`healthController.ts`**, **`usersController.ts`**, … **`possessesController.ts`** : Chaque fichier exporte `createXController(repo: XRepository)` qui retourne un objet de handlers (ex. `create`, `getById`, …).
-- **`src/routes/`** : Une ressource = un fichier de routes.
-  - **`index.ts`** : `mountRoutes(app, db)` enregistre les routers sur des préfixes (`/health`, `/users`, `/channels`, …).
-  - **`healthRoutes.ts`**, **`usersRoutes.ts`**, … **`possessesRoutes.ts`** : Chaque fichier exporte `createXxxRoutes(db: Database)` qui crée le(s) repository(s), le controller, et retourne un `express.Router()` avec les handlers montés (ex. `router.post("/", c.create)`).
-- **`src/index.ts`** : `createApp(db)` crée l’app Express, appelle `mountRoutes(app, db)`. Pas de fichier `server.ts` séparé.
-
-### Pourquoi
-
-- Séparer routes (wiring) et controllers (logique) rend le code testable. Chaque route reçoit `db` et construit uniquement les repos nécessaires pour sa ressource.
-
-### Conseil
-
-- Pour une nouvelle ressource : ajouter un repository si besoin, un controller `createXController(repo)`, un fichier `createXxxRoutes(db)` qui instancie repo + controller, puis une ligne `app.use("/path", createXxxRoutes(db))` dans `mountRoutes`.
+- Project rule: **ban `any`** (ESLint `@typescript-eslint/no-explicit-any`). For complex mocks, prefer interfaces or `unknown` + targeted assertions.
 
 ---
 
-## 4. Point d’entrée unique (index)
+## 2. Architecture: Gateway and Database
 
-### Modifications
+### Changes
 
-- **`src/index.ts`** : Unique point d’entrée du programme.
-  - Exporte `createPrismaGateway`, `createApp` (et le type `Gateway`). `createMockGateway()` est dans `src/tests/mocks` pour les tests.
-  - Si le fichier est exécuté directement (`require.main === module`), appelle `main()` : création du gateway Prisma, création de l’app, `listen`, et gestion du signal SIGTERM (disconnect + fermeture du serveur).
-- **`src/startServer.ts`** : Supprimé ; son rôle est intégré dans `index.ts`.
-- **`package.json`** : `"start": "node dist/index.js"`, `"server:start": "ts-node src/index.ts"`, `"test"` (unit + integration), `"test:unit"`, `"test:integration"`, `"test:coverage"`, `"test:coverage:full"`.
+- **`src/database/database.ts`**: Added `healthCheck(): Promise<boolean>` to the `Database` interface so Mock and Prisma share the same contract.
+- **`src/index.ts`**: Exports `Gateway` type `{ db: Database }`, `createPrismaGateway()` (returns `{ db }` with `PrismaDatabase`), and `createApp(db: Database)` which creates the Express app and calls `mountRoutes(app, db)`.
+- **`src/tests/mocks/index.ts`**: `createMockGateway()` returns `Gateway` with `db: MockDatabase` for tests (imports `Gateway` type from `index`).
 
-### Pourquoi
+### Why
 
-- Un seul fichier à lancer (index) évite la confusion. Le build produit un seul binaire logique (`dist/index.js`).
+- Single data entry point: `Database`. Routes receive `db` and build repositories then controllers per resource. The JSON handler uses `GatewayRepo` (nested repos) for potential alternate transport.
 
-### Conseil
+### Guideline
 
-- Pour les tests, importer `createApp` depuis `index` et `createMockGateway` depuis `src/tests/mocks` sans exécuter `main()`.
+- For tests, use `createMockGateway()` from `src/tests/mocks`; for the server, use `createPrismaGateway()` and `createApp(db)` from `index`.
 
 ---
 
-## 5. Routes HTTP (liste)
+## 3. Controllers and Routes Layer
 
-### Modifications
+### Changes
 
-- Routes exposées (déléguées aux controllers) :
-  - **Health** : `GET /health`.
-  - **Users** : `POST /users`, `GET /users/:id`, `GET /users/:id/channels`, `GET /users/:id/badges`, `GET /users/:id/achievements`.
-  - **Channels** : `POST /channels`, `GET /channels/:id`, `GET /channels/:id/users`.
-  - **Type achievements** : `POST /type-achievements`, `GET /type-achievements/:id`.
-  - **Achievements** : `POST /achievements`, `GET /achievements/:id`, `GET /achievements/:id/users` (route la plus spécifique avant `GET /achievements/:id`).
-  - **Badges** : `POST /badges`, `GET /badges/:id`, `GET /badges/:id/users`.
-  - **Achieved** : `POST /achieved`, `GET /achieved?achievementId=&userId=`.
-  - **Are** : `POST /are`, `GET /are?userId=&channelId=`.
-  - **Possesses** : `POST /possesses`, `GET /possesses?userId=&badgeId=`.
+- **`src/controllers/`**: Each controller receives **one** repository (e.g. `UserRepository`, `ChannelRepository`), not an aggregate.
+  - **`helpers.ts`**: HTTP constants (BAD_REQUEST, NOT_FOUND, etc.), `paramId`, `queryString`, `getErrorMessage`, `sendInternalError`.
+  - **`healthController.ts`**, **`usersController.ts`**, … **`possessesController.ts`**: Each file exports `createXController(repo: XRepository)` returning an object of handlers (e.g. `create`, `getById`, …).
+- **`src/routes/`**: One resource = one route file.
+  - **`index.ts`**: `mountRoutes(app, db)` registers routers under prefixes (`/health`, `/users`, `/channels`, …).
+  - **`healthRoutes.ts`**, **`usersRoutes.ts`**, … **`possessesRoutes.ts`**: Each exports `createXxxRoutes(db: Database)` which creates the repository(ies), the controller, and returns an `express.Router()` with handlers mounted (e.g. `router.post("/", c.create)`).
+- **`src/index.ts`**: `createApp(db)` creates the Express app and calls `mountRoutes(app, db)`. No separate `server.ts` file.
 
-### Conseil
+### Why
 
-- Déclarer les routes **les plus spécifiques** avant les routes paramétrées (ex. `GET /achievements/:id/users` avant `GET /achievements/:id`).
+- Separating routes (wiring) and controllers (logic) keeps the code testable. Each route receives `db` and builds only the repos needed for its resource.
 
----
+### Guideline
 
-## 6. Documentation API (Swagger en Markdown)
-
-### Modifications
-
-- **`doc/README.md`** : Index des routes avec liens vers chaque fichier de ressource.
-- **`doc/*.md`** : Un fichier par ressource (health, users, channels, type-achievements, achievements, badges, achieved, are, possesses). Chaque fichier décrit en Markdown les endpoints (méthode, chemin, body, query, réponses 2xx/4xx/5xx) dans un style type Swagger.
-- **`README.md`** (racine) : Nouvelle section “API Documentation (Swagger-style)” avec lien vers `doc/` et liste des fichiers.
-
-### Pourquoi
-
-- Une doc à jour et facile à parcourir (un fichier par ressource) aide les intégrateurs et évite que l’API soit “cachée” dans le code seul.
-
-### Conseil
-
-- Si vous ajoutez une route, mettre à jour le fichier `doc` correspondant et l’index `doc/README.md`. Pour un vrai Swagger/OpenAPI généré, vous pourrez plus tard dériver une spec à partir de ces descriptions ou du code.
+- For a new resource: add a repository if needed, a controller `createXController(repo)`, a file `createXxxRoutes(db)` that instantiates repo + controller, then a line `app.use("/path", createXxxRoutes(db))` in `mountRoutes`.
 
 ---
 
-## 7. Interface Database et optionnel `channelId`
+## 4. Single Entry Point (index)
 
-### Modifications
+### Changes
 
-- **`src/database/database.ts`** : `addAchievement(… channelId: string)` → `channelId?: string | null` pour être cohérent avec le handler JSON et le mock qui ne fournissent pas toujours un channel.
-- **`src/database/prismaDatabase.ts`** : `addAchievement` accepte `channelId` optionnel ; passage de `channelId: a.channelId ?? undefined` à Prisma.
-- **`src/repositories/achievementRepository.ts`** : Signature de `add` alignée avec l’optionnel `channelId`.
+- **`src/index.ts`**: Single program entry point.
+  - Exports `createPrismaGateway`, `createApp` (and `Gateway` type). `createMockGateway()` lives in `src/tests/mocks` for tests.
+  - When the file is run directly (`require.main === module`), calls `main()`: create Prisma gateway, create app, `listen`, and handle SIGTERM (disconnect + close server).
+- **`src/startServer.ts`**: Removed; its role is merged into `index.ts`.
+- **`package.json`**: `"start": "node dist/index.js"`, `"server:start": "ts-node src/index.ts"`, `"test"` (unit + integration), `"test:unit"`, `"test:integration"`, `"test:coverage"`, `"test:coverage:full"`.
 
-### Pourquoi
+### Why
 
-- Unifier le contrat entre Prisma, mock et API (création d’achievement sans chaîne possible).
+- A single file to run (index) avoids confusion. The build produces a single logical binary (`dist/index.js`).
 
-### Conseil
+### Guideline
 
-- Garder les DTOs et interfaces métier alignés avec le schéma Prisma (champs optionnels vs requis) pour éviter des incohérences entre couches.
-
----
-
-## 8. Tests sans `any`
-
-### Modifications
-
-- **`src/tests/unit/index_and_handler.unit.test.ts`** : Mock du repo pour `handleJsonMessage` avec `{} as unknown as GatewayRepo` au lieu de `as any`.
-- **`src/tests/unit/userService.unit.test.ts`** : Utilisation de `UserRepository` + `MockDatabase` au lieu d’un objet partiel `as any`.
-- **`src/tests/unit/jsonHandler.unit.test.ts`** : Utilisation de `channelUserDTO` pour `result.users![0].userType` au lieu de `as any`.
-- **`src/tests/unit/prismaDatabase.unit.test.ts`** et **`prismaDatabase.notfound.unit.test.ts`** : Interfaces de mock (MockUserData, MockChannelData, FindManyWhere, etc.) et typage explicite des mocks Prisma au lieu de `[key: string]: any` et `data: any`.
-
-### Pourquoi
-
-- Les tests restent un reflet fiable du typage du projet et évitent de cacher des erreurs derrière `any`.
-
-### Conseil
-
-- Dans les tests, préférer des vrais types (repos, DTOs) ou des mocks typés (interfaces) plutôt que `any`. Pour des mocks partiels, `as unknown as T` est préférable à `as any` car il force à réfléchir au type attendu.
+- For tests, import `createApp` from `index` and `createMockGateway` from `src/tests/mocks` without running `main()`.
 
 ---
 
-## 9. Constantes HTTP et lisibilité
+## 5. HTTP Routes (List)
 
-### Modifications
+### Changes
 
-- **`src/controllers/helpers.ts`** : Constantes `BAD_REQUEST`, `NOT_FOUND`, `INTERNAL_ERROR`, `SERVICE_UNAVAILABLE` pour les codes de statut, et `getErrorMessage(err)`, `sendInternalError(res, err)` pour les réponses d’erreur.
+- Exposed routes (delegated to controllers):
+  - **Health**: `GET /health`.
+  - **Users**: `POST /users`, `GET /users/:id`, `GET /users/:id/channels`, `GET /users/:id/badges`, `GET /users/:id/achievements`.
+  - **Channels**: `POST /channels`, `GET /channels/:id`, `GET /channels/:id/users`.
+  - **Type achievements**: `POST /type-achievements`, `GET /type-achievements/:id`.
+  - **Achievements**: `POST /achievements`, `GET /achievements/:id`, `GET /achievements/:id/users` (most specific route before `GET /achievements/:id`).
+  - **Badges**: `POST /badges`, `GET /badges/:id`, `GET /badges/:id/users`.
+  - **Achieved**: `POST /achieved`, `GET /achieved?achievementId=&userId=`.
+  - **Are**: `POST /are`, `GET /are?userId=&channelId=`.
+  - **Possesses**: `POST /possesses`, `GET /possesses?userId=&badgeId=`.
 
-### Pourquoi
+### Guideline
 
-- Éviter les nombres magiques et centraliser les messages d’erreur améliore la lisibilité et les changements futurs.
-
-### Conseil
-
-- Centraliser codes HTTP et messages d’erreur (fichier dédié ou constantes en tête de module) pour garder une API cohérente.
-
----
-
-## 10. Config et variables d’environnement
-
-### Modifications
-
-- **`src/config/environment.ts`** : Interface `Config` (port, nodeEnv, databaseUrl, cors.allowedOrigins). `validateConfig()` lit les variables d’environnement avec des valeurs par défaut (`getEnv`) et exporte `config` utilisé par `index.ts` (port, databaseUrl) et ailleurs si besoin.
-
-### Pourquoi
-
-- Centraliser l’accès aux variables d’environnement évite les `process.env` dispersés et permet de valider la config au démarrage.
-
-### Conseil
-
-- Utiliser `config` depuis `./config/environment` pour port, databaseUrl, etc. ; ne pas lire `process.env` directement dans la logique métier.
+- Declare **most specific** routes before parameterized ones (e.g. `GET /achievements/:id/users` before `GET /achievements/:id`).
 
 ---
 
-## 11. Handler JSON (types, actions, payload)
+## 6. API Documentation (Swagger-style Markdown)
 
-### Modifications
+### Changes
 
-- **`src/handler/types/`** : Types dédiés au handler JSON : `GatewayRepo`, `handlerFn`, `JsonMessage`, `JsonHandlerResult`, `Payload` (et `index.ts` qui les réexporte).
-- **`src/handler/payload.ts`** : Helpers pour parser/vérifier le payload (ex. extraction des champs, validation).
-- **`src/handler/actions/`** : Un fichier par domaine (userActions, channelActions, achievementActions, …) qui exporte les handlers d’actions utilisés par le handler JSON ; **`index.ts`** agrège les actions.
-- **`src/handler/jsonHandler.ts`** : Utilise les types (`JsonMessage`, `JsonHandlerResult`, `GatewayRepo`), les helpers payload et les actions pour traiter les messages JSON (sans `any`).
+- **`doc/README.md`**: Route index with links to each resource file.
+- **`doc/*.md`**: One file per resource (health, users, channels, type-achievements, achievements, badges, achieved, are, possesses). Each file describes endpoints in Markdown (method, path, body, query, 2xx/4xx/5xx responses) in a Swagger-like style.
+- **`README.md`** (root): New section “API Documentation (Swagger-style)” with link to `doc/` and list of files.
 
-### Pourquoi
+### Why
 
-- Séparer types, helpers et actions par ressource garde le handler JSON lisible et testable.
+- Up-to-date, easy-to-scan documentation (one file per resource) helps integrators and keeps the API from being “hidden” in code only.
 
-### Conseil
+### Guideline
 
-- Pour une nouvelle action JSON : ajouter le handler dans le fichier `actions` correspondant, l’enregistrer dans `actions/index.ts`, et l’utiliser dans `jsonHandler.ts`.
-
----
-
-## 12. Constructeur PrismaDatabase (typage TypeScript)
-
-### Modifications
-
-- **`src/database/prismaDatabase.ts`** : Quand `databaseUrl` est absent, appel à `new PrismaClient()` sans argument au lieu de `new PrismaClient({})`. Avec `{}`, le type `PrismaClientOptions` exigeait la propriété `datasources` ; sans argument, Prisma utilise la source définie dans le schéma (ex. `DATABASE_URL`).
-
-### Pourquoi
-
-- Corriger l’erreur TypeScript à la compilation et aux tests : le constructeur sans argument est valide et évite de passer un objet d’options incomplet.
-
-### Conseil
-
-- Pour une URL personnalisée, passer `{ datasources: { db: { url: databaseUrl } } }` ; sinon ne rien passer pour utiliser la config par défaut.
+- When adding a route, update the corresponding `doc` file and the index `doc/README.md`. For generated Swagger/OpenAPI, you can later derive a spec from these descriptions or from code.
 
 ---
 
-## 13. Mocks dans `src/tests/mocks/`
+## 7. Database Interface and Optional `channelId`
 
-### Modifications
+### Changes
 
-- **`src/database/mockDatabase.ts`** : Déplacé vers **`src/tests/mocks/mockDatabase.ts`** (et **`src/tests/mocks/index.ts`** pour les exports). Le mock n’est utilisé que par les tests, il ne fait plus partie du code de production.
+- **`src/database/database.ts`**: `addAchievement(… channelId: string)` → `channelId?: string | null` to align with the JSON handler and mock, which do not always provide a channel.
+- **`src/database/prismaDatabase.ts`**: `addAchievement` accepts optional `channelId`; passes `channelId: a.channelId ?? undefined` to Prisma.
+- **`src/repositories/achievementRepository.ts`**: `add` signature aligned with optional `channelId`.
 
-### Pourquoi
+### Why
 
-- Séparer clairement le code de production des mocks de test et éviter de les exposer dans le build applicatif.
+- Unify the contract between Prisma, mock, and API (achievement creation without a channel is allowed).
 
-### Conseil
+### Guideline
 
-- Importer le mock depuis `src/tests/mocks` (ou via le chemin configuré dans les tests) ; le reste de l’app n’a pas besoin de le connaître.
-
----
-
-## 14. Restructuration des tests unitaires
-
-### Modifications
-
-- **Arborescence** : Les tests unitaires suivent la structure du code source : `src/tests/unit/config/`, `database/`, `repositories/`, `controllers/`, `routes/`, `handler/`, `index/`, `services/`, `utils/`.
-- **Un fichier par module** : Un fichier de test par repository (ex. `userRepository.unit.test.ts`, `channelRepository.unit.test.ts`), par controller, par fichier de routes. L’ancien fichier monolithique `repositories.unit.test.ts` a été supprimé et remplacé par des fichiers dédiés.
-- **`prismaDatabase.unit.test.ts`** : Les cas “not found” (ancien `prismaDatabase.notfound.unit.test.ts`) ont été fusionnés dans un seul fichier `prismaDatabase.unit.test.ts`.
-- **Nouveaux fichiers** : Tests unitaires pour tous les controllers, toutes les routes, `handler/jsonHandler`, `handler/payload`, `controllers/helpers`, `index` et `server`.
-
-### Pourquoi
-
-- Un fichier de test par fichier source facilite la navigation et la maintenance. La structure miroir rend la localisation des tests évidente.
-
-### Conseil
-
-- Conserver cette convention : un fichier `X.unit.test.ts` à côté (dans l’arborescence miroir) du fichier `X.ts` qu’il teste.
+- Keep DTOs and business interfaces aligned with the Prisma schema (optional vs required fields) to avoid inconsistencies across layers.
 
 ---
 
-## 15. Tests d’intégration (repositories et base)
+## 8. Tests Without `any`
 
-### Modifications
+### Changes
 
-- **Fichiers d’intégration** : Un fichier `.integ.test.ts` par repository (user, channel, typeAchievement, achievement, badge, achieved, are, possesses) plus **`database.integ.test.ts`** pour le health check et des cas limites UserRepository.
-- **Couverture** : Pour chaque repository, tests d’ajout, de récupération par id (ou clés composites), et cas “not found”. Les tests s’exécutent contre une base MySQL (conteneur Docker) via la config d’intégration.
+- **`src/tests/unit/index_and_handler.unit.test.ts`**: Repo mock for `handleJsonMessage` with `{} as unknown as GatewayRepo` instead of `as any`.
+- **`src/tests/unit/userService.unit.test.ts`**: Use of `UserRepository` + `MockDatabase` instead of a partial object `as any`.
+- **`src/tests/unit/jsonHandler.unit.test.ts`**: Use of `channelUserDTO` for `result.users![0].userType` instead of `as any`.
+- **`src/tests/unit/prismaDatabase.unit.test.ts`** (and former **`prismaDatabase.notfound.unit.test.ts`**): Mock interfaces (MockUserData, MockChannelData, FindManyWhere, etc.) and explicit typing of Prisma mocks instead of `[key: string]: any` and `data: any`.
 
-### Pourquoi
+### Why
 
-- Valider le comportement réel avec Prisma et la base, en plus des tests unitaires mockés.
+- Tests remain a reliable reflection of the project’s typing and avoid hiding errors behind `any`.
 
-### Conseil
+### Guideline
 
-- Lancer les tests d’intégration avec `npm run test` (ou la config Jest dédiée) après avoir démarré le conteneur de test ; garder les tests unitaires rapides et sans dépendance externe.
-
----
-
-## 16. Suppression des commentaires
-
-### Modifications
-
-- **`src/`** et **`src/tests/`** : Suppression de tous les commentaires (lignes `//`, blocs `/* */`, `/** */`), y compris les `eslint-disable-next-line`, pour ne garder que le code et les noms explicites.
-
-### Pourquoi
-
-- Réduire le bruit et éviter les commentaires obsolètes ; le code et les noms de symboles doivent rester la source de vérité.
-
-### Conseil
-
-- Préférer des noms de variables/fonctions explicites et du code lisible ; n’ajouter des commentaires que pour expliquer un “pourquoi” non évident (règles métier, contournements).
+- In tests, prefer real types (repos, DTOs) or typed mocks (interfaces) over `any`. For partial mocks, `as unknown as T` is preferable to `as any` because it forces you to think about the expected type.
 
 ---
 
-## Résumé des fichiers créés / modifiés
+## 9. HTTP Constants and Readability
 
-| Fichier                                                                                       | Action                                                                                                                     |
-| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `src/config/environment.ts`                                                                   | Créé (Config, port, databaseUrl, cors)                                                                                     |
-| `src/controllers/helpers.ts`                                                                  | Créé                                                                                                                       |
-| `src/controllers/healthController.ts` … `possessesController.ts`                              | Créés                                                                                                                      |
-| `src/database/database.ts`                                                                    | Modifié (healthCheck, channelId optionnel)                                                                                 |
-| `src/database/mockDatabase.ts`                                                                | Modifié (healthCheck, typage), puis déplacé vers `src/tests/mocks/`                                                        |
-| `src/database/prismaDatabase.ts`                                                              | Modifié (channelId optionnel, typage map, constructeur sans `{}` si pas d’URL)                                             |
-| `src/index.ts`                                                                                | Point d’entrée unique (Gateway, createPrismaGateway, createApp, main ; remplace startServer)                               |
-| `src/startServer.ts`                                                                          | Supprimé (fusionné dans index)                                                                                             |
-| `src/routes/index.ts`                                                                         | Créé (mountRoutes)                                                                                                         |
-| `src/routes/healthRoutes.ts` … `possessesRoutes.ts`                                           | Créés (createXxxRoutes(db))                                                                                                |
-| `src/handler/types/` (gatewayRepo, handlerFn, jsonMessage, jsonHandlerResult, payload, index) | Créés                                                                                                                      |
-| `src/handler/payload.ts`                                                                      | Créé                                                                                                                       |
-| `src/handler/actions/*.ts` + `index.ts`                                                       | Créés (handlers par ressource)                                                                                             |
-| `src/handler/jsonHandler.ts`                                                                  | Refait (payload/msg typés, JsonHandlerResult)                                                                              |
-| `src/repositories/achievementRepository.ts`                                                   | Modifié (channelId optionnel)                                                                                              |
-| `src/types/global.d.ts`                                                                       | Modifié (unknown au lieu de any)                                                                                           |
-| `src/tests/mocks/mockDatabase.ts`, `index.ts`                                                 | Créés (createMockGateway, mocks dédiés aux tests)                                                                          |
-| `src/tests/unit/*.ts`                                                                         | Modifié (suppression any)                                                                                                  |
-| `src/tests/unit/`                                                                             | Restructuré (config, database, repositories, controllers, routes, handler, index, services, utils ; un fichier par module) |
-| `src/tests/integration/*.integ.test.ts`                                                       | Créés (user, channel, typeAchievement, achievement, badge, achieved, are, possesses, database)                             |
-| `doc/README.md` + `doc/*.md`                                                                  | Créés                                                                                                                      |
-| `README.md`                                                                                   | Modifié (lien vers doc/)                                                                                                   |
-| `REFACTORING.md`                                                                              | Ce fichier                                                                                                                 |
-| `package.json`                                                                                | start, server:start, test, test:unit, test:integration, test:coverage, test:coverage:full                                  |
+### Changes
+
+- **`src/controllers/helpers.ts`**: Constants `BAD_REQUEST`, `NOT_FOUND`, `INTERNAL_ERROR`, `SERVICE_UNAVAILABLE` for status codes, and `getErrorMessage(err)`, `sendInternalError(res, err)` for error responses.
+
+### Why
+
+- Avoiding magic numbers and centralizing error messages improves readability and future changes.
+
+### Guideline
+
+- Centralize HTTP codes and error messages (dedicated file or constants at the top of the module) to keep the API consistent.
 
 ---
 
-_Refactoring effectué pour rendre le code propre, lisible, sans `any`, avec toutes les routes exposées et une documentation API centralisée dans `doc/`._
+## 10. Config and Environment Variables
+
+### Changes
+
+- **`src/config/environment.ts`**: `Config` interface (port, nodeEnv, databaseUrl, cors.allowedOrigins). `validateConfig()` reads environment variables with defaults (`getEnv`) and exports `config` used by `index.ts` (port, databaseUrl) and elsewhere as needed.
+
+### Why
+
+- Centralizing access to environment variables avoids scattered `process.env` and allows validating config at startup.
+
+### Guideline
+
+- Use `config` from `./config/environment` for port, databaseUrl, etc.; do not read `process.env` directly in business logic.
+
+---
+
+## 11. JSON Handler (types, actions, payload)
+
+### Changes
+
+- **`src/handler/types/`**: Types for the JSON handler: `GatewayRepo`, `handlerFn`, `JsonMessage`, `JsonHandlerResult`, `Payload` (and `index.ts` re-exporting them).
+- **`src/handler/payload.ts`**: Helpers to parse/validate the payload (e.g. field extraction, validation).
+- **`src/handler/actions/`**: One file per domain (userActions, channelActions, achievementActions, …) exporting action handlers used by the JSON handler; **`index.ts`** aggregates actions.
+- **`src/handler/jsonHandler.ts`**: Uses types (`JsonMessage`, `JsonHandlerResult`, `GatewayRepo`), payload helpers, and actions to process JSON messages (no `any`).
+
+### Why
+
+- Separating types, helpers, and actions by resource keeps the JSON handler readable and testable.
+
+### Guideline
+
+- For a new JSON action: add the handler in the corresponding `actions` file, register it in `actions/index.ts`, and use it in `jsonHandler.ts`.
+
+---
+
+## 12. PrismaDatabase Constructor (TypeScript Typing)
+
+### Changes
+
+- **`src/database/prismaDatabase.ts`**: When `databaseUrl` is absent, call `new PrismaClient()` with no argument instead of `new PrismaClient({})`. With `{}`, the `PrismaClientOptions` type required the `datasources` property; with no argument, Prisma uses the source defined in the schema (e.g. `DATABASE_URL`).
+
+### Why
+
+- Fix TypeScript compilation and test errors: the no-argument constructor is valid and avoids passing an incomplete options object.
+
+### Guideline
+
+- For a custom URL, pass `{ datasources: { db: { url: databaseUrl } } }`; otherwise pass nothing to use the default config.
+
+---
+
+## 13. Mocks in `src/tests/mocks/`
+
+### Changes
+
+- **`src/database/mockDatabase.ts`**: Moved to **`src/tests/mocks/mockDatabase.ts`** (and **`src/tests/mocks/index.ts`** for exports). The mock is only used by tests and is no longer part of production code.
+
+### Why
+
+- Clearly separate production code from test mocks and avoid exposing them in the application build.
+
+### Guideline
+
+- Import the mock from `src/tests/mocks` (or via the path configured in tests); the rest of the app does not need to know about it.
+
+---
+
+## 14. Unit Test Restructure
+
+### Changes
+
+- **Layout**: Unit tests mirror the source layout: `src/tests/unit/config/`, `database/`, `repositories/`, `controllers/`, `routes/`, `handler/`, `index/`, `services/`, `utils/`.
+- **One file per module**: One test file per repository (e.g. `userRepository.unit.test.ts`, `channelRepository.unit.test.ts`), per controller, per route file. The former monolithic `repositories.unit.test.ts` was removed and replaced by dedicated files.
+- **`prismaDatabase.unit.test.ts`**: “Not found” cases (from former `prismaDatabase.notfound.unit.test.ts`) were merged into a single `prismaDatabase.unit.test.ts`.
+- **New files**: Unit tests for all controllers, all routes, `handler/jsonHandler`, `handler/payload`, `controllers/helpers`, `index`, and `server`.
+
+### Why
+
+- One test file per source file simplifies navigation and maintenance. The mirror layout makes it obvious where tests live.
+
+### Guideline
+
+- Keep this convention: a file `X.unit.test.ts` next to (in the mirror layout) the `X.ts` file it tests.
+
+---
+
+## 15. Integration Tests (repositories and database)
+
+### Changes
+
+- **Integration files**: One `.integ.test.ts` file per repository (user, channel, typeAchievement, achievement, badge, achieved, are, possesses) plus **`database.integ.test.ts`** for health check and UserRepository edge cases.
+- **Coverage**: For each repository, tests for add, get by id (or composite keys), and “not found”. Tests run against a MySQL database (Docker container) via the integration config.
+
+### Why
+
+- Validate real behaviour with Prisma and the database, in addition to mocked unit tests.
+
+### Guideline
+
+- Run integration tests with `npm run test` (or the dedicated Jest config) after starting the test container; keep unit tests fast and free of external dependencies.
+
+---
+
+## 16. Removal of Comments
+
+### Changes
+
+- **`src/`** and **`src/tests/`**: All comments removed (line `//`, blocks `/* */`, `/** */`), including `eslint-disable-next-line`, so that only code and explicit names remain.
+
+### Why
+
+- Reduce noise and avoid outdated comments; code and symbol names should remain the source of truth.
+
+### Guideline
+
+- Prefer explicit variable/function names and readable code; add comments only to explain non-obvious “why” (business rules, workarounds).
+
+---
+
+## Summary of Created / Modified Files
+
+| File                                                                                          | Action                                                                                                                   |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `src/config/environment.ts`                                                                   | Created (Config, port, databaseUrl, cors)                                                                                |
+| `src/controllers/helpers.ts`                                                                  | Created                                                                                                                  |
+| `src/controllers/healthController.ts` … `possessesController.ts`                              | Created                                                                                                                  |
+| `src/database/database.ts`                                                                    | Modified (healthCheck, optional channelId)                                                                               |
+| `src/database/mockDatabase.ts`                                                                | Modified (healthCheck, typing), then moved to `src/tests/mocks/`                                                         |
+| `src/database/prismaDatabase.ts`                                                              | Modified (optional channelId, map typing, constructor without `{}` when no URL)                                          |
+| `src/index.ts`                                                                                | Single entry point (Gateway, createPrismaGateway, createApp, main; replaces startServer)                                 |
+| `src/startServer.ts`                                                                          | Removed (merged into index)                                                                                              |
+| `src/routes/index.ts`                                                                         | Created (mountRoutes)                                                                                                    |
+| `src/routes/healthRoutes.ts` … `possessesRoutes.ts`                                           | Created (createXxxRoutes(db))                                                                                            |
+| `src/handler/types/` (gatewayRepo, handlerFn, jsonMessage, jsonHandlerResult, payload, index) | Created                                                                                                                  |
+| `src/handler/payload.ts`                                                                      | Created                                                                                                                  |
+| `src/handler/actions/*.ts` + `index.ts`                                                       | Created (handlers per resource)                                                                                          |
+| `src/handler/jsonHandler.ts`                                                                  | Reworked (typed payload/msg, JsonHandlerResult)                                                                          |
+| `src/repositories/achievementRepository.ts`                                                   | Modified (optional channelId)                                                                                            |
+| `src/types/global.d.ts`                                                                       | Modified (unknown instead of any)                                                                                        |
+| `src/tests/mocks/mockDatabase.ts`, `index.ts`                                                 | Created (createMockGateway, mocks for tests)                                                                             |
+| `src/tests/unit/*.ts`                                                                         | Modified (removed any)                                                                                                   |
+| `src/tests/unit/`                                                                             | Restructured (config, database, repositories, controllers, routes, handler, index, services, utils; one file per module) |
+| `src/tests/integration/*.integ.test.ts`                                                       | Created (user, channel, typeAchievement, achievement, badge, achieved, are, possesses, database)                         |
+| `doc/README.md` + `doc/*.md`                                                                  | Created                                                                                                                  |
+| `README.md`                                                                                   | Modified (link to doc/)                                                                                                  |
+| `REFACTORING.md`                                                                              | This file                                                                                                                |
+| `package.json`                                                                                | start, server:start, test, test:unit, test:integration, test:coverage, test:coverage:full                                |
+
+---
+
+_Refactoring was done to make the code clean, readable, free of `any`, with all routes exposed and API documentation centralized in `doc/`._

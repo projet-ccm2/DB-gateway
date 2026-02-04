@@ -2,15 +2,15 @@
 
 ## POST /channels
 
-Crée une chaîne.
+Creates a channel.
 
 ### Body (JSON)
 
-| Champ | Type   | Obligatoire | Description      |
-| ----- | ------ | ----------- | ---------------- |
-| name  | string | oui         | Nom de la chaîne |
+| Field | Type   | Required | Description  |
+| ----- | ------ | -------- | ------------ |
+| name  | string | yes      | Channel name |
 
-### Réponses
+### Responses
 
 **201 Created**
 
@@ -41,15 +41,15 @@ Crée une chaîne.
 
 ## GET /channels/:id
 
-Retourne une chaîne par ID.
+Returns a channel by ID.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description            |
-| --- | ------ | ---------------------- |
-| id  | string | ID de la chaîne (UUID) |
+| Name | Type   | Description       |
+| ---- | ------ | ----------------- |
+| id   | string | Channel ID (UUID) |
 
-### Réponses
+### Responses
 
 **200 OK**
 
@@ -80,15 +80,15 @@ Retourne une chaîne par ID.
 
 ## GET /channels/:id/users
 
-Liste les utilisateurs liés à la chaîne avec leur rôle.
+Lists users linked to the channel with their role.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description     |
-| --- | ------ | --------------- |
-| id  | string | ID de la chaîne |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | Channel ID  |
 
-### Réponses
+### Responses
 
 **200 OK**
 

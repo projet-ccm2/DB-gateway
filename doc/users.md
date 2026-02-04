@@ -2,19 +2,19 @@
 
 ## POST /users
 
-Crée un utilisateur.
+Creates a user.
 
 ### Body (JSON)
 
-| Champ              | Type           | Obligatoire | Description              |
-| ------------------ | -------------- | ----------- | ------------------------ |
-| username           | string         | oui         | Nom d’utilisateur        |
-| twitchUserId       | string         | oui         | Identifiant Twitch       |
-| profileImageUrl    | string \| null | non         | URL de l’avatar          |
-| channelDescription | string \| null | non         | Description de la chaîne |
-| scope              | string \| null | non         | Scope OAuth              |
+| Field              | Type           | Required | Description         |
+| ------------------ | -------------- | -------- | ------------------- |
+| username           | string         | yes      | Username            |
+| twitchUserId       | string         | yes      | Twitch user ID      |
+| profileImageUrl    | string \| null | no       | Avatar URL          |
+| channelDescription | string \| null | no       | Channel description |
+| scope              | string \| null | no       | OAuth scope         |
 
-### Réponses
+### Responses
 
 **201 Created**
 
@@ -29,7 +29,7 @@ Crée un utilisateur.
 }
 ```
 
-**400 Bad Request** — Champs manquants
+**400 Bad Request** — Missing fields
 
 ```json
 {
@@ -49,17 +49,17 @@ Crée un utilisateur.
 
 ## GET /users/:id
 
-Retourne un utilisateur par ID.
+Returns a user by ID.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description                |
-| --- | ------ | -------------------------- |
-| id  | string | ID de l’utilisateur (UUID) |
+| Name | Type   | Description    |
+| ---- | ------ | -------------- |
+| id   | string | User ID (UUID) |
 
-### Réponses
+### Responses
 
-**200 OK** — Objet utilisateur (même schéma que POST /users).
+**200 OK** — User object (same schema as POST /users).
 
 **404 Not Found**
 
@@ -81,15 +81,15 @@ Retourne un utilisateur par ID.
 
 ## GET /users/:id/channels
 
-Liste les chaînes auxquelles l’utilisateur est lié, avec son rôle.
+Lists channels the user is linked to, with their role.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description         |
-| --- | ------ | ------------------- |
-| id  | string | ID de l’utilisateur |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | User ID     |
 
-### Réponses
+### Responses
 
 **200 OK**
 
@@ -115,15 +115,15 @@ Liste les chaînes auxquelles l’utilisateur est lié, avec son rôle.
 
 ## GET /users/:id/badges
 
-Liste les badges possédés par l’utilisateur.
+Lists badges owned by the user.
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description         |
-| --- | ------ | ------------------- |
-| id  | string | ID de l’utilisateur |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | User ID     |
 
-### Réponses
+### Responses
 
 **200 OK**
 
@@ -149,15 +149,15 @@ Liste les badges possédés par l’utilisateur.
 
 ## GET /users/:id/achievements
 
-Liste les achievements réalisés par l’utilisateur (enregistrements « achieved »).
+Lists achievements completed by the user (“achieved” records).
 
-### Paramètres de chemin
+### Path parameters
 
-| Nom | Type   | Description         |
-| --- | ------ | ------------------- |
-| id  | string | ID de l’utilisateur |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | User ID     |
 
-### Réponses
+### Responses
 
 **200 OK**
 

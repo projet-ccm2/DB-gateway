@@ -1,18 +1,18 @@
-# Are (liaison User ↔ Channel, rôle)
+# Are (User ↔ Channel link, role)
 
 ## POST /are
 
-Associe un utilisateur à une chaîne avec un type (rôle).
+Links a user to a channel with a type (role).
 
 ### Body (JSON)
 
-| Champ     | Type   | Obligatoire | Description                             |
-| --------- | ------ | ----------- | --------------------------------------- |
-| userId    | string | oui         | ID de l’utilisateur                     |
-| channelId | string | oui         | ID de la chaîne                         |
-| userType  | string | oui         | Rôle (ex. subscriber, moderator, admin) |
+| Field     | Type   | Required | Description                              |
+| --------- | ------ | -------- | ---------------------------------------- |
+| userId    | string | yes      | User ID                                  |
+| channelId | string | yes      | Channel ID                               |
+| userType  | string | yes      | Role (e.g. subscriber, moderator, admin) |
 
-### Réponses
+### Responses
 
 **201 Created**
 
@@ -44,16 +44,16 @@ Associe un utilisateur à une chaîne avec un type (rôle).
 
 ## GET /are
 
-Retourne l’association (user, channel, rôle) pour un couple (userId, channelId).
+Returns the (user, channel, role) association for a given (userId, channelId) pair.
 
 ### Query
 
-| Paramètre | Type   | Obligatoire | Description         |
-| --------- | ------ | ----------- | ------------------- |
-| userId    | string | oui         | ID de l’utilisateur |
-| channelId | string | oui         | ID de la chaîne     |
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| userId    | string | yes      | User ID     |
+| channelId | string | yes      | Channel ID  |
 
-### Réponses
+### Responses
 
 **200 OK**
 
