@@ -52,9 +52,7 @@ describe("achievementsRoutes (unit)", () => {
     const ch = await db.addChannel({ name: "Ch" });
     const app = express();
     app.use("/", createAchievementsRoutes(db));
-    const res = await request(app).get(
-      `/user/${user.id}/channel/${ch.id}`,
-    );
+    const res = await request(app).get(`/user/${user.id}/channel/${ch.id}`);
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("userId", user.id);
     expect(res.body).toHaveProperty("channelId", ch.id);

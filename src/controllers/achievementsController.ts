@@ -55,7 +55,11 @@ export function createAchievementsController(
         const list = await achievementRepo.getByChannelId(channelId);
         res.json(list);
       } catch (err: unknown) {
-        sendInternalError(res, "GET /achievements/channel/:channelId error", err);
+        sendInternalError(
+          res,
+          "GET /achievements/channel/:channelId error",
+          err,
+        );
       }
     },
 

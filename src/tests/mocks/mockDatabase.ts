@@ -26,8 +26,8 @@ export class MockDatabase implements Database {
   ): Promise<achievementWithTypeDTO[]> {
     const list = this.achievements.filter((achievement) =>
       (achievement as achievementDTO & { channelId?: string }).channelId
-        ? (achievement as achievementDTO & { channelId?: string })
-            .channelId === channelId
+        ? (achievement as achievementDTO & { channelId?: string }).channelId ===
+          channelId
         : true,
     );
     return list.map((achievement) => ({
@@ -42,8 +42,8 @@ export class MockDatabase implements Database {
   ): Promise<userChannelAchievementsDTO> {
     const list = this.achievements.filter((achievement) =>
       (achievement as achievementDTO & { channelId?: string }).channelId
-        ? (achievement as achievementDTO & { channelId?: string })
-            .channelId === channelId
+        ? (achievement as achievementDTO & { channelId?: string }).channelId ===
+          channelId
         : true,
     );
     const achievements: achievementWithTypeAndAchievedDTO[] = await Promise.all(
@@ -64,8 +64,7 @@ export class MockDatabase implements Database {
     channelIds: string[],
   ): Promise<achievedDTO[]> {
     return this.achieved.filter(
-      (record) =>
-        record.userId === userId && (channelIds.length === 0 || true),
+      (record) => record.userId === userId && (channelIds.length === 0 || true),
     );
   }
   private readonly users: userDTO[] = [];
@@ -128,7 +127,9 @@ export class MockDatabase implements Database {
   }
 
   async getAchievementById(id: string): Promise<achievementDTO | null> {
-    return this.achievements.find((achievement) => achievement.id === id) ?? null;
+    return (
+      this.achievements.find((achievement) => achievement.id === id) ?? null
+    );
   }
 
   async addAchievement(achievement: {
@@ -147,12 +148,12 @@ export class MockDatabase implements Database {
       reward: achievement.reward,
       label: achievement.label,
     };
-    (this.achievements as (achievementDTO & { channelId?: string | null })[]).push(
-      {
-        ...created,
-        channelId: achievement.channelId ?? undefined,
-      },
-    );
+    (
+      this.achievements as (achievementDTO & { channelId?: string | null })[]
+    ).push({
+      ...created,
+      channelId: achievement.channelId ?? undefined,
+    });
     return created;
   }
 
@@ -210,8 +211,7 @@ export class MockDatabase implements Database {
   async getAre(userId: string, channelId: string): Promise<areDTO | null> {
     return (
       this.are.find(
-        (record) =>
-          record.userId === userId && record.channelId === channelId,
+        (record) => record.userId === userId && record.channelId === channelId,
       ) ?? null
     );
   }
@@ -236,8 +236,7 @@ export class MockDatabase implements Database {
   ): Promise<possessesDTO | null> {
     return (
       this.possesses.find(
-        (record) =>
-          record.userId === userId && record.badgeId === badgeId,
+        (record) => record.userId === userId && record.badgeId === badgeId,
       ) ?? null
     );
   }

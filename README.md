@@ -64,23 +64,23 @@ API is available at `http://localhost:3000` (or the `PORT` from your environment
 
 ## Useful commands
 
-| Command | Description |
-|--------|-------------|
-| `npm run dev` | Start DB container then run the app (`npm run dev:db && npm run start`) |
-| `npm run dev:db` | Start MySQL container (see `docker-compose.yml`) |
-| `npm run dev:db:down` | Stop and remove the DB container and volumes |
-| `npm run build` | Compile TypeScript to `dist/` |
-| `npm start` | Run compiled app (`node dist/index.js`) |
-| `npm run server:start` | Run app with ts-node (`ts-node src/index.ts`) |
-| `npm test` | Run unit then integration tests |
-| `npm run test:unit` | Unit tests only (no Docker) |
-| `npm run test:integration` | Integration tests only (Docker required) |
-| `npm run test:coverage` | Unit tests with coverage report (≥80% enforced) |
-| `npm run test:coverage:full` | All tests with coverage |
-| `npm run prisma:gen` | Generate Prisma client |
-| `npx prisma db push` | Push schema to the database |
-| `npm run prettier` | Format code |
-| `npx eslint src --fix` | Lint and fix (run on `src/`, not `dist/`) |
+| Command                      | Description                                                             |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `npm run dev`                | Start DB container then run the app (`npm run dev:db && npm run start`) |
+| `npm run dev:db`             | Start MySQL container (see `docker-compose.yml`)                        |
+| `npm run dev:db:down`        | Stop and remove the DB container and volumes                            |
+| `npm run build`              | Compile TypeScript to `dist/`                                           |
+| `npm start`                  | Run compiled app (`node dist/index.js`)                                 |
+| `npm run server:start`       | Run app with ts-node (`ts-node src/index.ts`)                           |
+| `npm test`                   | Run unit then integration tests                                         |
+| `npm run test:unit`          | Unit tests only (no Docker)                                             |
+| `npm run test:integration`   | Integration tests only (Docker required)                                |
+| `npm run test:coverage`      | Unit tests with coverage report (≥80% enforced)                         |
+| `npm run test:coverage:full` | All tests with coverage                                                 |
+| `npm run prisma:gen`         | Generate Prisma client                                                  |
+| `npx prisma db push`         | Push schema to the database                                             |
+| `npm run prettier`           | Format code                                                             |
+| `npx eslint src --fix`       | Lint and fix (run on `src/`, not `dist/`)                               |
 
 ---
 

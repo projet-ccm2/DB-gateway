@@ -11,9 +11,7 @@ export class AchievementRepository {
     return this.db.getAchievementById(id);
   }
 
-  async getByChannelId(
-    channelId: string,
-  ): Promise<achievementWithTypeDTO[]> {
+  async getByChannelId(channelId: string): Promise<achievementWithTypeDTO[]> {
     return this.db.getAchievementsByChannelId(channelId);
   }
 

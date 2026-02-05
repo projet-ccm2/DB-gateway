@@ -55,7 +55,9 @@ export type possessesDTO = {
 
 export interface Database {
   healthCheck(): Promise<boolean>;
-  getAchievementsByChannelId(channelId: string): Promise<achievementWithTypeDTO[]>;
+  getAchievementsByChannelId(
+    channelId: string,
+  ): Promise<achievementWithTypeDTO[]>;
   getAchievementsByUserAndChannel(
     userId: string,
     channelId: string,
