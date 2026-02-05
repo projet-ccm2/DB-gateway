@@ -296,8 +296,10 @@ export class PrismaDatabase implements Database {
     userId: string,
   ): Promise<achievedDTO | null> {
     const record = await this.prisma.achieved.findUnique({
-      // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
-      where: { achievementId_userId: { achievementId, userId } },
+      where: {
+        // Prisma compound unique key name from schema
+        achievementId_userId: { achievementId, userId }, // eslint-disable-line camelcase
+      },
     });
     if (!record) return null;
     return {
@@ -319,9 +321,9 @@ export class PrismaDatabase implements Database {
     acquiredDate: string;
   }): Promise<achievedDTO> {
     const result = await this.prisma.achieved.upsert({
-      // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
       where: {
         achievementId_userId: {
+          // eslint-disable-line camelcase
           achievementId: payload.achievementId,
           userId: payload.userId,
         },
