@@ -322,7 +322,8 @@ export class PrismaDatabase implements Database {
   }): Promise<achievedDTO> {
     const result = await this.prisma.achieved.upsert({
       where: {
-        achievementId_userId: { // eslint-disable-line camelcase
+        // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
+        achievementId_userId: {
           achievementId: payload.achievementId,
           userId: payload.userId,
         },
