@@ -66,6 +66,8 @@ model Achievement {
 
   achieved Achieved[]
 
+  @@index([channelId])
+  @@index([typeId])
   @@map("Achievements")
 }
 

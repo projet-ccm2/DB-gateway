@@ -63,6 +63,20 @@ describe("UserRepository getById edge cases (integration)", () => {
     expect(achievements).toEqual([]);
   });
 
+  it("getAchievementsByUserAndChannel with unknown channel returns empty achievements array", async () => {
+    const user = await db.addUser({
+      username: "UserForEmptyCh_" + Date.now(),
+      twitchUserId: "twitch_empty_ch",
+    });
+    const data = await repo.getAchievementsByUserAndChannel(
+      user.id,
+      "unknown-channel-id",
+    );
+    expect(data.userId).toBe(user.id);
+    expect(data.channelId).toBe("unknown-channel-id");
+    expect(data.achievements).toEqual([]);
+  });
+
   it("getAchievedByUserAndChannels with unknown user returns empty array", async () => {
     const achieved = await repo.getAchievedByUserAndChannels(
       "unknown-user-id",

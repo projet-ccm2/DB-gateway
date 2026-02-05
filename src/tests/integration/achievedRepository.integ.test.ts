@@ -68,4 +68,46 @@ describe("AchievedRepository (integration)", () => {
     const found = await repo.get(achievement.id, "unknown-user-id");
     expect(found).toBeNull();
   });
+
+  it("add upserts: second add with same achievementId and userId updates record", async () => {
+    const user = await db.addUser({
+      username: "UpsertUser_" + Date.now(),
+      twitchUserId: "twitch_upsert",
+    });
+    const channel = await db.addChannel({
+      name: "UpsertCh_" + Date.now(),
+    });
+    const achievement = await db.addAchievement({
+      title: "UpsertAch",
+      description: "d",
+      goal: 1,
+      reward: 1,
+      label: "l",
+      channelId: channel.id,
+    });
+    const firstDate = new Date().toISOString();
+    const created = await repo.add({
+      achievementId: achievement.id,
+      userId: user.id,
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: firstDate,
+    });
+    expect(created.count).toBe(1);
+    const secondDate = new Date().toISOString();
+    const updated = await repo.add({
+      achievementId: achievement.id,
+      userId: user.id,
+      count: 2,
+      finished: true,
+      labelActive: false,
+      acquiredDate: secondDate,
+    });
+    expect(updated.count).toBe(2);
+    expect(updated.finished).toBe(true);
+    const found = await repo.get(achievement.id, user.id);
+    expect(found?.count).toBe(2);
+    expect(found?.acquiredDate).toBe(secondDate);
+  });
 });

@@ -392,7 +392,7 @@ describe("userRepository (unit, mock db)", () => {
     expect(users).toEqual([]);
   });
 
-  it("getAchievementsByChannelId returns achievements for channel", async () => {
+  it("getAchievementsByChannelId returns achievements for channel with typeAchievement", async () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
     const ch = await mockDb.addChannel({ name: "AChannel" });
@@ -402,10 +402,47 @@ describe("userRepository (unit, mock db)", () => {
       goal: 1,
       reward: 1,
       label: "L1",
+      channelId: ch.id,
     });
     const list = await service.getAchievementsByChannelId(ch.id);
     expect(list).toHaveLength(1);
     expect(list[0].title).toBe("A1");
+    expect(list[0]).toHaveProperty("typeAchievement");
+    expect(list[0].typeAchievement).toBeNull();
+  });
+
+  it("getAchievementsByUserAndChannel returns full structure with achieved", async () => {
+    const mockDb = new MockDatabase();
+    const service = new UserRepository(mockDb);
+    const user = await service.addUser({
+      username: "U",
+      twitchUserId: "twitchU",
+    });
+    const ch = await mockDb.addChannel({ name: "Ch" });
+    const ach = await mockDb.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 1,
+      label: "L",
+      channelId: ch.id,
+    });
+    await mockDb.addAchieved({
+      achievementId: ach.id,
+      userId: user.id,
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: "2024-01-01T00:00:00.000Z",
+    });
+    const data = await service.getAchievementsByUserAndChannel(user.id, ch.id);
+    expect(data.userId).toBe(user.id);
+    expect(data.channelId).toBe(ch.id);
+    expect(data.achievements).toHaveLength(1);
+    expect(data.achievements[0].id).toBe(ach.id);
+    expect(data.achievements[0].typeAchievement).toBeNull();
+    expect(data.achievements[0].achieved).not.toBeNull();
+    expect(data.achievements[0].achieved?.count).toBe(1);
   });
 
   it("getAchievedByUserAndChannels returns achieved for user and channels", async () => {

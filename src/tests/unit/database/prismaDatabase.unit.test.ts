@@ -194,6 +194,46 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._achieved.set(key, row);
                 return row;
               },
+              upsert: async ({
+                where,
+                create: createPayload,
+                update,
+              }: {
+                where: {
+                  achievementId_userId: {
+                    achievementId: string;
+                    userId: string;
+                  };
+                };
+                create: MockAchievedData | { data: MockAchievedData };
+                update: Partial<MockAchievedData>;
+              }) => {
+                const key =
+                  where.achievementId_userId.achievementId +
+                  "|" +
+                  where.achievementId_userId.userId;
+                const existing = this._achieved.get(key);
+                const createData =
+                  "data" in createPayload && createPayload.data
+                    ? createPayload.data
+                    : (createPayload as MockAchievedData);
+                const raw = existing
+                  ? { ...existing, ...update }
+                  : {
+                      achievementId: createData.achievementId,
+                      userId: createData.userId,
+                      count: createData.count,
+                      finished: createData.finished,
+                      labelActive: createData.labelActive,
+                      acquiredDate: createData.acquiredDate,
+                    };
+                this._achieved.set(key, raw);
+                const acquiredDate =
+                  raw.acquiredDate instanceof Date
+                    ? raw.acquiredDate
+                    : new Date(raw.acquiredDate);
+                return { ...raw, acquiredDate };
+              },
               findMany: async (opts?: {
                 where?: FindManyWhere;
                 include?: FindManyInclude;

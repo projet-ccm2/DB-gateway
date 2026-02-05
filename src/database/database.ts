@@ -26,6 +26,17 @@ export type achievementDTO = {
   reward: number;
   label: string;
 };
+export type achievementWithTypeDTO = achievementDTO & {
+  typeAchievement: typeAchievementDTO | null;
+};
+export type achievementWithTypeAndAchievedDTO = achievementWithTypeDTO & {
+  achieved: achievedDTO | null;
+};
+export type userChannelAchievementsDTO = {
+  userId: string;
+  channelId: string;
+  achievements: achievementWithTypeAndAchievedDTO[];
+};
 export type badgeDTO = { id: string; title: string; img: string };
 export type achievedDTO = {
   achievementId: string;
@@ -44,7 +55,11 @@ export type possessesDTO = {
 
 export interface Database {
   healthCheck(): Promise<boolean>;
-  getAchievementsByChannelId(channelId: string): Promise<achievementDTO[]>;
+  getAchievementsByChannelId(channelId: string): Promise<achievementWithTypeDTO[]>;
+  getAchievementsByUserAndChannel(
+    userId: string,
+    channelId: string,
+  ): Promise<userChannelAchievementsDTO>;
   getAchievedByUserAndChannels(
     userId: string,
     channelIds: string[],
@@ -68,7 +83,7 @@ export interface Database {
   }): Promise<typeAchievementDTO>;
 
   getAchievementById(id: string): Promise<achievementDTO | null>;
-  addAchievement(a: {
+  addAchievement(achievement: {
     title: string;
     description: string;
     goal: number;
@@ -78,13 +93,13 @@ export interface Database {
   }): Promise<achievementDTO>;
 
   getBadgeById(id: string): Promise<badgeDTO | null>;
-  addBadge(b: { title: string; img: string }): Promise<badgeDTO>;
+  addBadge(badge: { title: string; img: string }): Promise<badgeDTO>;
 
   getAchieved(
     achievementId: string,
     userId: string,
   ): Promise<achievedDTO | null>;
-  addAchieved(a: {
+  addAchieved(payload: {
     achievementId: string;
     userId: string;
     count: number;
@@ -94,7 +109,7 @@ export interface Database {
   }): Promise<achievedDTO>;
 
   getAre(userId: string, channelId: string): Promise<areDTO | null>;
-  addAre(a: {
+  addAre(payload: {
     userId: string;
     channelId: string;
     userType: string;

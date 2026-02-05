@@ -6,6 +6,9 @@ import {
   channelUserDTO,
   typeAchievementDTO,
   achievementDTO,
+  achievementWithTypeDTO,
+  achievementWithTypeAndAchievedDTO,
+  userChannelAchievementsDTO,
   badgeDTO,
   achievedDTO,
   areDTO,
@@ -20,12 +23,40 @@ export class MockDatabase implements Database {
 
   async getAchievementsByChannelId(
     channelId: string,
-  ): Promise<achievementDTO[]> {
-    return this.achievements.filter((a) =>
-      (a as achievementDTO & { channelId?: string }).channelId
-        ? (a as achievementDTO & { channelId?: string }).channelId === channelId
+  ): Promise<achievementWithTypeDTO[]> {
+    const list = this.achievements.filter((achievement) =>
+      (achievement as achievementDTO & { channelId?: string }).channelId
+        ? (achievement as achievementDTO & { channelId?: string })
+            .channelId === channelId
         : true,
     );
+    return list.map((achievement) => ({
+      ...achievement,
+      typeAchievement: null as typeAchievementDTO | null,
+    }));
+  }
+
+  async getAchievementsByUserAndChannel(
+    userId: string,
+    channelId: string,
+  ): Promise<userChannelAchievementsDTO> {
+    const list = this.achievements.filter((achievement) =>
+      (achievement as achievementDTO & { channelId?: string }).channelId
+        ? (achievement as achievementDTO & { channelId?: string })
+            .channelId === channelId
+        : true,
+    );
+    const achievements: achievementWithTypeAndAchievedDTO[] = await Promise.all(
+      list.map(async (achievement) => {
+        const achievedRecord = await this.getAchieved(achievement.id, userId);
+        return {
+          ...achievement,
+          typeAchievement: null,
+          achieved: achievedRecord,
+        };
+      }),
+    );
+    return { userId, channelId, achievements };
   }
 
   async getAchievedByUserAndChannels(
@@ -33,7 +64,8 @@ export class MockDatabase implements Database {
     channelIds: string[],
   ): Promise<achievedDTO[]> {
     return this.achieved.filter(
-      (a) => a.userId === userId && (channelIds.length === 0 || true),
+      (record) =>
+        record.userId === userId && (channelIds.length === 0 || true),
     );
   }
   private readonly users: userDTO[] = [];
@@ -46,7 +78,7 @@ export class MockDatabase implements Database {
   private readonly possesses: possessesDTO[] = [];
 
   async getUserById(id: string): Promise<userDTO | null> {
-    return this.users.find((u) => u.id === id) ?? null;
+    return this.users.find((user) => user.id === id) ?? null;
   }
 
   async addUser(user: {
@@ -69,7 +101,7 @@ export class MockDatabase implements Database {
   }
 
   async getChannelById(id: string): Promise<channelDTO | null> {
-    return this.channels.find((c) => c.id === id) ?? null;
+    return this.channels.find((channel) => channel.id === id) ?? null;
   }
 
   async addChannel(channel: { name: string }): Promise<channelDTO> {
@@ -79,7 +111,7 @@ export class MockDatabase implements Database {
   }
 
   async getTypeAchievementById(id: string): Promise<typeAchievementDTO | null> {
-    return this.types.find((t) => t.id === id) ?? null;
+    return this.types.find((type) => type.id === id) ?? null;
   }
 
   async addTypeAchievement(t: {
@@ -96,30 +128,36 @@ export class MockDatabase implements Database {
   }
 
   async getAchievementById(id: string): Promise<achievementDTO | null> {
-    return this.achievements.find((a) => a.id === id) ?? null;
+    return this.achievements.find((achievement) => achievement.id === id) ?? null;
   }
 
-  async addAchievement(a: {
+  async addAchievement(achievement: {
     title: string;
     description: string;
     goal: number;
     reward: number;
     label: string;
+    channelId?: string | null;
   }): Promise<achievementDTO> {
-    const na: achievementDTO = {
+    const created: achievementDTO = {
       id: randomUUID(),
-      title: a.title,
-      description: a.description,
-      goal: a.goal,
-      reward: a.reward,
-      label: a.label,
+      title: achievement.title,
+      description: achievement.description,
+      goal: achievement.goal,
+      reward: achievement.reward,
+      label: achievement.label,
     };
-    this.achievements.push(na);
-    return na;
+    (this.achievements as (achievementDTO & { channelId?: string | null })[]).push(
+      {
+        ...created,
+        channelId: achievement.channelId ?? undefined,
+      },
+    );
+    return created;
   }
 
   async getBadgeById(id: string): Promise<badgeDTO | null> {
-    return this.badges.find((b) => b.id === id) ?? null;
+    return this.badges.find((badge) => badge.id === id) ?? null;
   }
 
   async addBadge(b: { title: string; img: string }): Promise<badgeDTO> {
@@ -134,12 +172,13 @@ export class MockDatabase implements Database {
   ): Promise<achievedDTO | null> {
     return (
       this.achieved.find(
-        (x) => x.achievementId === achievementId && x.userId === userId,
+        (record) =>
+          record.achievementId === achievementId && record.userId === userId,
       ) ?? null
     );
   }
 
-  async addAchieved(a: {
+  async addAchieved(payload: {
     achievementId: string;
     userId: string;
     count: number;
@@ -147,37 +186,48 @@ export class MockDatabase implements Database {
     labelActive: boolean;
     acquiredDate: string;
   }): Promise<achievedDTO> {
-    const na: achievedDTO = {
-      achievementId: a.achievementId,
-      userId: a.userId,
-      count: a.count,
-      finished: a.finished,
-      labelActive: a.labelActive,
-      acquiredDate: a.acquiredDate,
+    const existingIndex = this.achieved.findIndex(
+      (record) =>
+        record.achievementId === payload.achievementId &&
+        record.userId === payload.userId,
+    );
+    const record: achievedDTO = {
+      achievementId: payload.achievementId,
+      userId: payload.userId,
+      count: payload.count,
+      finished: payload.finished,
+      labelActive: payload.labelActive,
+      acquiredDate: payload.acquiredDate,
     };
-    this.achieved.push(na);
-    return na;
+    if (existingIndex >= 0) {
+      this.achieved[existingIndex] = record;
+      return record;
+    }
+    this.achieved.push(record);
+    return record;
   }
 
   async getAre(userId: string, channelId: string): Promise<areDTO | null> {
     return (
-      this.are.find((x) => x.userId === userId && x.channelId === channelId) ??
-      null
+      this.are.find(
+        (record) =>
+          record.userId === userId && record.channelId === channelId,
+      ) ?? null
     );
   }
 
-  async addAre(a: {
+  async addAre(payload: {
     userId: string;
     channelId: string;
     userType: string;
   }): Promise<areDTO> {
-    const na: areDTO = {
-      userId: a.userId,
-      channelId: a.channelId,
-      userType: a.userType,
+    const record: areDTO = {
+      userId: payload.userId,
+      channelId: payload.channelId,
+      userType: payload.userType,
     };
-    this.are.push(na);
-    return na;
+    this.are.push(record);
+    return record;
   }
 
   async getPossesses(
@@ -186,30 +236,35 @@ export class MockDatabase implements Database {
   ): Promise<possessesDTO | null> {
     return (
       this.possesses.find(
-        (x) => x.userId === userId && x.badgeId === badgeId,
+        (record) =>
+          record.userId === userId && record.badgeId === badgeId,
       ) ?? null
     );
   }
 
-  async addPossesses(p: {
+  async addPossesses(payload: {
     userId: string;
     badgeId: string;
     acquiredDate: string;
   }): Promise<possessesDTO> {
-    const np: possessesDTO = {
-      userId: p.userId,
-      badgeId: p.badgeId,
-      acquiredDate: p.acquiredDate,
+    const record: possessesDTO = {
+      userId: payload.userId,
+      badgeId: payload.badgeId,
+      acquiredDate: payload.acquiredDate,
     };
-    this.possesses.push(np);
-    return np;
+    this.possesses.push(record);
+    return record;
   }
 
   async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {
-    const userAreRecords = this.are.filter((a) => a.userId === userId);
+    const userAreRecords = this.are.filter(
+      (record) => record.userId === userId,
+    );
     return userAreRecords
       .map((areRecord) => {
-        const channel = this.channels.find((c) => c.id === areRecord.channelId);
+        const channel = this.channels.find(
+          (ch) => ch.id === areRecord.channelId,
+        );
         if (!channel) return null;
         return {
           id: channel.id,
@@ -222,20 +277,22 @@ export class MockDatabase implements Database {
 
   async getBadgesByUserId(userId: string): Promise<badgeDTO[]> {
     const userBadgeIds = new Set(
-      this.possesses.filter((p) => p.userId === userId).map((p) => p.badgeId),
+      this.possesses
+        .filter((record) => record.userId === userId)
+        .map((record) => record.badgeId),
     );
-    return this.badges.filter((b) => userBadgeIds.has(b.id));
+    return this.badges.filter((badge) => userBadgeIds.has(badge.id));
   }
 
   async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
-    return this.achieved.filter((a) => a.userId === userId);
+    return this.achieved.filter((record) => record.userId === userId);
   }
 
   async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
     return this.are
-      .filter((a) => a.channelId === channelId)
-      .map((a) => {
-        const user = this.users.find((u) => u.id === a.userId);
+      .filter((record) => record.channelId === channelId)
+      .map((areRecord) => {
+        const user = this.users.find((u) => u.id === areRecord.userId);
         if (!user) return null;
         return {
           id: user.id,
@@ -244,7 +301,7 @@ export class MockDatabase implements Database {
           profileImageUrl: user.profileImageUrl,
           channelDescription: user.channelDescription,
           scope: user.scope,
-          userType: a.userType,
+          userType: areRecord.userType,
         };
       })
       .filter((u): u is channelUserDTO => u !== null);
@@ -252,18 +309,20 @@ export class MockDatabase implements Database {
 
   async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {
     const badgeUserIds = new Set(
-      this.possesses.filter((p) => p.badgeId === badgeId).map((p) => p.userId),
+      this.possesses
+        .filter((record) => record.badgeId === badgeId)
+        .map((record) => record.userId),
     );
-    return this.users.filter((u) => badgeUserIds.has(u.id));
+    return this.users.filter((user) => badgeUserIds.has(user.id));
   }
 
   async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
     const achievementUserIds = new Set(
       this.achieved
-        .filter((a) => a.achievementId === achievementId)
-        .map((a) => a.userId),
+        .filter((record) => record.achievementId === achievementId)
+        .map((record) => record.userId),
     );
-    return this.users.filter((u) => achievementUserIds.has(u.id));
+    return this.users.filter((user) => achievementUserIds.has(user.id));
   }
 
   async disconnect(): Promise<void> {

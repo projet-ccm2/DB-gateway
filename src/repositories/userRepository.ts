@@ -5,14 +5,22 @@ import {
   channelUserDTO,
   badgeDTO,
   achievedDTO,
-  achievementDTO,
+  achievementWithTypeDTO,
+  userChannelAchievementsDTO,
 } from "../database/database";
 
 export class UserRepository {
   async getAchievementsByChannelId(
     channelId: string,
-  ): Promise<achievementDTO[]> {
+  ): Promise<achievementWithTypeDTO[]> {
     return this.db.getAchievementsByChannelId(channelId);
+  }
+
+  async getAchievementsByUserAndChannel(
+    userId: string,
+    channelId: string,
+  ): Promise<userChannelAchievementsDTO> {
+    return this.db.getAchievementsByUserAndChannel(userId, channelId);
   }
 
   async getAchievedByUserAndChannels(

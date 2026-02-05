@@ -44,6 +44,62 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     expect(titles).toContain("ChannelAch1");
     expect(titles).toContain("ChannelAch2");
     expect(titles).not.toContain("OtherChannelAch");
+    achievements.forEach((a) => {
+      expect(a).toHaveProperty("typeAchievement");
+    });
+  });
+
+  it("should return getAchievementsByUserAndChannel with full merged data", async () => {
+    const user = await service.addUser({
+      username: "MergedUser_" + Date.now(),
+      twitchUserId: "twitch_merged_user",
+    });
+    const channel = await db.addChannel({
+      name: "MergedChannel_" + Date.now(),
+    });
+    const achievement1 = await db.addAchievement({
+      title: "MergedAch1",
+      description: "d1",
+      goal: 1,
+      reward: 10,
+      label: "l1",
+      channelId: channel.id,
+    });
+    await db.addAchievement({
+      title: "MergedAch2",
+      description: "d2",
+      goal: 2,
+      reward: 20,
+      label: "l2",
+      channelId: channel.id,
+    });
+    await db.addAchieved({
+      achievementId: achievement1.id,
+      userId: user.id,
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: new Date().toISOString(),
+    });
+    const data = await service.getAchievementsByUserAndChannel(
+      user.id,
+      channel.id,
+    );
+    expect(data.userId).toBe(user.id);
+    expect(data.channelId).toBe(channel.id);
+    expect(data.achievements.length).toBe(2);
+    const withProgress = data.achievements.find(
+      (a) => a.id === achievement1.id,
+    );
+    expect(withProgress?.achieved).not.toBeNull();
+    expect(withProgress?.achieved?.count).toBe(1);
+    const withoutProgress = data.achievements.find(
+      (a) => a.id !== achievement1.id,
+    );
+    expect(withoutProgress?.achieved).toBeNull();
+    data.achievements.forEach((a) => {
+      expect(a).toHaveProperty("typeAchievement");
+    });
   });
 
   it("should return all achieved records for a user and channelIds via getAchievedByUserAndChannels", async () => {

@@ -10,6 +10,8 @@ export function createAchievementsRoutes(db: Database): express.Router {
   const userRepo = new UserRepository(db);
   const c = createAchievementsController(achievementRepo, userRepo);
   router.post("/", c.create);
+  router.get("/channel/:channelId", c.getByChannelId);
+  router.get("/user/:userId/channel/:channelId", c.getAchievementsByUserAndChannel);
   router.get("/:id/users", c.getUsersByAchievementId);
   router.get("/:id", c.getById);
   return router;

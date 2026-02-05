@@ -42,6 +42,51 @@ describe("achievedController (unit)", () => {
     );
   });
 
+  it("create upserts: second POST with same achievementId and userId returns 201 with updated body", async () => {
+    const user = await db.addUser({ username: "u3", twitchUserId: "t3" });
+    const ach = await db.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 1,
+      label: "L",
+    });
+    const first = {
+      achievementId: ach.id,
+      userId: user.id,
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: "2024-01-01T00:00:00.000Z",
+    };
+    const req1 = { body: first } as Request;
+    const res1 = mockRes();
+    await ctrl.create(req1, res1);
+    expect(res1.status).toHaveBeenCalledWith(201);
+    const req2 = {
+      body: {
+        ...first,
+        count: 2,
+        finished: true,
+        labelActive: false,
+        acquiredDate: "2024-02-01T00:00:00.000Z",
+      },
+    } as Request;
+    const res2 = mockRes();
+    await ctrl.create(req2, res2);
+    expect(res2.status).toHaveBeenCalledWith(201);
+    expect(res2.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        achievementId: ach.id,
+        userId: user.id,
+        count: 2,
+        finished: true,
+        labelActive: false,
+        acquiredDate: "2024-02-01T00:00:00.000Z",
+      }),
+    );
+  });
+
   it("create returns 400 when required field missing", async () => {
     const req = { body: { achievementId: "a", userId: "u" } } as Request;
     const res = mockRes();

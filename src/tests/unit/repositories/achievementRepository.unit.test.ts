@@ -27,4 +27,23 @@ describe("achievementRepository (unit)", () => {
     const found = await repo.getById("unknown-id");
     expect(found).toBeNull();
   });
+
+  it("getByChannelId returns achievements with typeAchievement", async () => {
+    const db = new MockDatabase();
+    const ch = await db.addChannel({ name: "Ch" });
+    const repo = new AchievementRepository(db);
+    await repo.add({
+      title: "T1",
+      description: "D1",
+      goal: 1,
+      reward: 10,
+      label: "L1",
+      channelId: ch.id,
+    });
+    const list = await repo.getByChannelId(ch.id);
+    expect(list).toHaveLength(1);
+    expect(list[0].title).toBe("T1");
+    expect(list[0]).toHaveProperty("typeAchievement");
+    expect(list[0].typeAchievement).toBeNull();
+  });
 });

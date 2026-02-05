@@ -40,7 +40,7 @@ export type GatewayRepo = {
     getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
   };
   achievement: {
-    addAchievement(a: {
+    addAchievement(achievement: {
       title: string;
       description: string;
       goal: number;
@@ -54,7 +54,7 @@ export type GatewayRepo = {
     getBadgeById(id: string): Promise<badgeDTO | null>;
   };
   achieved: {
-    addAchieved(a: {
+    addAchieved(payload: {
       achievementId: string;
       userId: string;
       count: number;

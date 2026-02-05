@@ -45,6 +45,47 @@ export function createAchievementsController(
       }
     },
 
+    getByChannelId: async (req: Request, res: Response): Promise<void> => {
+      try {
+        const channelId = paramId(req, "channelId");
+        if (!channelId) {
+          res.status(BAD_REQUEST).json({ error: "channelId required" });
+          return;
+        }
+        const list = await achievementRepo.getByChannelId(channelId);
+        res.json(list);
+      } catch (err: unknown) {
+        sendInternalError(res, "GET /achievements/channel/:channelId error", err);
+      }
+    },
+
+    getAchievementsByUserAndChannel: async (
+      req: Request,
+      res: Response,
+    ): Promise<void> => {
+      try {
+        const userId = paramId(req, "userId");
+        const channelId = paramId(req, "channelId");
+        if (!userId || !channelId) {
+          res.status(BAD_REQUEST).json({
+            error: "userId and channelId required",
+          });
+          return;
+        }
+        const data = await userRepo.getAchievementsByUserAndChannel(
+          userId,
+          channelId,
+        );
+        res.json(data);
+      } catch (err: unknown) {
+        sendInternalError(
+          res,
+          "GET /achievements/user/:userId/channel/:channelId error",
+          err,
+        );
+      }
+    },
+
     getById: async (req: Request, res: Response): Promise<void> => {
       try {
         const achievement = await achievementRepo.getById(paramId(req, "id"));

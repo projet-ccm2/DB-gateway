@@ -89,6 +89,65 @@ describe("achievementsController (unit)", () => {
     expect(res.json).toHaveBeenCalledWith([]);
   });
 
+  it("getByChannelId returns 400 when channelId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "channelId required" }),
+    );
+  });
+
+  it("getByChannelId returns 200 with array", async () => {
+    const ch = await db.addChannel({ name: "Ch" });
+    await db.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 1,
+      label: "L",
+      channelId: ch.id,
+    });
+    const req = { params: { channelId: ch.id } } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getByChannelId(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ title: "A", typeAchievement: null }),
+      ]),
+    );
+  });
+
+  it("getAchievementsByUserAndChannel returns 400 when userId or channelId missing", async () => {
+    const req1 = { params: { userId: "u" } } as unknown as Request;
+    const res1 = mockRes();
+    await ctrl.getAchievementsByUserAndChannel(req1, res1);
+    expect(res1.status).toHaveBeenCalledWith(400);
+
+    const req2 = { params: { channelId: "c" } } as unknown as Request;
+    const res2 = mockRes();
+    await ctrl.getAchievementsByUserAndChannel(req2, res2);
+    expect(res2.status).toHaveBeenCalledWith(400);
+  });
+
+  it("getAchievementsByUserAndChannel returns 200 with userId, channelId, achievements", async () => {
+    const user = await db.addUser({ username: "U", twitchUserId: "t" });
+    const ch = await db.addChannel({ name: "Ch" });
+    const req = {
+      params: { userId: user.id, channelId: ch.id },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getAchievementsByUserAndChannel(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: user.id,
+        channelId: ch.id,
+        achievements: expect.any(Array),
+      }),
+    );
+  });
+
   it("create returns 500 when repo.add throws", async () => {
     const throwingAchievementRepo = {
       add: jest.fn().mockRejectedValue(new Error("db")),

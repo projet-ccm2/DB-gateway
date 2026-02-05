@@ -10,7 +10,7 @@ export class AchievedRepository {
     return this.db.getAchieved(achievementId, userId);
   }
 
-  async add(a: {
+  async add(payload: {
     achievementId: string;
     userId: string;
     count: number;
@@ -18,6 +18,6 @@ export class AchievedRepository {
     labelActive: boolean;
     acquiredDate: string;
   }): Promise<achievedDTO> {
-    return this.db.addAchieved(a);
+    return this.db.addAchieved(payload);
   }
 }

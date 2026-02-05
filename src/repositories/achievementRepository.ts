@@ -1,4 +1,8 @@
-import { Database, achievementDTO } from "../database/database";
+import {
+  Database,
+  achievementDTO,
+  achievementWithTypeDTO,
+} from "../database/database";
 
 export class AchievementRepository {
   constructor(private readonly db: Database) {}
@@ -7,7 +11,13 @@ export class AchievementRepository {
     return this.db.getAchievementById(id);
   }
 
-  async add(a: {
+  async getByChannelId(
+    channelId: string,
+  ): Promise<achievementWithTypeDTO[]> {
+    return this.db.getAchievementsByChannelId(channelId);
+  }
+
+  async add(achievement: {
     title: string;
     description: string;
     goal: number;
@@ -15,6 +25,6 @@ export class AchievementRepository {
     label: string;
     channelId?: string | null;
   }): Promise<achievementDTO> {
-    return this.db.addAchievement(a);
+    return this.db.addAchievement(achievement);
   }
 }
