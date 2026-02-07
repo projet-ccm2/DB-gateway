@@ -208,6 +208,32 @@ export class MockDatabase implements Database {
     return record;
   }
 
+  async updateAchieved(payload: {
+    achievementId: string;
+    userId: string;
+    count: number;
+    finished: boolean;
+    labelActive: boolean;
+    acquiredDate: string;
+  }): Promise<achievedDTO | null> {
+    const index = this.achieved.findIndex(
+      (record) =>
+        record.achievementId === payload.achievementId &&
+        record.userId === payload.userId,
+    );
+    if (index < 0) return null;
+    const record: achievedDTO = {
+      achievementId: payload.achievementId,
+      userId: payload.userId,
+      count: payload.count,
+      finished: payload.finished,
+      labelActive: payload.labelActive,
+      acquiredDate: payload.acquiredDate,
+    };
+    this.achieved[index] = record;
+    return record;
+  }
+
   async getAre(userId: string, channelId: string): Promise<areDTO | null> {
     return (
       this.are.find(

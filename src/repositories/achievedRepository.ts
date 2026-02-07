@@ -20,4 +20,15 @@ export class AchievedRepository {
   }): Promise<achievedDTO> {
     return this.db.addAchieved(payload);
   }
+
+  async update(payload: {
+    achievementId: string;
+    userId: string;
+    count: number;
+    finished: boolean;
+    labelActive: boolean;
+    acquiredDate: string;
+  }): Promise<achievedDTO | null> {
+    return this.db.updateAchieved(payload);
+  }
 }

@@ -110,4 +110,59 @@ describe("AchievedRepository (integration)", () => {
     expect(found?.count).toBe(2);
     expect(found?.acquiredDate).toBe(secondDate);
   });
+
+  it("update modifies existing achieved record", async () => {
+    const user = await db.addUser({
+      username: "UpdateUser_" + Date.now(),
+      twitchUserId: "twitch_update",
+    });
+    const channel = await db.addChannel({
+      name: "UpdateCh_" + Date.now(),
+    });
+    const achievement = await db.addAchievement({
+      title: "UpdateAch",
+      description: "d",
+      goal: 1,
+      reward: 1,
+      label: "l",
+      channelId: channel.id,
+    });
+    await repo.add({
+      achievementId: achievement.id,
+      userId: user.id,
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: new Date().toISOString(),
+    });
+    const newDate = new Date().toISOString();
+    const updated = await repo.update({
+      achievementId: achievement.id,
+      userId: user.id,
+      count: 5,
+      finished: true,
+      labelActive: false,
+      acquiredDate: newDate,
+    });
+    expect(updated).not.toBeNull();
+    expect(updated?.count).toBe(5);
+    expect(updated?.finished).toBe(true);
+    expect(updated?.labelActive).toBe(false);
+    expect(updated?.acquiredDate).toBe(newDate);
+    const found = await repo.get(achievement.id, user.id);
+    expect(found?.count).toBe(5);
+    expect(found?.acquiredDate).toBe(newDate);
+  });
+
+  it("update returns null when achieved record does not exist", async () => {
+    const result = await repo.update({
+      achievementId: "none",
+      userId: "none",
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: new Date().toISOString(),
+    });
+    expect(result).toBeNull();
+  });
 });

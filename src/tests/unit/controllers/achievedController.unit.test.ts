@@ -172,4 +172,97 @@ describe("achievedController (unit)", () => {
     await c.get(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
   });
+
+  it("update returns 200 and achieved when record exists and all fields provided", async () => {
+    const user = await db.addUser({ username: "uPut", twitchUserId: "tPut" });
+    const ach = await db.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 1,
+      label: "L",
+    });
+    await db.addAchieved({
+      achievementId: ach.id,
+      userId: user.id,
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: "2024-01-01T00:00:00.000Z",
+    });
+    const req = {
+      body: {
+        achievementId: ach.id,
+        userId: user.id,
+        count: 3,
+        finished: true,
+        labelActive: false,
+        acquiredDate: "2024-06-15T12:00:00.000Z",
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        achievementId: ach.id,
+        userId: user.id,
+        count: 3,
+        finished: true,
+        labelActive: false,
+        acquiredDate: "2024-06-15T12:00:00.000Z",
+      }),
+    );
+  });
+
+  it("update returns 404 when record not found", async () => {
+    const req = {
+      body: {
+        achievementId: "none",
+        userId: "none",
+        count: 1,
+        finished: false,
+        labelActive: true,
+        acquiredDate: "2024-01-01T00:00:00.000Z",
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: "not found" });
+  });
+
+  it("update returns 400 when required field missing", async () => {
+    const req = {
+      body: {
+        achievementId: "a",
+        userId: "u",
+        count: 1,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("update returns 500 when repo.update throws", async () => {
+    const throwingRepo = {
+      add: jest.fn(),
+      get: jest.fn(),
+      update: jest.fn().mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof AchievedRepository>;
+    const c = createAchievedController(throwingRepo);
+    const req = {
+      body: {
+        achievementId: "a",
+        userId: "u",
+        count: 1,
+        finished: true,
+        labelActive: true,
+        acquiredDate: "2024-01-01T00:00:00.000Z",
+      },
+    } as Request;
+    const res = mockRes();
+    await c.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
 });

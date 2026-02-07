@@ -9,5 +9,6 @@ export function createAchievedRoutes(db: Database): express.Router {
   const c = createAchievedController(repo);
   router.post("/", c.create);
   router.get("/", c.get);
+  router.put("/", c.update);
   return router;
 }

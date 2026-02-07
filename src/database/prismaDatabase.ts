@@ -353,6 +353,50 @@ export class PrismaDatabase implements Database {
     };
   }
 
+  async updateAchieved(payload: {
+    achievementId: string;
+    userId: string;
+    count: number;
+    finished: boolean;
+    labelActive: boolean;
+    acquiredDate: string;
+  }): Promise<achievedDTO | null> {
+    const existing = await this.prisma.achieved.findUnique({
+      where: {
+        // Prisma compound unique key name from schema
+        achievementId_userId: {
+          // eslint-disable-line camelcase
+          achievementId: payload.achievementId,
+          userId: payload.userId,
+        },
+      },
+    });
+    if (!existing) return null;
+    const result = await this.prisma.achieved.update({
+      where: {
+        achievementId_userId: {
+          // eslint-disable-line camelcase
+          achievementId: payload.achievementId,
+          userId: payload.userId,
+        },
+      },
+      data: {
+        count: payload.count,
+        finished: payload.finished,
+        labelActive: payload.labelActive,
+        acquiredDate: new Date(payload.acquiredDate),
+      },
+    });
+    return {
+      achievementId: result.achievementId,
+      userId: result.userId,
+      count: result.count,
+      finished: result.finished,
+      labelActive: result.labelActive,
+      acquiredDate: result.acquiredDate.toISOString(),
+    };
+  }
+
   async getAre(userId: string, channelId: string): Promise<areDTO | null> {
     const r = await this.prisma.are.findUnique({
       // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema

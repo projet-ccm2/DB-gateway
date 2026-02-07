@@ -109,6 +109,14 @@ export interface Database {
     labelActive: boolean;
     acquiredDate: string;
   }): Promise<achievedDTO>;
+  updateAchieved(payload: {
+    achievementId: string;
+    userId: string;
+    count: number;
+    finished: boolean;
+    labelActive: boolean;
+    acquiredDate: string;
+  }): Promise<achievedDTO | null>;
 
   getAre(userId: string, channelId: string): Promise<areDTO | null>;
   addAre(payload: {

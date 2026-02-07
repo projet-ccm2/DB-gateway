@@ -75,5 +75,55 @@ export function createAchievedController(repo: AchievedRepository) {
         sendInternalError(res, "GET /achieved error", err);
       }
     },
+
+    update: async (req: Request, res: Response): Promise<void> => {
+      try {
+        const body = req.body as {
+          achievementId?: string;
+          userId?: string;
+          count?: number;
+          finished?: boolean;
+          labelActive?: boolean;
+          acquiredDate?: string;
+        };
+        const {
+          achievementId,
+          userId,
+          count,
+          finished,
+          labelActive,
+          acquiredDate,
+        } = body;
+        if (
+          !achievementId ||
+          !userId ||
+          count == null ||
+          finished == null ||
+          labelActive == null ||
+          !acquiredDate
+        ) {
+          res.status(BAD_REQUEST).json({
+            error:
+              "achievementId, userId, count, finished, labelActive, acquiredDate required",
+          });
+          return;
+        }
+        const achieved = await repo.update({
+          achievementId,
+          userId,
+          count: Number(count),
+          finished: Boolean(finished),
+          labelActive: Boolean(labelActive),
+          acquiredDate,
+        });
+        if (!achieved) {
+          res.status(NOT_FOUND).json({ error: "not found" });
+          return;
+        }
+        res.json(achieved);
+      } catch (err: unknown) {
+        sendInternalError(res, "PUT /achieved error", err);
+      }
+    },
   };
 }
