@@ -27,7 +27,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       label: "label2",
       channelId: channel.id,
     });
-    // Add an achievement for a different channel to ensure filtering
     const otherChannel = await db.addChannel({
       name: "OtherChannelForAchievements",
     });
@@ -45,6 +44,62 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     expect(titles).toContain("ChannelAch1");
     expect(titles).toContain("ChannelAch2");
     expect(titles).not.toContain("OtherChannelAch");
+    achievements.forEach((a) => {
+      expect(a).toHaveProperty("typeAchievement");
+    });
+  });
+
+  it("should return getAchievementsByUserAndChannel with full merged data", async () => {
+    const user = await service.addUser({
+      username: "MergedUser_" + Date.now(),
+      twitchUserId: "twitch_merged_user",
+    });
+    const channel = await db.addChannel({
+      name: "MergedChannel_" + Date.now(),
+    });
+    const achievement1 = await db.addAchievement({
+      title: "MergedAch1",
+      description: "d1",
+      goal: 1,
+      reward: 10,
+      label: "l1",
+      channelId: channel.id,
+    });
+    await db.addAchievement({
+      title: "MergedAch2",
+      description: "d2",
+      goal: 2,
+      reward: 20,
+      label: "l2",
+      channelId: channel.id,
+    });
+    await db.addAchieved({
+      achievementId: achievement1.id,
+      userId: user.id,
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: new Date().toISOString(),
+    });
+    const data = await service.getAchievementsByUserAndChannel(
+      user.id,
+      channel.id,
+    );
+    expect(data.userId).toBe(user.id);
+    expect(data.channelId).toBe(channel.id);
+    expect(data.achievements.length).toBe(2);
+    const withProgress = data.achievements.find(
+      (a) => a.id === achievement1.id,
+    );
+    expect(withProgress?.achieved).not.toBeNull();
+    expect(withProgress?.achieved?.count).toBe(1);
+    const withoutProgress = data.achievements.find(
+      (a) => a.id !== achievement1.id,
+    );
+    expect(withoutProgress?.achieved).toBeNull();
+    data.achievements.forEach((a) => {
+      expect(a).toHaveProperty("typeAchievement");
+    });
   });
 
   it("should return all achieved records for a user and channelIds via getAchievedByUserAndChannels", async () => {
@@ -70,7 +125,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       label: "l2",
       channelId: channel2.id,
     });
-    // Add achieved records for both achievements
     await db.addAchieved({
       achievementId: achievement1.id,
       userId: user.id,
@@ -87,7 +141,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       labelActive: false,
       acquiredDate: new Date().toISOString(),
     });
-    // Add an achieved record for a different user
     const otherUser = await service.addUser({
       username: "OtherUser",
       twitchUserId: "twitch_other_user",
@@ -100,7 +153,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       labelActive: false,
       acquiredDate: new Date().toISOString(),
     });
-    // Query for both channels
     const achieved = await service.getAchievedByUserAndChannels(user.id, [
       channel1.id,
       channel2.id,
@@ -109,7 +161,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     const achIds = achieved.map((a) => a.achievementId);
     expect(achIds).toContain(achievement1.id);
     expect(achIds).toContain(achievement2.id);
-    // Query for only one channel
     const achievedOne = await service.getAchievedByUserAndChannels(user.id, [
       channel1.id,
     ]);
@@ -261,7 +312,6 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     expect(users.length).toBeGreaterThanOrEqual(1);
     expect(users.some((u) => u.username === "ChannelMember")).toBe(true);
 
-    // Verify userType is included
     const channelMember = users.find((u) => u.username === "ChannelMember");
     expect(channelMember?.userType).toBe("viewer");
   });

@@ -1,0 +1,115 @@
+# Channels
+
+## POST /channels
+
+Creates a channel.
+
+### Body (JSON)
+
+| Field | Type   | Required | Description  |
+| ----- | ------ | -------- | ------------ |
+| name  | string | yes      | Channel name |
+
+### Responses
+
+**201 Created**
+
+```json
+{
+  "id": "uuid",
+  "name": "ChannelName"
+}
+```
+
+**400 Bad Request**
+
+```json
+{
+  "error": "name required"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## GET /channels/:id
+
+Returns a channel by ID.
+
+### Path parameters
+
+| Name | Type   | Description       |
+| ---- | ------ | ----------------- |
+| id   | string | Channel ID (UUID) |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid",
+  "name": "ChannelName"
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## GET /channels/:id/users
+
+Lists users linked to the channel with their role.
+
+### Path parameters
+
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | Channel ID  |
+
+### Responses
+
+**200 OK**
+
+```json
+[
+  {
+    "id": "user-uuid",
+    "username": "string",
+    "twitchUserId": "string",
+    "profileImageUrl": null,
+    "channelDescription": null,
+    "scope": null,
+    "userType": "subscriber"
+  }
+]
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```

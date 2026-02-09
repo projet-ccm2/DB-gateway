@@ -5,14 +5,22 @@ import {
   channelUserDTO,
   badgeDTO,
   achievedDTO,
-  achievementDTO,
+  achievementWithTypeDTO,
+  userChannelAchievementsDTO,
 } from "../database/database";
 
 export class UserRepository {
   async getAchievementsByChannelId(
     channelId: string,
-  ): Promise<achievementDTO[]> {
+  ): Promise<achievementWithTypeDTO[]> {
     return this.db.getAchievementsByChannelId(channelId);
+  }
+
+  async getAchievementsByUserAndChannel(
+    userId: string,
+    channelId: string,
+  ): Promise<userChannelAchievementsDTO> {
+    return this.db.getAchievementsByUserAndChannel(userId, channelId);
   }
 
   async getAchievedByUserAndChannels(
@@ -37,8 +45,6 @@ export class UserRepository {
     return this.db.addUser(user);
   }
 
-  // ============ NEW: Get related entities by User ID ============
-
   async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {
     return this.db.getChannelsByUserId(userId);
   }
@@ -50,8 +56,6 @@ export class UserRepository {
   async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
     return this.db.getAchievementsByUserId(userId);
   }
-
-  // ============ NEW: Inverse lookups (get users by entity) ============
 
   async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
     return this.db.getUsersByChannelId(channelId);
