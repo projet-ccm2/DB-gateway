@@ -4,12 +4,13 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY tsconfig.json ./
+COPY prisma ./prisma
 
 RUN npm install
 
+RUN npx prisma generate
 
 COPY src ./src
-COPY prisma ./prisma
 
 RUN npm run build
 
