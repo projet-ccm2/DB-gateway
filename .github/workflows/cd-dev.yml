@@ -31,3 +31,8 @@ jobs:
       GCP_SA_KEY: ${{ secrets.DEV_GCP_SA_KEY }}
       GCP_PROJECT_ID: ${{ secrets.DEV_GCP_PROJECT_ID }}
       TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL_DEV }}
+      NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
+      MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE_DEV }}
+      MYSQL_USER: ${{ secrets.MYSQL_USER_DEV }}
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD_DEV }}
