@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String  @id @default(uuid()) @map("User_ID") @db.VarChar(36)
+  username            String  @map("User_Username") @db.VarChar(50)
+  twitchUserId        String  @map("Twitch_User_ID") @db.VarChar(50)
+  profileImageUrl     String? @map("Profile_Image_Url") @db.VarChar(255)
+  channelDescription  String? @map("Channel_Description") @db.VarChar(500)
+  scope               String? @map("Scope") @db.VarChar(500)
+
+  // relations
+  achieved   Achieved[]  @relation("user_achieved")
+  are        Are[]       @relation("user_are")
+  possesses  Possesses[] @relation("user_possesses")
+
+  @@map("Users")
+}
+
+model Channel {
+  id   String @id @default(uuid()) @map("Channel_ID") @db.Char(36)
+  name String @map("Channel_Name") @db.VarChar(50)
+
+  achievements Achievement[]
+  badges       Badge[]
+  are          Are[] @relation("channel_are")
+
+  @@map("Channels")
+}
+
+model TypeAchievement {
+  id    String @id @default(uuid()) @map("Type_ID") @db.Char(36)
+  label String @map("Type_Label") @db.VarChar(50)
+  data  String @map("Type_Data") @db.VarChar(55)
+
+  achievements Achievement[]
+
+  @@map("Type_Achievements")
+}
+
+model Achievement {
+  id          String  @id @default(uuid()) @map("Achievement_ID") @db.Char(36)
+  title       String  @map("Achievement_Title") @db.VarChar(50)
+  description String  @map("Achievement_Description") @db.VarChar(255)
+  goal        Int     @map("Achievement_Goal")
+  reward      Int     @map("Achievement_Reward")
+  label       String  @map("Achievement_Label") @db.VarChar(55)
+  public      Boolean @map("Achievement_Public")
+  downloads   Int     @map("Achievement_Downloads")
+  visits      Int     @map("Achievement_Visits")
+  active      Boolean @map("Achievement_Active")
+  secret      Boolean @map("Achievement_Secret")
+  image       String  @map("Achievement_Image") @db.VarChar(55)
+
+  channelId String? @map("Channel_ID") @db.Char(36)
+  typeId   String? @map("Type_ID")   @db.Char(36)
+
+  channel Channel? @relation(fields: [channelId], references: [id])
+  type   TypeAchievement? @relation(fields: [typeId], references: [id])
+
+  achieved Achieved[]
+
+  @@index([channelId])
+  @@index([typeId])
+  @@map("Achievements")
+}
+
+model Badge {
+  id      String @id @default(uuid()) @map("Badge_ID") @db.VarChar(36)
+  title   String @map("Badge_Title") @db.VarChar(50)
+  img     String @map("Badge_img") @db.VarChar(50)
+
+  channelId String? @map("Channel_ID") @db.Char(36)
+  channel   Channel? @relation(fields: [channelId], references: [id])
+
+  possesses Possesses[]
+
+  @@map("Badges")
+}
+
+model Achieved {
+  achievementId String   @map("Achievement_ID") @db.Char(36)
+  userId        String   @map("User_ID")        @db.VarChar(36)
+  count         Int      @map("Count")
+  finished      Boolean  @map("Finished")
+  labelActive   Boolean  @map("Label_Active")
+  acquiredDate   DateTime @map("Acquired_Date")
+
+  user        User        @relation("user_achieved", fields: [userId], references: [id])
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+
+  @@id([achievementId, userId])
+  @@map("_Achieved")
+}
+
+model Are {
+  userId   String @map("User_ID") @db.VarChar(36)
+  channelId String @map("Channel_ID") @db.Char(36)
+  userType String @map("User_Type") @db.VarChar(50)
+
+  user   User   @relation("user_are", fields: [userId], references: [id])
+  channel Channel @relation("channel_are", fields: [channelId], references: [id])
+
+  @@id([userId, channelId])
+  @@map("_Are")
+}
+
+model Possesses {
+  userId      String   @map("User_ID") @db.VarChar(36)
+  badgeId     String   @map("Badge_ID") @db.VarChar(36)
+  acquiredDate DateTime @map("Acquired_Date")
+
+  user  User  @relation("user_possesses", fields: [userId], references: [id])
+  badge Badge @relation(fields: [badgeId], references: [id])
+
+  @@id([userId, badgeId])
+  @@map("_Possesses")
+}
