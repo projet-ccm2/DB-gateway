@@ -364,8 +364,8 @@ export class PrismaDatabase implements Database {
     const existing = await this.prisma.achieved.findUnique({
       where: {
         // Prisma compound unique key name from schema
+        // eslint-disable-next-line camelcase
         achievementId_userId: {
-          // eslint-disable-line camelcase
           achievementId: payload.achievementId,
           userId: payload.userId,
         },
@@ -374,8 +374,8 @@ export class PrismaDatabase implements Database {
     if (!existing) return null;
     const result = await this.prisma.achieved.update({
       where: {
+        // eslint-disable-next-line camelcase
         achievementId_userId: {
-          // eslint-disable-line camelcase
           achievementId: payload.achievementId,
           userId: payload.userId,
         },
