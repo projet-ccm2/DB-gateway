@@ -1,41 +1,46 @@
 import express from "express";
+import type { Database } from "./database/database";
+import { PrismaDatabase } from "./database/prismaDatabase";
+import { mountRoutes } from "./routes";
 import { config } from "./config/environment";
 import { logger } from "./utils/logger";
 
-const app = express();
-app.disable("x-powered-by");
+export interface Gateway {
+  db: Database;
+}
 
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    environment: config.nodeEnv,
-  });
-});
+export function createPrismaGateway(): Gateway {
+  const db = new PrismaDatabase(config.databaseUrl || undefined);
+  return { db };
+}
 
-if (config.nodeEnv !== "test") {
+export function createApp(db: Database): express.Express {
+  const app = express();
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  mountRoutes(app, db);
+  return app;
+}
+
+function main(): void {
+  const { db } = createPrismaGateway();
+  const app = createApp(db);
   const server = app.listen(config.port, () => {
-    logger.info(`Server started on port ${config.port}`, {
-      environment: config.nodeEnv,
-      port: config.port,
-    });
+    logger.info(`Server listening on http://localhost:${config.port}`);
   });
 
-  process.on("SIGTERM", () => {
-    logger.info("SIGTERM received, shutting down gracefully");
+  process.on("SIGTERM", async () => {
+    logger.info("SIGTERM received, shutting down...");
+    if ("disconnect" in db && typeof db.disconnect === "function") {
+      await db.disconnect();
+    }
     server.close(() => {
-      logger.info("Server closed");
-      process.exit(0);
-    });
-  });
-
-  process.on("SIGINT", () => {
-    logger.info("SIGINT received, shutting down gracefully");
-    server.close(() => {
-      logger.info("Server closed");
+      logger.info("Server closed.");
       process.exit(0);
     });
   });
 }
 
-export default app;
+if (require.main === module) {
+  main();
+}
