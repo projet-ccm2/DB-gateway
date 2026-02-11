@@ -8,7 +8,7 @@ Creates a user.
 
 | Field              | Type           | Required | Description         |
 | ------------------ | -------------- | -------- | ------------------- |
-| userid             | string         | yes      | Twitch user ID      |
+| id                 | string         | yes      | Twitch user ID      |
 | username           | string         | yes      | Username            |
 | profileImageUrl    | string \| null | no       | Avatar URL          |
 | channelDescription | string \| null | no       | Channel description |
@@ -32,7 +32,7 @@ Creates a user.
 
 ```json
 {
-  "error": "username and Id required"
+  "error": "username and id required"
 }
 ```
 

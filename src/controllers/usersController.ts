@@ -17,7 +17,7 @@ export function createUsersController(repo: UserRepository) {
           body;
         if (!username || !id) {
           res.status(BAD_REQUEST).json({
-            error: "username and userId required",
+            error: "username and id required",
           });
           return;
         }
