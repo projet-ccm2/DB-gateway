@@ -32,7 +32,7 @@ Creates a user.
 
 ```json
 {
-  "error": "username and Id required"
+  "error": "username and id required"
 }
 ```
 
