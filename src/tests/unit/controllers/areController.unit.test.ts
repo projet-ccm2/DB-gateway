@@ -16,7 +16,7 @@ describe("areController (unit)", () => {
   };
 
   it("create returns 201 when userId, channelId, userType provided", async () => {
-    const user = await db.addUser({ username: "u", twitchUserId: "t" });
+    const user = await db.addUser({ id: "t", username: "u" });
     const ch = await db.addChannel({ name: "c" });
     const req = {
       body: { userId: user.id, channelId: ch.id, userType: "mod" },
@@ -62,7 +62,7 @@ describe("areController (unit)", () => {
   });
 
   it("get returns 200 when found", async () => {
-    const user = await db.addUser({ username: "u2", twitchUserId: "t2" });
+    const user = await db.addUser({ id: "t2", username: "u2" });
     const ch = await db.addChannel({ name: "c2" });
     await db.addAre({ userId: user.id, channelId: ch.id, userType: "viewer" });
     const req = {

@@ -4,11 +4,11 @@ import { missing, str, strOrNull } from "../payload";
 export const userHandlers: Record<string, HandlerFn> = {
   createUser: async (repo, payload) => {
     const username = str(payload, "username");
-    const twitchUserId = str(payload, "twitchUserId");
-    if (!username || !twitchUserId) return missing("username", "twitchUserId");
+    const id = str(payload, "id");
+    if (!username || !id) return missing("username", "id");
     const user = await repo.user.addUser({
+      id,
       username,
-      twitchUserId,
       profileImageUrl: strOrNull(payload, "profileImageUrl"),
       channelDescription: strOrNull(payload, "channelDescription"),
       scope: strOrNull(payload, "scope"),

@@ -3,9 +3,8 @@
 -- ===============================
 
 CREATE TABLE IF NOT EXISTS Users(
-    User_ID             VARCHAR(36) NOT NULL,
+    User_ID             VARCHAR(50) NOT NULL,
     User_Username       VARCHAR(50) NOT NULL,
-    Twitch_User_ID      VARCHAR(50) NOT NULL,
     Profile_Image_Url   VARCHAR(255),
     Channel_Description VARCHAR(255),
     Scope               VARCHAR(255),

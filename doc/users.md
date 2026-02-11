@@ -8,8 +8,8 @@ Creates a user.
 
 | Field              | Type           | Required | Description         |
 | ------------------ | -------------- | -------- | ------------------- |
+| id                 | string         | yes      | Twitch user ID      |
 | username           | string         | yes      | Username            |
-| twitchUserId       | string         | yes      | Twitch user ID      |
 | profileImageUrl    | string \| null | no       | Avatar URL          |
 | channelDescription | string \| null | no       | Channel description |
 | scope              | string \| null | no       | OAuth scope         |
@@ -20,9 +20,8 @@ Creates a user.
 
 ```json
 {
-  "id": "uuid",
+  "id": "string",
   "username": "string",
-  "twitchUserId": "string",
   "profileImageUrl": null,
   "channelDescription": null,
   "scope": null
@@ -33,7 +32,7 @@ Creates a user.
 
 ```json
 {
-  "error": "username and twitchUserId required"
+  "error": "username and id required"
 }
 ```
 
@@ -55,7 +54,7 @@ Returns a user by ID.
 
 | Name | Type   | Description    |
 | ---- | ------ | -------------- |
-| id   | string | User ID (UUID) |
+| id   | string | User ID |
 
 ### Responses
 
@@ -165,7 +164,7 @@ Lists achievements completed by the user (“achieved” records).
 [
   {
     "achievementId": "uuid",
-    "userId": "uuid",
+    "userId": "User ID",
     "count": 1,
     "finished": false,
     "labelActive": true,
