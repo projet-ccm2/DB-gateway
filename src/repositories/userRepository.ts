@@ -36,8 +36,8 @@ export class UserRepository {
   }
 
   async addUser(user: {
+    id: string;
     username: string;
-    twitchUserId: string;
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;

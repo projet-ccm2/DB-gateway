@@ -48,7 +48,7 @@ describe("achievementsRoutes (unit)", () => {
 
   it("GET /user/:userId/channel/:channelId returns 200 with userId, channelId, achievements", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ username: "U", twitchUserId: "t" });
+    const user = await db.addUser({ id: "t", username: "U" });
     const ch = await db.addChannel({ name: "Ch" });
     const app = express();
     app.use("/", createAchievementsRoutes(db));

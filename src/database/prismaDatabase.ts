@@ -167,7 +167,6 @@ export class PrismaDatabase implements Database {
     return {
       id: u.id,
       username: u.username,
-      twitchUserId: u.twitchUserId,
       profileImageUrl: u.profileImageUrl,
       channelDescription: u.channelDescription,
       scope: u.scope,
@@ -175,16 +174,16 @@ export class PrismaDatabase implements Database {
   }
 
   async addUser(user: {
+    id: string;
     username: string;
-    twitchUserId: string;
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
   }): Promise<userDTO> {
     const u = await this.prisma.user.create({
       data: {
+        id: user.id,
         username: user.username,
-        twitchUserId: user.twitchUserId,
         profileImageUrl: user.profileImageUrl ?? null,
         channelDescription: user.channelDescription ?? null,
         scope: user.scope ?? null,
@@ -193,7 +192,6 @@ export class PrismaDatabase implements Database {
     return {
       id: u.id,
       username: u.username,
-      twitchUserId: u.twitchUserId,
       profileImageUrl: u.profileImageUrl,
       channelDescription: u.channelDescription,
       scope: u.scope,
@@ -521,7 +519,6 @@ export class PrismaDatabase implements Database {
         user: {
           id: string;
           username: string;
-          twitchUserId: string;
           profileImageUrl: string | null;
           channelDescription: string | null;
           scope: string | null;
@@ -530,7 +527,6 @@ export class PrismaDatabase implements Database {
       }) => ({
         id: r.user.id,
         username: r.user.username,
-        twitchUserId: r.user.twitchUserId,
         profileImageUrl: r.user.profileImageUrl,
         channelDescription: r.user.channelDescription,
         scope: r.user.scope,
@@ -549,7 +545,6 @@ export class PrismaDatabase implements Database {
         user: {
           id: string;
           username: string;
-          twitchUserId: string;
           profileImageUrl: string | null;
           channelDescription: string | null;
           scope: string | null;
@@ -557,7 +552,6 @@ export class PrismaDatabase implements Database {
       }) => ({
         id: r.user.id,
         username: r.user.username,
-        twitchUserId: r.user.twitchUserId,
         profileImageUrl: r.user.profileImageUrl,
         channelDescription: r.user.channelDescription,
         scope: r.user.scope,
@@ -575,7 +569,6 @@ export class PrismaDatabase implements Database {
         user: {
           id: string;
           username: string;
-          twitchUserId: string;
           profileImageUrl: string | null;
           channelDescription: string | null;
           scope: string | null;
@@ -583,7 +576,6 @@ export class PrismaDatabase implements Database {
       }) => ({
         id: r.user.id,
         username: r.user.username,
-        twitchUserId: r.user.twitchUserId,
         profileImageUrl: r.user.profileImageUrl,
         channelDescription: r.user.channelDescription,
         scope: r.user.scope,

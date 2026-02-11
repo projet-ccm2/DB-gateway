@@ -6,7 +6,7 @@ import { MockDatabase } from "../../mocks";
 describe("areRoutes (unit)", () => {
   it("POST / creates are and returns 201", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ username: "u", twitchUserId: "t" });
+    const user = await db.addUser({ id: "t", username: "u" });
     const ch = await db.addChannel({ name: "c" });
     const app = express();
     app.use(express.json());

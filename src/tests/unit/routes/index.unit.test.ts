@@ -20,7 +20,7 @@ describe("routes/mountRoutes", () => {
     mountRoutes(app, db);
     const res = await request(app)
       .post("/users")
-      .send({ username: "routetest", twitchUserId: "twitch_route" });
+      .send({ id: "twitch_route", username: "routetest" });
     expect(res.status).toBe(201);
     expect(res.body.username).toBe("routetest");
   });

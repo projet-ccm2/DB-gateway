@@ -7,20 +7,20 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const created = await service.addUser({
+      id: "twitch123",
       username: "Bob",
-      twitchUserId: "twitch123",
     });
     expect(created).toHaveProperty("id");
+    expect(created.id).toBe("twitch123");
     expect(created.username).toBe("Bob");
-    expect(created.twitchUserId).toBe("twitch123");
     expect(created.profileImageUrl).toBeNull();
     expect(created.channelDescription).toBeNull();
     expect(created.scope).toBeNull();
 
     const fetched = await service.getUserById(created.id);
     expect(fetched).not.toBeNull();
+    expect(fetched?.id).toBe("twitch123");
     expect(fetched?.username).toBe("Bob");
-    expect(fetched?.twitchUserId).toBe("twitch123");
   });
 
   it("should create user with all optional fields", async () => {
@@ -28,15 +28,15 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const created = await service.addUser({
+      id: "twitch456",
       username: "Alice",
-      twitchUserId: "twitch456",
       profileImageUrl: "https://example.com/avatar.png",
       channelDescription: "My awesome channel",
       scope: "chat:read chat:write",
     });
 
+    expect(created.id).toBe("twitch456");
     expect(created.username).toBe("Alice");
-    expect(created.twitchUserId).toBe("twitch456");
     expect(created.profileImageUrl).toBe("https://example.com/avatar.png");
     expect(created.channelDescription).toBe("My awesome channel");
     expect(created.scope).toBe("chat:read chat:write");
@@ -47,12 +47,12 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const a = await service.addUser({
+      id: "twitch001",
       username: "Bobby",
-      twitchUserId: "twitch001",
     });
     const b = await service.addUser({
+      id: "twitch002",
       username: "Robert",
-      twitchUserId: "twitch002",
     });
 
     expect(a.id).not.toBe(b.id);
@@ -64,8 +64,8 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user = await service.addUser({
+      id: "twitch789",
       username: "NoChannelUser",
-      twitchUserId: "twitch789",
     });
 
     const channels = await service.getChannelsByUserId(user.id);
@@ -77,8 +77,8 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user = await service.addUser({
+      id: "twitch111",
       username: "ChannelUser",
-      twitchUserId: "twitch111",
     });
     const channel1 = await mockDb.addChannel({ name: "Channel One" });
     const channel2 = await mockDb.addChannel({ name: "Channel Two" });
@@ -111,8 +111,8 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user = await service.addUser({
+      id: "twitch112",
       username: "MultiRoleUser",
-      twitchUserId: "twitch112",
     });
     const adminChannel = await mockDb.addChannel({ name: "Admin Channel" });
     const modChannel = await mockDb.addChannel({ name: "Mod Channel" });
@@ -151,8 +151,8 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user = await service.addUser({
+      id: "twitch222",
       username: "NoBadgeUser",
-      twitchUserId: "twitch222",
     });
 
     const badges = await service.getBadgesByUserId(user.id);
@@ -164,8 +164,8 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user = await service.addUser({
+      id: "twitch333",
       username: "BadgeUser",
-      twitchUserId: "twitch333",
     });
     const badge1 = await mockDb.addBadge({
       title: "Gold Badge",
@@ -198,8 +198,8 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user = await service.addUser({
+      id: "twitch444",
       username: "NoAchievementUser",
-      twitchUserId: "twitch444",
     });
 
     const achievements = await service.getAchievementsByUserId(user.id);
@@ -211,8 +211,8 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user = await service.addUser({
+      id: "twitch555",
       username: "AchievementUser",
-      twitchUserId: "twitch555",
     });
     const achievement1 = await mockDb.addAchievement({
       title: "First Steps",
@@ -252,12 +252,12 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user1 = await service.addUser({
+      id: "twitch666",
       username: "User1",
-      twitchUserId: "twitch666",
     });
     const user2 = await service.addUser({
+      id: "twitch777",
       username: "User2",
-      twitchUserId: "twitch777",
     });
     const channel = await mockDb.addChannel({ name: "Popular Channel" });
 
@@ -288,16 +288,16 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const admin = await service.addUser({
+      id: "twitch_admin",
       username: "AdminUser",
-      twitchUserId: "twitch_admin",
     });
     const mod = await service.addUser({
+      id: "twitch_mod",
       username: "ModUser",
-      twitchUserId: "twitch_mod",
     });
     const regular = await service.addUser({
+      id: "twitch_regular",
       username: "RegularUser",
-      twitchUserId: "twitch_regular",
     });
     const channel = await mockDb.addChannel({ name: "TestChannel" });
 
@@ -347,12 +347,12 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user1 = await service.addUser({
+      id: "twitch888",
       username: "BadgeOwner1",
-      twitchUserId: "twitch888",
     });
     const user2 = await service.addUser({
+      id: "twitch999",
       username: "BadgeOwner2",
-      twitchUserId: "twitch999",
     });
     const badge = await mockDb.addBadge({
       title: "Common Badge",
@@ -415,8 +415,8 @@ describe("userRepository (unit, mock db)", () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
     const user = await service.addUser({
+      id: "twitchU",
       username: "U",
-      twitchUserId: "twitchU",
     });
     const ch = await mockDb.addChannel({ name: "Ch" });
     const ach = await mockDb.addAchievement({
@@ -449,8 +449,8 @@ describe("userRepository (unit, mock db)", () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
     const user = await service.addUser({
+      id: "twitchAu",
       username: "Au",
-      twitchUserId: "twitchAu",
     });
     const ch1 = await mockDb.addChannel({ name: "C1" });
     const ach = await mockDb.addAchievement({
@@ -477,12 +477,12 @@ describe("userRepository (unit, mock db)", () => {
     const service = new UserRepository(mockDb);
 
     const user1 = await service.addUser({
+      id: "twitchA01",
       username: "Achiever1",
-      twitchUserId: "twitchA01",
     });
     const user2 = await service.addUser({
+      id: "twitchA02",
       username: "Achiever2",
-      twitchUserId: "twitchA02",
     });
     const achievement = await mockDb.addAchievement({
       title: "Easy Achievement",

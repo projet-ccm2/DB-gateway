@@ -1,7 +1,6 @@
 export type userDTO = {
   id: string;
   username: string;
-  twitchUserId: string;
   profileImageUrl: string | null;
   channelDescription: string | null;
   scope: string | null;
@@ -11,7 +10,6 @@ export type userChannelDTO = { id: string; name: string; userType: string };
 export type channelUserDTO = {
   id: string;
   username: string;
-  twitchUserId: string;
   profileImageUrl: string | null;
   channelDescription: string | null;
   scope: string | null;
@@ -68,8 +66,8 @@ export interface Database {
   ): Promise<achievedDTO[]>;
   getUserById(id: string): Promise<userDTO | null>;
   addUser(user: {
+    id: string;
     username: string;
-    twitchUserId: string;
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;

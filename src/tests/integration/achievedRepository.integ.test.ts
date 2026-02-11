@@ -11,8 +11,8 @@ describe("AchievedRepository (integration)", () => {
 
   it("add then get returns the achieved record", async () => {
     const user = await db.addUser({
+      id: "twitch_achieved_integ",
       username: "AchievedIntegUser_" + Date.now(),
-      twitchUserId: "twitch_achieved_integ",
     });
     const channel = await db.addChannel({ name: "AchievedCh_" + Date.now() });
     const achievement = await db.addAchievement({
@@ -48,8 +48,8 @@ describe("AchievedRepository (integration)", () => {
 
   it("get with unknown achievementId returns null", async () => {
     const user = await db.addUser({
+      id: "twitch_no_achieved",
       username: "NoAchievedUser_" + Date.now(),
-      twitchUserId: "twitch_no_achieved",
     });
     const found = await repo.get("unknown-achievement-id", user.id);
     expect(found).toBeNull();
@@ -71,8 +71,8 @@ describe("AchievedRepository (integration)", () => {
 
   it("add upserts: second add with same achievementId and userId updates record", async () => {
     const user = await db.addUser({
+      id: "twitch_upsert",
       username: "UpsertUser_" + Date.now(),
-      twitchUserId: "twitch_upsert",
     });
     const channel = await db.addChannel({
       name: "UpsertCh_" + Date.now(),
@@ -113,8 +113,8 @@ describe("AchievedRepository (integration)", () => {
 
   it("update modifies existing achieved record", async () => {
     const user = await db.addUser({
+      id: "twitch_update",
       username: "UpdateUser_" + Date.now(),
-      twitchUserId: "twitch_update",
     });
     const channel = await db.addChannel({
       name: "UpdateCh_" + Date.now(),

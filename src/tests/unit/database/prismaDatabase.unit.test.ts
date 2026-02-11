@@ -1,6 +1,6 @@
 interface MockUserData {
+  id: string;
   username: string;
-  twitchUserId: string;
   profileImageUrl?: string | null;
   channelDescription?: string | null;
   scope?: string | null;
@@ -98,16 +98,14 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
               findUnique: async ({ where }: { where: { id: string } }) =>
                 this._users.get(where.id) ?? null,
               create: async ({ data }: { data: MockUserData }) => {
-                const id = "u_" + Math.random().toString(36).slice(2, 8);
                 const row = {
-                  id,
+                  id: data.id,
                   username: data.username,
-                  twitchUserId: data.twitchUserId,
                   profileImageUrl: data.profileImageUrl ?? null,
                   channelDescription: data.channelDescription ?? null,
                   scope: data.scope ?? null,
                 };
-                this._users.set(id, row);
+                this._users.set(data.id, row);
                 return row;
               },
               findMany: async () => [],
@@ -350,11 +348,11 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       const db = new PrismaDatabase();
 
       const addedUser = await db.addUser({
+        id: "twitch_alice",
         username: "alice",
-        twitchUserId: "twitch_alice",
       });
       expect(addedUser.username).toBe("alice");
-      expect(addedUser.twitchUserId).toBe("twitch_alice");
+      expect(addedUser.id).toBe("twitch_alice");
       const gotUser = await db.getUserById(addedUser.id);
       expect(gotUser?.id).toBe(addedUser.id);
       expect(await db.getUserById("nope")).toBeNull();

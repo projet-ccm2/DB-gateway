@@ -93,7 +93,7 @@ Lists users who own this badge.
 
 ### Responses
 
-**200 OK** — Array of user objects (id, username, twitchUserId, profileImageUrl, channelDescription, scope).
+**200 OK** — Array of user objects (id, username, profileImageUrl, channelDescription, scope).
 
 **500 Internal Server Error**
 

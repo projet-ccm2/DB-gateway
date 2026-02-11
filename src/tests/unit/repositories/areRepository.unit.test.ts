@@ -4,7 +4,7 @@ import { MockDatabase } from "../../mocks";
 describe("areRepository (unit)", () => {
   it("add then get returns the are", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ username: "u", twitchUserId: "t" });
+    const user = await db.addUser({ id: "t", username: "u" });
     const ch = await db.addChannel({ name: "c" });
     const repo = new AreRepository(db);
     const created = await repo.add(user.id, ch.id, "moderator");

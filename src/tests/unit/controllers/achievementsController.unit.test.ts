@@ -132,7 +132,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("getAchievementsByUserAndChannel returns 200 with userId, channelId, achievements", async () => {
-    const user = await db.addUser({ username: "U", twitchUserId: "t" });
+    const user = await db.addUser({ id: "t", username: "U" });
     const ch = await db.addChannel({ name: "Ch" });
     const req = {
       params: { userId: user.id, channelId: ch.id },

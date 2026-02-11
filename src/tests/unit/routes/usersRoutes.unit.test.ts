@@ -10,14 +10,14 @@ describe("usersRoutes (unit)", () => {
     app.use("/", createUsersRoutes(new MockDatabase()));
     const res = await request(app)
       .post("/")
-      .send({ username: "u1", twitchUserId: "twitch1" });
+      .send({ id: "twitch1", username: "u1" });
     expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({ username: "u1", twitchUserId: "twitch1" });
+    expect(res.body).toMatchObject({ id: "twitch1", username: "u1" });
   });
 
   it("GET /:id returns 200 when user exists", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ username: "u2", twitchUserId: "twitch2" });
+    const user = await db.addUser({ id: "twitch2", username: "u2" });
     const app = express();
     app.use("/", createUsersRoutes(db));
     const res = await request(app).get(`/${user.id}`);

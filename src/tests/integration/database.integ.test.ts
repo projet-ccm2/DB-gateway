@@ -65,8 +65,8 @@ describe("UserRepository getById edge cases (integration)", () => {
 
   it("getAchievementsByUserAndChannel with unknown channel returns empty achievements array", async () => {
     const user = await db.addUser({
+      id: "twitch_empty_ch",
       username: "UserForEmptyCh_" + Date.now(),
-      twitchUserId: "twitch_empty_ch",
     });
     const data = await repo.getAchievementsByUserAndChannel(
       user.id,
