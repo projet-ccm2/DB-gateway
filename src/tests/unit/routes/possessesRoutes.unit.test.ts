@@ -6,7 +6,7 @@ import { MockDatabase } from "../../mocks";
 describe("possessesRoutes (unit)", () => {
   it("POST / creates possesses and returns 201", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ username: "u", twitchUserId: "t" });
+    const user = await db.addUser({ id: "t", username: "u" });
     const badge = await db.addBadge({ title: "B", img: "i.png" });
     const app = express();
     app.use(express.json());

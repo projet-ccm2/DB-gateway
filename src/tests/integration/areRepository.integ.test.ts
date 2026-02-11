@@ -11,8 +11,8 @@ describe("AreRepository (integration)", () => {
 
   it("add then get returns the are record", async () => {
     const user = await db.addUser({
+      id: "twitch_are_integ",
       username: "AreIntegUser_" + Date.now(),
-      twitchUserId: "twitch_are_integ",
     });
     const channel = await db.addChannel({ name: "AreChannel_" + Date.now() });
     const userType = "moderator";
@@ -36,8 +36,8 @@ describe("AreRepository (integration)", () => {
 
   it("get with unknown channelId returns null", async () => {
     const user = await db.addUser({
+      id: "twitch_user_no_are",
       username: "UserNoAre_" + Date.now(),
-      twitchUserId: "twitch_user_no_are",
     });
     const found = await repo.get(user.id, "unknown-channel-id");
     expect(found).toBeNull();

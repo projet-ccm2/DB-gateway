@@ -7,28 +7,23 @@ export function createUsersController(repo: UserRepository) {
     create: async (req: Request, res: Response): Promise<void> => {
       try {
         const body = req.body as {
+          id?: string;
           username?: string;
-          twitchUserId?: string;
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
         };
-        const {
-          username,
-          twitchUserId,
-          profileImageUrl,
-          channelDescription,
-          scope,
-        } = body;
-        if (!username || !twitchUserId) {
+        const { id, username, profileImageUrl, channelDescription, scope } =
+          body;
+        if (!username || !id) {
           res.status(BAD_REQUEST).json({
-            error: "username and twitchUserId required",
+            error: "username and userId required",
           });
           return;
         }
         const user = await repo.addUser({
+          id,
           username,
-          twitchUserId,
           profileImageUrl: profileImageUrl ?? null,
           channelDescription: channelDescription ?? null,
           scope: scope ?? null,

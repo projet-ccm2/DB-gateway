@@ -51,8 +51,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return getAchievementsByUserAndChannel with full merged data", async () => {
     const user = await service.addUser({
+      id: "twitch_merged_user",
       username: "MergedUser_" + Date.now(),
-      twitchUserId: "twitch_merged_user",
     });
     const channel = await db.addChannel({
       name: "MergedChannel_" + Date.now(),
@@ -104,8 +104,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return all achieved records for a user and channelIds via getAchievedByUserAndChannels", async () => {
     const user = await service.addUser({
+      id: "twitch_achieved_user",
       username: "AchievedUser",
-      twitchUserId: "twitch_achieved_user",
     });
     const channel1 = await db.addChannel({ name: "AchievedChannel1" });
     const channel2 = await db.addChannel({ name: "AchievedChannel2" });
@@ -142,8 +142,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       acquiredDate: new Date().toISOString(),
     });
     const otherUser = await service.addUser({
+      id: "twitch_other_user",
       username: "OtherUser",
-      twitchUserId: "twitch_other_user",
     });
     await db.addAchieved({
       achievementId: achievement1.id,
@@ -170,13 +170,13 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should add and read a user from real MySQL via Prisma", async () => {
     const u = await service.addUser({
+      id: "twitch_integ_001",
       username: "IntegrationUser",
-      twitchUserId: "twitch_integ_001",
     });
     const fetched = await service.getUserById(u.id);
     expect(fetched).not.toBeNull();
+    expect(fetched?.id).toBe("twitch_integ_001");
     expect(fetched?.username).toBe("IntegrationUser");
-    expect(fetched?.twitchUserId).toBe("twitch_integ_001");
     expect(fetched?.profileImageUrl).toBeNull();
     expect(fetched?.channelDescription).toBeNull();
     expect(fetched?.scope).toBeNull();
@@ -184,8 +184,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should add user with all optional fields", async () => {
     const u = await service.addUser({
+      id: "twitch_integ_002",
       username: "FullUser",
-      twitchUserId: "twitch_integ_002",
       profileImageUrl: "https://example.com/img.png",
       channelDescription: "A test channel",
       scope: "chat:read user:read",
@@ -199,8 +199,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return channels with userType for a user via getChannelsByUserId", async () => {
     const user = await service.addUser({
+      id: "twitch_integ_003",
       username: "ChannelIntegUser",
-      twitchUserId: "twitch_integ_003",
     });
     const channel = await db.addChannel({ name: "IntegChannel" });
     await db.addAre({
@@ -219,8 +219,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return correct userType for multiple channels via getChannelsByUserId", async () => {
     const user = await service.addUser({
+      id: "twitch_integ_003b",
       username: "MultiChannelIntegUser",
-      twitchUserId: "twitch_integ_003b",
     });
     const modChannel = await db.addChannel({ name: "ModeratorChannel" });
     const adminChannel = await db.addChannel({ name: "AdminChannel" });
@@ -248,8 +248,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return badges for a user via getBadgesByUserId", async () => {
     const user = await service.addUser({
+      id: "twitch_integ_004",
       username: "BadgeIntegUser",
-      twitchUserId: "twitch_integ_004",
     });
     const badge = await db.addBadge({
       title: "IntegBadge",
@@ -268,8 +268,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return achievements for a user via getAchievementsByUserId", async () => {
     const user = await service.addUser({
+      id: "twitch_integ_005",
       username: "AchievementIntegUser",
-      twitchUserId: "twitch_integ_005",
     });
     const channel = await db.addChannel({ name: "AchievementUserChannel" });
     const achievement = await db.addAchievement({
@@ -298,8 +298,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return users with userType for a channel via getUsersByChannelId", async () => {
     const user = await service.addUser({
+      id: "twitch_integ_006",
       username: "ChannelMember",
-      twitchUserId: "twitch_integ_006",
     });
     const channel = await db.addChannel({ name: "MemberChannel" });
     await db.addAre({
@@ -318,12 +318,12 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return correct userType for multiple users in channel via getUsersByChannelId", async () => {
     const admin = await service.addUser({
+      id: "twitch_integ_admin",
       username: "ChannelAdmin",
-      twitchUserId: "twitch_integ_admin",
     });
     const mod = await service.addUser({
+      id: "twitch_integ_mod",
       username: "ChannelMod",
-      twitchUserId: "twitch_integ_mod",
     });
     const channel = await db.addChannel({ name: "MultiUserChannel" });
 
@@ -350,8 +350,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return users for a badge via getUsersByBadgeId", async () => {
     const user = await service.addUser({
+      id: "twitch_integ_007",
       username: "BadgeHolder",
-      twitchUserId: "twitch_integ_007",
     });
     const badge = await db.addBadge({
       title: "HolderBadge",
@@ -370,8 +370,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
 
   it("should return users for an achievement via getUsersByAchievementId", async () => {
     const user = await service.addUser({
+      id: "twitch_integ_008",
       username: "AchievementHolder",
-      twitchUserId: "twitch_integ_008",
     });
     const channel = await db.addChannel({ name: "HolderAchievementChannel" });
     const achievement = await db.addAchievement({

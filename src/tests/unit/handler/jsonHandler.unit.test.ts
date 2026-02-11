@@ -24,16 +24,15 @@ function makeRepoMock(): GatewayRepo {
   return {
     user: {
       addUser: async (user: {
+        id: string;
         username: string;
-        twitchUserId: string;
         profileImageUrl?: string | null;
         channelDescription?: string | null;
         scope?: string | null;
       }) => {
         const u: userDTO = {
-          id: "u_" + user.username,
+          id: user.id,
           username: user.username,
-          twitchUserId: user.twitchUserId,
           profileImageUrl: user.profileImageUrl ?? null,
           channelDescription: user.channelDescription ?? null,
           scope: user.scope ?? null,
@@ -63,7 +62,6 @@ function makeRepoMock(): GatewayRepo {
             return {
               id: user!.id,
               username: user!.username,
-              twitchUserId: user!.twitchUserId,
               profileImageUrl: user!.profileImageUrl ?? null,
               channelDescription: user!.channelDescription ?? null,
               scope: user!.scope ?? null,
@@ -164,13 +162,13 @@ describe("jsonHandler full coverage", () => {
   test("user create/get", async () => {
     const create = await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { username: "bob", twitchUserId: "twitch_bob" },
+      payload: { id: "twitch_bob", username: "bob" },
     });
     expect(create.ok).toBe(true);
 
     const get = await handleJsonMessage(repo, {
       action: "getUser",
-      payload: { userId: "u_bob" },
+      payload: { userId: "twitch_bob" },
     });
     expect(get.ok).toBe(true);
   });
@@ -179,8 +177,8 @@ describe("jsonHandler full coverage", () => {
     const create = await handleJsonMessage(repo, {
       action: "createUser",
       payload: {
+        id: "twitch_alice",
         username: "alice",
-        twitchUserId: "twitch_alice",
         profileImageUrl: "https://img.com/alice.png",
         channelDescription: "Alice's channel",
         scope: "chat:read",
@@ -196,7 +194,7 @@ describe("jsonHandler full coverage", () => {
   test("getChannelsByUserId with userType", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { username: "chuser", twitchUserId: "twitch_chuser" },
+      payload: { id: "twitch_chuser", username: "chuser" },
     });
     await handleJsonMessage(repo, {
       action: "createChannel",
@@ -205,7 +203,7 @@ describe("jsonHandler full coverage", () => {
     await handleJsonMessage(repo, {
       action: "createAre",
       payload: {
-        userId: "u_chuser",
+        userId: "twitch_chuser",
         channelId: "c_testchan",
         userType: "moderator",
       },
@@ -213,7 +211,7 @@ describe("jsonHandler full coverage", () => {
 
     const result = await handleJsonMessage(repo, {
       action: "getChannelsByUserId",
-      payload: { userId: "u_chuser" },
+      payload: { userId: "twitch_chuser" },
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -225,7 +223,7 @@ describe("jsonHandler full coverage", () => {
   test("getBadgesByUserId", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { username: "badgeuser", twitchUserId: "twitch_badgeuser" },
+      payload: { id: "twitch_badgeuser", username: "badgeuser" },
     });
     await handleJsonMessage(repo, {
       action: "createBadge",
@@ -234,7 +232,7 @@ describe("jsonHandler full coverage", () => {
     await handleJsonMessage(repo, {
       action: "createPossesses",
       payload: {
-        userId: "u_badgeuser",
+        userId: "twitch_badgeuser",
         badgeId: "b_testbadge",
         acquiredDate: "2024-01-01T00:00:00Z",
       },
@@ -242,7 +240,7 @@ describe("jsonHandler full coverage", () => {
 
     const result = await handleJsonMessage(repo, {
       action: "getBadgesByUserId",
-      payload: { userId: "u_badgeuser" },
+      payload: { userId: "twitch_badgeuser" },
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -253,13 +251,13 @@ describe("jsonHandler full coverage", () => {
   test("getAchievementsByUserId", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { username: "achuser", twitchUserId: "twitch_achuser" },
+      payload: { id: "twitch_achuser", username: "achuser" },
     });
     await handleJsonMessage(repo, {
       action: "createAchieved",
       payload: {
+        userId: "twitch_achuser",
         achievementId: "a1",
-        userId: "u_achuser",
         count: 1,
         finished: true,
         labelActive: true,
@@ -269,7 +267,7 @@ describe("jsonHandler full coverage", () => {
 
     const result = await handleJsonMessage(repo, {
       action: "getAchievementsByUserId",
-      payload: { userId: "u_achuser" },
+      payload: { userId: "twitch_achuser" },
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -280,7 +278,7 @@ describe("jsonHandler full coverage", () => {
   test("getUsersByChannelId with userType", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { username: "chanmember", twitchUserId: "twitch_chanmember" },
+      payload: { id: "twitch_chanmember", username: "chanmember" },
     });
     await handleJsonMessage(repo, {
       action: "createChannel",
@@ -289,7 +287,7 @@ describe("jsonHandler full coverage", () => {
     await handleJsonMessage(repo, {
       action: "createAre",
       payload: {
-        userId: "u_chanmember",
+        userId: "twitch_chanmember",
         channelId: "c_popchan",
         userType: "subscriber",
       },
@@ -309,7 +307,7 @@ describe("jsonHandler full coverage", () => {
   test("getUsersByBadgeId", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { username: "badgeholder", twitchUserId: "twitch_badgeholder" },
+      payload: { id: "twitch_badgeholder", username: "badgeholder" },
     });
     await handleJsonMessage(repo, {
       action: "createBadge",
@@ -318,7 +316,7 @@ describe("jsonHandler full coverage", () => {
     await handleJsonMessage(repo, {
       action: "createPossesses",
       payload: {
-        userId: "u_badgeholder",
+        userId: "twitch_badgeholder",
         badgeId: "b_rarebadge",
         acquiredDate: "2024-01-01T00:00:00Z",
       },
@@ -337,13 +335,13 @@ describe("jsonHandler full coverage", () => {
   test("getUsersByAchievementId", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { username: "achiever", twitchUserId: "twitch_achiever" },
+      payload: { id: "twitch_achiever", username: "achiever" },
     });
     await handleJsonMessage(repo, {
       action: "createAchieved",
       payload: {
         achievementId: "achtest1",
-        userId: "u_achiever",
+        userId: "twitch_achiever",
         count: 1,
         finished: true,
         labelActive: true,
@@ -547,7 +545,7 @@ describe("jsonHandler full coverage", () => {
     };
     const res = await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { username: "x", twitchUserId: "y" },
+      payload: { id: "y", username: "x" },
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toBe("string error");

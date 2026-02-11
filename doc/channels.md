@@ -97,7 +97,6 @@ Lists users linked to the channel with their role.
   {
     "id": "user-uuid",
     "username": "string",
-    "twitchUserId": "string",
     "profileImageUrl": null,
     "channelDescription": null,
     "scope": null,

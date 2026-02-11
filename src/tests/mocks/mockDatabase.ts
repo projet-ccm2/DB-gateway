@@ -81,16 +81,15 @@ export class MockDatabase implements Database {
   }
 
   async addUser(user: {
+    id: string;
     username: string;
-    twitchUserId: string;
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
   }): Promise<userDTO> {
     const newUser: userDTO = {
-      id: randomUUID(),
+      id: user.id,
       username: user.username,
-      twitchUserId: user.twitchUserId,
       profileImageUrl: user.profileImageUrl ?? null,
       channelDescription: user.channelDescription ?? null,
       scope: user.scope ?? null,
@@ -322,7 +321,6 @@ export class MockDatabase implements Database {
         return {
           id: user.id,
           username: user.username,
-          twitchUserId: user.twitchUserId,
           profileImageUrl: user.profileImageUrl,
           channelDescription: user.channelDescription,
           scope: user.scope,

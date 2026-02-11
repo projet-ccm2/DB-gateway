@@ -14,8 +14,8 @@ import type {
 export type GatewayRepo = {
   user: {
     addUser(user: {
+      id: string;
       username: string;
-      twitchUserId: string;
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;

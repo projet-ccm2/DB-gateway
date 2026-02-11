@@ -11,8 +11,8 @@ describe("PossessesRepository (integration)", () => {
 
   it("add then get returns the possesses record", async () => {
     const user = await db.addUser({
+      id: "twitch_possesses_integ",
       username: "PossessesIntegUser_" + Date.now(),
-      twitchUserId: "twitch_possesses_integ",
     });
     const badge = await db.addBadge({
       title: "PossessesBadge_" + Date.now(),
@@ -42,8 +42,8 @@ describe("PossessesRepository (integration)", () => {
 
   it("get with unknown badgeId returns null", async () => {
     const user = await db.addUser({
+      id: "twitch_no_poss",
       username: "UserNoPoss_" + Date.now(),
-      twitchUserId: "twitch_no_poss",
     });
     const found = await repo.get(user.id, "unknown-badge-id");
     expect(found).toBeNull();
