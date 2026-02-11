@@ -54,7 +54,7 @@ Returns a user by ID.
 
 | Name | Type   | Description    |
 | ---- | ------ | -------------- |
-| id   | string | User ID (UUID) |
+| id   | string | User ID |
 
 ### Responses
 
@@ -164,7 +164,7 @@ Lists achievements completed by the user (“achieved” records).
 [
   {
     "achievementId": "uuid",
-    "userId": "uuid",
+    "userId": "User ID",
     "count": 1,
     "finished": false,
     "labelActive": true,
