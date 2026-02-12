@@ -233,14 +233,14 @@ export class PrismaDatabase implements Database {
       data: {
         username: data.username ?? existing.username,
         profileImageUrl:
-          data.profileImageUrl !== undefined
-            ? data.profileImageUrl
-            : existing.profileImageUrl,
+          data.profileImageUrl === undefined
+            ? existing.profileImageUrl
+            : data.profileImageUrl,
         channelDescription:
-          data.channelDescription !== undefined
-            ? data.channelDescription
-            : existing.channelDescription,
-        scope: data.scope !== undefined ? data.scope : existing.scope,
+          data.channelDescription === undefined
+            ? existing.channelDescription
+            : data.channelDescription,
+        scope: data.scope === undefined ? existing.scope : data.scope,
       },
     });
     return {
