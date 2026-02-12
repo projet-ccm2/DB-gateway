@@ -65,6 +65,13 @@ export function createUsersController(repo: UserRepository) {
           channelDescription?: string | null;
           scope?: string | null;
         };
+        // If username is provided in the update payload, enforce that it is non-empty
+        if ("username" in body && !body.username) {
+          res.status(BAD_REQUEST).json({
+            error: "username must be non-empty when provided",
+          });
+          return;
+        }
         const user = await repo.updateUser(id, body);
         if (!user) {
           res.status(NOT_FOUND).json({ error: "not found" });

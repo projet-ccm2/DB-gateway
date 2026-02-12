@@ -121,7 +121,13 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 data: Partial<MockUserData>;
               }) => {
                 const existing = this._users.get(where.id);
-                if (!existing) return null;
+                if (!existing) {
+                  const err = new Error("Record not found") as Error & {
+                    code: string;
+                  };
+                  err.code = "P2025";
+                  throw err;
+                }
                 const updated = { ...existing, ...data };
                 this._users.set(where.id, updated);
                 return updated;

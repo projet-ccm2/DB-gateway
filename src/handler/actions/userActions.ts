@@ -38,8 +38,9 @@ export const userHandlers: Record<string, HandlerFn> = {
       scope?: string | null;
     } = {};
     if ("username" in payload) {
-      const u = strOrNull(payload, "username");
-      if (u !== null) data.username = u;
+      const u = str(payload, "username");
+      if (!u) return missing("username");
+      data.username = u;
     }
     if ("profileImageUrl" in payload)
       data.profileImageUrl = strOrNull(payload, "profileImageUrl");
