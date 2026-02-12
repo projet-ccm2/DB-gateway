@@ -570,4 +570,47 @@ describe("jsonHandler full coverage", () => {
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toBe("string error");
   });
+
+  test("getAllUsers returns list of users", async () => {
+    const repo = makeRepoMock();
+    await repo.user.addUser({ id: "u1", username: "alice" });
+    await repo.user.addUser({ id: "u2", username: "bob" });
+    const res = await handleJsonMessage(repo, {
+      action: "getAllUsers",
+      payload: {},
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.users).toHaveLength(2);
+  });
+
+  test("updateUser updates existing user", async () => {
+    const repo = makeRepoMock();
+    await repo.user.addUser({ id: "u1", username: "old" });
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { userId: "u1", username: "new" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.user?.username).toBe("new");
+  });
+
+  test("updateUser returns error when user not found", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { userId: "nonexistent", username: "test" },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("user not found");
+  });
+
+  test("updateUser returns missing when userId not provided", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { username: "test" },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toContain("missing");
+  });
 });

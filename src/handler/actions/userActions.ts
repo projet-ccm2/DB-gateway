@@ -31,12 +31,22 @@ export const userHandlers: Record<string, HandlerFn> = {
   updateUser: async (repo, payload) => {
     const id = str(payload, "userId", "id");
     if (!id) return missing("userId");
-    const user = await repo.user.updateUser(id, {
-      username: strOrNull(payload, "username") ?? undefined,
-      profileImageUrl: strOrNull(payload, "profileImageUrl"),
-      channelDescription: strOrNull(payload, "channelDescription"),
-      scope: strOrNull(payload, "scope"),
-    });
+    const data: {
+      username?: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+    } = {};
+    if ("username" in payload) {
+      const u = strOrNull(payload, "username");
+      if (u !== null) data.username = u;
+    }
+    if ("profileImageUrl" in payload)
+      data.profileImageUrl = strOrNull(payload, "profileImageUrl");
+    if ("channelDescription" in payload)
+      data.channelDescription = strOrNull(payload, "channelDescription");
+    if ("scope" in payload) data.scope = strOrNull(payload, "scope");
+    const user = await repo.user.updateUser(id, data);
     if (!user) return { ok: false, error: "user not found" };
     return { ok: true, user };
   },
