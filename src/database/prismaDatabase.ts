@@ -200,13 +200,21 @@ export class PrismaDatabase implements Database {
 
   async getAllUsers(): Promise<userDTO[]> {
     const users = await this.prisma.user.findMany();
-    return users.map((u) => ({
-      id: u.id,
-      username: u.username,
-      profileImageUrl: u.profileImageUrl,
-      channelDescription: u.channelDescription,
-      scope: u.scope,
-    }));
+    return users.map(
+      (u: {
+        id: string;
+        username: string;
+        profileImageUrl: string | null;
+        channelDescription: string | null;
+        scope: string | null;
+      }) => ({
+        id: u.id,
+        username: u.username,
+        profileImageUrl: u.profileImageUrl,
+        channelDescription: u.channelDescription,
+        scope: u.scope,
+      }),
+    );
   }
 
   async updateUser(
