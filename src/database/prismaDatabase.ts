@@ -226,30 +226,43 @@ export class PrismaDatabase implements Database {
       scope?: string | null;
     },
   ): Promise<userDTO | null> {
-    const existing = await this.prisma.user.findUnique({ where: { id } });
-    if (!existing) return null;
-    const u = await this.prisma.user.update({
-      where: { id },
-      data: {
-        username: data.username ?? existing.username,
-        profileImageUrl:
-          data.profileImageUrl === undefined
-            ? existing.profileImageUrl
-            : data.profileImageUrl,
-        channelDescription:
-          data.channelDescription === undefined
-            ? existing.channelDescription
-            : data.channelDescription,
-        scope: data.scope === undefined ? existing.scope : data.scope,
-      },
-    });
-    return {
-      id: u.id,
-      username: u.username,
-      profileImageUrl: u.profileImageUrl,
-      channelDescription: u.channelDescription,
-      scope: u.scope,
-    };
+    // Build update payload with only provided fields
+    const updateData: {
+      username?: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+    } = {};
+    if (data.username !== undefined) updateData.username = data.username;
+    if (data.profileImageUrl !== undefined)
+      updateData.profileImageUrl = data.profileImageUrl;
+    if (data.channelDescription !== undefined)
+      updateData.channelDescription = data.channelDescription;
+    if (data.scope !== undefined) updateData.scope = data.scope;
+
+    try {
+      const u = await this.prisma.user.update({
+        where: { id },
+        data: updateData,
+      });
+      return {
+        id: u.id,
+        username: u.username,
+        profileImageUrl: u.profileImageUrl,
+        channelDescription: u.channelDescription,
+        scope: u.scope,
+      };
+    } catch (error: unknown) {
+      // Prisma throws P2025 when record not found
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        (error as { code: string }).code === "P2025"
+      ) {
+        return null;
+      }
+      throw error;
+    }
   }
 
   async getChannelById(id: string): Promise<channelDTO | null> {
