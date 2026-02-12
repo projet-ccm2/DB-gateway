@@ -148,4 +148,58 @@ describe("usersController (unit)", () => {
     await c.getAchievementsByUserId(req, res2);
     expect(res2.status).toHaveBeenCalledWith(500);
   });
+
+  it("getAll returns list of users", async () => {
+    const res = mockRes();
+    const req = {} as Request;
+    await ctrl.getAll(req, res);
+    expect(res.json).toHaveBeenCalled();
+  });
+
+  it("getAll returns 500 when repo throws", async () => {
+    const throwingRepo = {
+      getAllUsers: jest.fn().mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof UserRepository>;
+    const c = createUsersController(throwingRepo);
+    const res = mockRes();
+    await c.getAll({} as Request, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("update returns updated user when found", async () => {
+    const user = await repo.addUser({ id: "twitchUp", username: "old" });
+    const req = {
+      params: { id: user.id },
+      body: { username: "new" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ username: "new" }),
+    );
+  });
+
+  it("update returns 404 when user not found", async () => {
+    const req = {
+      params: { id: "nonexistent" },
+      body: { username: "test" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it("update returns 500 when repo throws", async () => {
+    const throwingRepo = {
+      updateUser: jest.fn().mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof UserRepository>;
+    const c = createUsersController(throwingRepo);
+    const req = {
+      params: { id: "some-id" },
+      body: { username: "test" },
+    } as unknown as Request;
+    const res = mockRes();
+    await c.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
 });

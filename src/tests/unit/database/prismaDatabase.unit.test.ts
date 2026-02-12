@@ -74,6 +74,10 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             findUnique: (arg: { where: { id: string } }) => Promise<unknown>;
             create: (arg: { data: MockUserData }) => Promise<unknown>;
             findMany: () => Promise<unknown[]>;
+            update: (arg: {
+              where: { id: string };
+              data: Partial<MockUserData>;
+            }) => Promise<unknown>;
           };
           channel!: unknown;
           typeAchievement!: unknown;
@@ -108,7 +112,26 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._users.set(data.id, row);
                 return row;
               },
-              findMany: async () => [],
+              findMany: async () => Array.from(this._users.values()),
+              update: async ({
+                where,
+                data,
+              }: {
+                where: { id: string };
+                data: Partial<MockUserData>;
+              }) => {
+                const existing = this._users.get(where.id);
+                if (!existing) {
+                  const err = new Error("Record not found") as Error & {
+                    code: string;
+                  };
+                  err.code = "P2025";
+                  throw err;
+                }
+                const updated = { ...existing, ...data };
+                this._users.set(where.id, updated);
+                return updated;
+              },
             };
 
             this.channel = {
@@ -402,6 +425,29 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       });
       expect(p.badgeId).toBe(b.id);
       expect(await db.getPossesses("x", "y")).toBeNull();
+
+      // Test getAllUsers
+      const allUsers = await db.getAllUsers();
+      expect(allUsers).toHaveLength(1);
+      expect(allUsers[0].id).toBe("twitch_alice");
+
+      // Test updateUser
+      const updatedUser = await db.updateUser("twitch_alice", {
+        username: "alice_updated",
+        profileImageUrl: "http://example.com/img.png",
+        channelDescription: "New description",
+        scope: "read:user",
+      });
+      expect(updatedUser?.username).toBe("alice_updated");
+      expect(updatedUser?.profileImageUrl).toBe("http://example.com/img.png");
+      expect(updatedUser?.channelDescription).toBe("New description");
+      expect(updatedUser?.scope).toBe("read:user");
+
+      // Test updateUser for non-existent user
+      const nonExistentUpdate = await db.updateUser("nonexistent", {
+        username: "test",
+      });
+      expect(nonExistentUpdate).toBeNull();
 
       await db.disconnect();
     });

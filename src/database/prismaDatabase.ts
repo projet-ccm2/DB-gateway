@@ -198,6 +198,73 @@ export class PrismaDatabase implements Database {
     };
   }
 
+  async getAllUsers(): Promise<userDTO[]> {
+    const users = await this.prisma.user.findMany();
+    return users.map(
+      (u: {
+        id: string;
+        username: string;
+        profileImageUrl: string | null;
+        channelDescription: string | null;
+        scope: string | null;
+      }) => ({
+        id: u.id,
+        username: u.username,
+        profileImageUrl: u.profileImageUrl,
+        channelDescription: u.channelDescription,
+        scope: u.scope,
+      }),
+    );
+  }
+
+  async updateUser(
+    id: string,
+    data: {
+      username?: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+    },
+  ): Promise<userDTO | null> {
+    // Build update payload with only provided fields
+    const updateData: {
+      username?: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+    } = {};
+    if (data.username !== undefined) updateData.username = data.username;
+    if (data.profileImageUrl !== undefined)
+      updateData.profileImageUrl = data.profileImageUrl;
+    if (data.channelDescription !== undefined)
+      updateData.channelDescription = data.channelDescription;
+    if (data.scope !== undefined) updateData.scope = data.scope;
+
+    try {
+      const u = await this.prisma.user.update({
+        where: { id },
+        data: updateData,
+      });
+      return {
+        id: u.id,
+        username: u.username,
+        profileImageUrl: u.profileImageUrl,
+        channelDescription: u.channelDescription,
+        scope: u.scope,
+      };
+    } catch (error: unknown) {
+      // Prisma throws P2025 when record not found
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        (error as { code: string }).code === "P2025"
+      ) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
   async getChannelById(id: string): Promise<channelDTO | null> {
     const c = await this.prisma.channel.findUnique({ where: { id } });
     if (!c) return null;
