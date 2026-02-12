@@ -98,6 +98,30 @@ export class MockDatabase implements Database {
     return newUser;
   }
 
+  async getAllUsers(): Promise<userDTO[]> {
+    return this.users;
+  }
+
+  async updateUser(
+    id: string,
+    data: {
+      username?: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+    },
+  ): Promise<userDTO | null> {
+    const user = this.users.find((u) => u.id === id);
+    if (!user) return null;
+    if (data.username !== undefined) user.username = data.username;
+    if (data.profileImageUrl !== undefined)
+      user.profileImageUrl = data.profileImageUrl;
+    if (data.channelDescription !== undefined)
+      user.channelDescription = data.channelDescription;
+    if (data.scope !== undefined) user.scope = data.scope;
+    return user;
+  }
+
   async getChannelById(id: string): Promise<channelDTO | null> {
     return this.channels.find((channel) => channel.id === id) ?? null;
   }

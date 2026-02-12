@@ -35,6 +35,10 @@ export class UserRepository {
     return this.db.getUserById(id);
   }
 
+  async getAllUsers(): Promise<userDTO[]> {
+    return this.db.getAllUsers();
+  }
+
   async addUser(user: {
     id: string;
     username: string;
@@ -43,6 +47,18 @@ export class UserRepository {
     scope?: string | null;
   }): Promise<userDTO> {
     return this.db.addUser(user);
+  }
+
+  async updateUser(
+    id: string,
+    data: {
+      username?: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+    },
+  ): Promise<userDTO | null> {
+    return this.db.updateUser(id, data);
   }
 
   async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {

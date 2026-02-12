@@ -65,6 +65,7 @@ export interface Database {
     channelIds: string[],
   ): Promise<achievedDTO[]>;
   getUserById(id: string): Promise<userDTO | null>;
+  getAllUsers(): Promise<userDTO[]>;
   addUser(user: {
     id: string;
     username: string;
@@ -72,6 +73,15 @@ export interface Database {
     channelDescription?: string | null;
     scope?: string | null;
   }): Promise<userDTO>;
+  updateUser(
+    id: string,
+    data: {
+      username?: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+    },
+  ): Promise<userDTO | null>;
 
   getChannelById(id: string): Promise<channelDTO | null>;
   addChannel(channel: { name: string }): Promise<channelDTO>;

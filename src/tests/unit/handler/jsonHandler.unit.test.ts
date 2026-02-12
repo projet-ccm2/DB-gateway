@@ -41,6 +41,26 @@ function makeRepoMock(): GatewayRepo {
         return u;
       },
       getUserById: async (id: string) => users.find((u) => u.id === id) ?? null,
+      getAllUsers: async () => users,
+      updateUser: async (
+        id: string,
+        data: {
+          username?: string;
+          profileImageUrl?: string | null;
+          channelDescription?: string | null;
+          scope?: string | null;
+        },
+      ) => {
+        const user = users.find((u) => u.id === id);
+        if (!user) return null;
+        if (data.username !== undefined) user.username = data.username;
+        if (data.profileImageUrl !== undefined)
+          user.profileImageUrl = data.profileImageUrl;
+        if (data.channelDescription !== undefined)
+          user.channelDescription = data.channelDescription;
+        if (data.scope !== undefined) user.scope = data.scope;
+        return user;
+      },
       getChannelsByUserId: async (userId: string) =>
         are
           .filter((a) => a.userId === userId)
