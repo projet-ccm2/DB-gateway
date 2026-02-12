@@ -99,7 +99,7 @@ export class MockDatabase implements Database {
   }
 
   async getAllUsers(): Promise<userDTO[]> {
-    return this.users;
+    return [...this.users];
   }
 
   async updateUser(
