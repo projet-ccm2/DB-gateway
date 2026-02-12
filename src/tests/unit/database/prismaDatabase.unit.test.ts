@@ -74,7 +74,10 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             findUnique: (arg: { where: { id: string } }) => Promise<unknown>;
             create: (arg: { data: MockUserData }) => Promise<unknown>;
             findMany: () => Promise<unknown[]>;
-            update: (arg: { where: { id: string }; data: Partial<MockUserData> }) => Promise<unknown>;
+            update: (arg: {
+              where: { id: string };
+              data: Partial<MockUserData>;
+            }) => Promise<unknown>;
           };
           channel!: unknown;
           typeAchievement!: unknown;
