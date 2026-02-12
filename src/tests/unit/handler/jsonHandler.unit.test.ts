@@ -594,6 +594,39 @@ describe("jsonHandler full coverage", () => {
     if (res.ok) expect(res.user?.username).toBe("new");
   });
 
+  test("updateUser updates profileImageUrl", async () => {
+    const repo = makeRepoMock();
+    await repo.user.addUser({ id: "u1", username: "alice" });
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { userId: "u1", profileImageUrl: "http://img.com/a.png" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.user?.profileImageUrl).toBe("http://img.com/a.png");
+  });
+
+  test("updateUser updates channelDescription", async () => {
+    const repo = makeRepoMock();
+    await repo.user.addUser({ id: "u1", username: "alice" });
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { userId: "u1", channelDescription: "My channel" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.user?.channelDescription).toBe("My channel");
+  });
+
+  test("updateUser updates scope", async () => {
+    const repo = makeRepoMock();
+    await repo.user.addUser({ id: "u1", username: "alice" });
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { userId: "u1", scope: "read:user" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.user?.scope).toBe("read:user");
+  });
+
   test("updateUser returns error when user not found", async () => {
     const repo = makeRepoMock();
     const res = await handleJsonMessage(repo, {
