@@ -1,5 +1,35 @@
 # Users
 
+## GET /users
+
+Returns all users.
+
+### Responses
+
+**200 OK**
+
+```json
+[
+  {
+    "id": "string",
+    "username": "string",
+    "profileImageUrl": null,
+    "channelDescription": null,
+    "scope": null
+  }
+]
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
 ## POST /users
 
 Creates a user.
@@ -59,6 +89,47 @@ Returns a user by ID.
 ### Responses
 
 **200 OK** — User object (same schema as POST /users).
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## PUT /users/:id
+
+Updates a user by ID.
+
+### Path parameters
+
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | User ID     |
+
+### Body (JSON)
+
+| Field              | Type           | Required | Description         |
+| ------------------ | -------------- | -------- | ------------------- |
+| username           | string         | no       | Username            |
+| profileImageUrl    | string \| null | no       | Avatar URL          |
+| channelDescription | string \| null | no       | Channel description |
+| scope              | string \| null | no       | OAuth scope         |
+
+### Responses
+
+**200 OK** — Updated user object (same schema as POST /users).
 
 **404 Not Found**
 

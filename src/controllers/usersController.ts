@@ -34,6 +34,15 @@ export function createUsersController(repo: UserRepository) {
       }
     },
 
+    getAll: async (_req: Request, res: Response): Promise<void> => {
+      try {
+        const users = await repo.getAllUsers();
+        res.json(users);
+      } catch (err: unknown) {
+        sendInternalError(res, "GET /users error", err);
+      }
+    },
+
     getById: async (req: Request, res: Response): Promise<void> => {
       try {
         const user = await repo.getUserById(paramId(req, "id"));
@@ -44,6 +53,26 @@ export function createUsersController(repo: UserRepository) {
         res.json(user);
       } catch (err: unknown) {
         sendInternalError(res, "GET /users/:id error", err);
+      }
+    },
+
+    update: async (req: Request, res: Response): Promise<void> => {
+      try {
+        const id = paramId(req, "id");
+        const body = req.body as {
+          username?: string;
+          profileImageUrl?: string | null;
+          channelDescription?: string | null;
+          scope?: string | null;
+        };
+        const user = await repo.updateUser(id, body);
+        if (!user) {
+          res.status(NOT_FOUND).json({ error: "not found" });
+          return;
+        }
+        res.json(user);
+      } catch (err: unknown) {
+        sendInternalError(res, "PUT /users/:id error", err);
       }
     },
 

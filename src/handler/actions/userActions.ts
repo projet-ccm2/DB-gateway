@@ -16,10 +16,28 @@ export const userHandlers: Record<string, HandlerFn> = {
     return { ok: true, user };
   },
 
+  getAllUsers: async (repo) => {
+    const users = await repo.user.getAllUsers();
+    return { ok: true, users };
+  },
+
   getUser: async (repo, payload) => {
     const id = str(payload, "userId", "User_ID");
     if (!id) return missing("userId");
     const user = await repo.user.getUserById(id);
+    return { ok: true, user };
+  },
+
+  updateUser: async (repo, payload) => {
+    const id = str(payload, "userId", "id");
+    if (!id) return missing("userId");
+    const user = await repo.user.updateUser(id, {
+      username: strOrNull(payload, "username") ?? undefined,
+      profileImageUrl: strOrNull(payload, "profileImageUrl"),
+      channelDescription: strOrNull(payload, "channelDescription"),
+      scope: strOrNull(payload, "scope"),
+    });
+    if (!user) return { ok: false, error: "user not found" };
     return { ok: true, user };
   },
 

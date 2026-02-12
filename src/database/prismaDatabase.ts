@@ -198,6 +198,52 @@ export class PrismaDatabase implements Database {
     };
   }
 
+  async getAllUsers(): Promise<userDTO[]> {
+    const users = await this.prisma.user.findMany();
+    return users.map((u) => ({
+      id: u.id,
+      username: u.username,
+      profileImageUrl: u.profileImageUrl,
+      channelDescription: u.channelDescription,
+      scope: u.scope,
+    }));
+  }
+
+  async updateUser(
+    id: string,
+    data: {
+      username?: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+    },
+  ): Promise<userDTO | null> {
+    const existing = await this.prisma.user.findUnique({ where: { id } });
+    if (!existing) return null;
+    const u = await this.prisma.user.update({
+      where: { id },
+      data: {
+        username: data.username ?? existing.username,
+        profileImageUrl:
+          data.profileImageUrl !== undefined
+            ? data.profileImageUrl
+            : existing.profileImageUrl,
+        channelDescription:
+          data.channelDescription !== undefined
+            ? data.channelDescription
+            : existing.channelDescription,
+        scope: data.scope !== undefined ? data.scope : existing.scope,
+      },
+    });
+    return {
+      id: u.id,
+      username: u.username,
+      profileImageUrl: u.profileImageUrl,
+      channelDescription: u.channelDescription,
+      scope: u.scope,
+    };
+  }
+
   async getChannelById(id: string): Promise<channelDTO | null> {
     const c = await this.prisma.channel.findUnique({ where: { id } });
     if (!c) return null;

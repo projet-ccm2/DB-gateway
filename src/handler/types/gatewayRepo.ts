@@ -21,6 +21,16 @@ export type GatewayRepo = {
       scope?: string | null;
     }): Promise<userDTO>;
     getUserById(id: string): Promise<userDTO | null>;
+    getAllUsers(): Promise<userDTO[]>;
+    updateUser(
+      id: string,
+      data: {
+        username?: string;
+        profileImageUrl?: string | null;
+        channelDescription?: string | null;
+        scope?: string | null;
+      },
+    ): Promise<userDTO | null>;
     getChannelsByUserId(userId: string): Promise<userChannelDTO[]>;
     getBadgesByUserId(userId: string): Promise<badgeDTO[]>;
     getAchievementsByUserId(userId: string): Promise<achievedDTO[]>;
