@@ -17,10 +17,12 @@ jobs:
     if: github.event_name != 'pull_request'
     with:
       docker-image-name: db-gateway-api-prod
-      docker-tag: ${{ github.event.inputs.image-tag || format('dev-{0}', github.sha) }}
+      docker-tag: ${{ github.event.inputs.version || github.ref_name }}
       artifact-registry-repository: "db-gateway-docker-prod"
       environment: production
       cloud-run-service-name: db-gateway-prod
+      service_type: back_prive
+      required_env_vars: DATABASE_URL,MYSQL_DATABASE,MYSQL_USER,MYSQL_PASSWORD
 
     secrets:
       GCP_SA_KEY: ${{ secrets.PROD_GCP_SA_KEY }}
