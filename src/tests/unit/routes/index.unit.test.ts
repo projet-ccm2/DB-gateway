@@ -18,9 +18,11 @@ describe("routes/mountRoutes", () => {
     const app = express();
     app.use(express.json());
     mountRoutes(app, db);
-    const res = await request(app)
-      .post("/users")
-      .send({ id: "twitch_route", username: "routetest" });
+    const res = await request(app).post("/users").send({
+      id: "twitch_route",
+      username: "routetest",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     expect(res.status).toBe(201);
     expect(res.body.username).toBe("routetest");
   });

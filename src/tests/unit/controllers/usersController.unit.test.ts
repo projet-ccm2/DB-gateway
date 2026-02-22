@@ -17,7 +17,11 @@ describe("usersController (unit)", () => {
 
   it("create returns 201 and user when body valid", async () => {
     const req = {
-      body: { id: "twitch1", username: "u1" },
+      body: {
+        id: "twitch1",
+        username: "u1",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     } as Request;
     const res = mockRes();
     await ctrl.create(req, res);
@@ -38,6 +42,7 @@ describe("usersController (unit)", () => {
     const user = await repo.addUser({
       id: "twitch2",
       username: "u2",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const req = { params: { id: user.id } } as unknown as Request;
     const res = mockRes();
@@ -71,7 +76,13 @@ describe("usersController (unit)", () => {
       getAchievementsByUserId: jest.fn(),
     } as unknown as InstanceType<typeof UserRepository>;
     const c = createUsersController(throwingRepo);
-    const req = { body: { id: "t1", username: "u1" } } as Request;
+    const req = {
+      body: {
+        id: "t1",
+        username: "u1",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    } as Request;
     const res = mockRes();
     await c.create(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
@@ -93,7 +104,11 @@ describe("usersController (unit)", () => {
   });
 
   it("getChannelsByUserId returns json and 500 on throw", async () => {
-    const user = await repo.addUser({ id: "tch", username: "ch" });
+    const user = await repo.addUser({
+      id: "tch",
+      username: "ch",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const req = { params: { id: user.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getChannelsByUserId(req, res);
@@ -112,7 +127,11 @@ describe("usersController (unit)", () => {
   });
 
   it("getBadgesByUserId returns json and 500 on throw", async () => {
-    const user = await repo.addUser({ id: "tb", username: "b" });
+    const user = await repo.addUser({
+      id: "tb",
+      username: "b",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const req = { params: { id: user.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getBadgesByUserId(req, res);
@@ -131,7 +150,11 @@ describe("usersController (unit)", () => {
   });
 
   it("getAchievementsByUserId returns json and 500 on throw", async () => {
-    const user = await repo.addUser({ id: "ta", username: "a" });
+    const user = await repo.addUser({
+      id: "ta",
+      username: "a",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const req = { params: { id: user.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getAchievementsByUserId(req, res);
@@ -167,7 +190,11 @@ describe("usersController (unit)", () => {
   });
 
   it("update returns updated user when found", async () => {
-    const user = await repo.addUser({ id: "twitchUp", username: "old" });
+    const user = await repo.addUser({
+      id: "twitchUp",
+      username: "old",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const req = {
       params: { id: user.id },
       body: { username: "new" },

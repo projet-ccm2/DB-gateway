@@ -5,13 +5,16 @@ export const userHandlers: Record<string, HandlerFn> = {
   createUser: async (repo, payload) => {
     const username = str(payload, "username");
     const id = str(payload, "id");
-    if (!username || !id) return missing("username", "id");
+    const lastUpdateTimestamp = str(payload, "lastUpdateTimestamp");
+    if (!username || !id || !lastUpdateTimestamp)
+      return missing("username", "id", "lastUpdateTimestamp");
     const user = await repo.user.addUser({
       id,
       username,
       profileImageUrl: strOrNull(payload, "profileImageUrl"),
       channelDescription: strOrNull(payload, "channelDescription"),
       scope: strOrNull(payload, "scope"),
+      lastUpdateTimestamp,
     });
     return { ok: true, user };
   },
@@ -36,6 +39,7 @@ export const userHandlers: Record<string, HandlerFn> = {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      lastUpdateTimestamp?: string;
     } = {};
     if ("username" in payload) {
       const u = str(payload, "username");
@@ -47,6 +51,10 @@ export const userHandlers: Record<string, HandlerFn> = {
     if ("channelDescription" in payload)
       data.channelDescription = strOrNull(payload, "channelDescription");
     if ("scope" in payload) data.scope = strOrNull(payload, "scope");
+    if ("lastUpdateTimestamp" in payload) {
+      const ts = str(payload, "lastUpdateTimestamp");
+      if (ts) data.lastUpdateTimestamp = ts;
+    }
     const user = await repo.user.updateUser(id, data);
     if (!user) return { ok: false, error: "user not found" };
     return { ok: true, user };

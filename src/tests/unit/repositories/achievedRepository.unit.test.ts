@@ -4,7 +4,11 @@ import { MockDatabase } from "../../mocks";
 describe("achievedRepository (unit)", () => {
   it("add then get returns the achieved", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ id: "t", username: "u" });
+    const user = await db.addUser({
+      id: "t",
+      username: "u",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const ach = await db.addAchievement({
       title: "A",
       description: "D",
@@ -37,7 +41,11 @@ describe("achievedRepository (unit)", () => {
 
   it("update returns updated achieved when record exists", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ id: "t", username: "u" });
+    const user = await db.addUser({
+      id: "t",
+      username: "u",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const ach = await db.addAchievement({
       title: "A",
       description: "D",

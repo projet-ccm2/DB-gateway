@@ -21,7 +21,7 @@ describe("achievementsRoutes (unit)", () => {
 
   it("GET /channel/:channelId returns 200 and array with typeAchievement", async () => {
     const db = new MockDatabase();
-    const ch = await db.addChannel({ name: "Ch" });
+    const ch = await db.addChannel({ id: "ch-ach-route-1", name: "Ch" });
     await db.addAchievement({
       title: "A",
       description: "D",
@@ -48,8 +48,12 @@ describe("achievementsRoutes (unit)", () => {
 
   it("GET /user/:userId/channel/:channelId returns 200 with userId, channelId, achievements", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ id: "t", username: "U" });
-    const ch = await db.addChannel({ name: "Ch" });
+    const user = await db.addUser({
+      id: "t",
+      username: "U",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const ch = await db.addChannel({ id: "ch-ach-route-2", name: "Ch" });
     const app = express();
     app.use("/", createAchievementsRoutes(db));
     const res = await request(app).get(`/user/${user.id}/channel/${ch.id}`);

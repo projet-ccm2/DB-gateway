@@ -7,7 +7,14 @@ export class ChannelRepository {
     return this.db.getChannelById(id);
   }
 
-  async addChannel(name: string): Promise<channelDTO> {
-    return this.db.addChannel({ name });
+  async addChannel(id: string, name: string): Promise<channelDTO> {
+    return this.db.addChannel({ id, name });
+  }
+
+  async updateChannel(
+    id: string,
+    data: { name?: string },
+  ): Promise<channelDTO | null> {
+    return this.db.updateChannel(id, data);
   }
 }

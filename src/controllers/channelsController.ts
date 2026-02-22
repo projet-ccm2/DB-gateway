@@ -10,12 +10,16 @@ export function createChannelsController(
   return {
     create: async (req: Request, res: Response): Promise<void> => {
       try {
-        const { name } = req.body as { name?: string };
+        const { id, name } = req.body as { id?: string; name?: string };
+        if (!id) {
+          res.status(BAD_REQUEST).json({ error: "id required" });
+          return;
+        }
         if (!name) {
           res.status(BAD_REQUEST).json({ error: "name required" });
           return;
         }
-        const channel = await channelRepo.addChannel(name);
+        const channel = await channelRepo.addChannel(id, name);
         res.status(201).json(channel);
       } catch (err: unknown) {
         sendInternalError(res, "POST /channels error", err);
@@ -32,6 +36,22 @@ export function createChannelsController(
         res.json(channel);
       } catch (err: unknown) {
         sendInternalError(res, "GET /channels/:id error", err);
+      }
+    },
+
+    update: async (req: Request, res: Response): Promise<void> => {
+      try {
+        const { name } = req.body as { name?: string };
+        const channel = await channelRepo.updateChannel(paramId(req, "id"), {
+          name,
+        });
+        if (!channel) {
+          res.status(NOT_FOUND).json({ error: "not found" });
+          return;
+        }
+        res.json(channel);
+      } catch (err: unknown) {
+        sendInternalError(res, "PUT /channels/:id error", err);
       }
     },
 

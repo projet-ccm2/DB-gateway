@@ -26,6 +26,7 @@ function makeRepoMock(): GatewayRepo {
       addUser: async (user: {
         id: string;
         username: string;
+        lastUpdateTimestamp: string;
         profileImageUrl?: string | null;
         channelDescription?: string | null;
         scope?: string | null;
@@ -33,6 +34,7 @@ function makeRepoMock(): GatewayRepo {
         const u: userDTO = {
           id: user.id,
           username: user.username,
+          lastUpdateTimestamp: user.lastUpdateTimestamp,
           profileImageUrl: user.profileImageUrl ?? null,
           channelDescription: user.channelDescription ?? null,
           scope: user.scope ?? null,
@@ -82,6 +84,7 @@ function makeRepoMock(): GatewayRepo {
             return {
               id: user!.id,
               username: user!.username,
+              lastUpdateTimestamp: user!.lastUpdateTimestamp,
               profileImageUrl: user!.profileImageUrl ?? null,
               channelDescription: user!.channelDescription ?? null,
               scope: user!.scope ?? null,
@@ -100,13 +103,19 @@ function makeRepoMock(): GatewayRepo {
         ),
     },
     channel: {
-      addChannel: async (name: string) => {
-        const c = { id: "c_" + name, name };
+      addChannel: async (id: string, name: string) => {
+        const c = { id, name };
         channels.push(c);
         return c;
       },
       getChannelById: async (id: string) =>
         channels.find((c) => c.id === id) ?? null,
+      updateChannel: async (id: string, data: { name?: string }) => {
+        const channel = channels.find((c) => c.id === id);
+        if (!channel) return null;
+        if (data.name !== undefined) channel.name = data.name;
+        return channel;
+      },
     },
     typeAchievement: {
       addTypeAchievement: async (label: string, data: string) => {
@@ -154,6 +163,30 @@ function makeRepoMock(): GatewayRepo {
       getAre: async (userId: string, channelId: string) =>
         are.find((r) => r.userId === userId && r.channelId === channelId) ??
         null,
+      getAreByUserId: async (userId: string) =>
+        are.filter((r) => r.userId === userId),
+      getAreByChannelId: async (channelId: string) =>
+        are.filter((r) => r.channelId === channelId),
+      updateAre: async (
+        userId: string,
+        channelId: string,
+        data: { userType?: string },
+      ) => {
+        const record = are.find(
+          (r) => r.userId === userId && r.channelId === channelId,
+        );
+        if (!record) return null;
+        if (data.userType !== undefined) record.userType = data.userType;
+        return record;
+      },
+      deleteAre: async (userId: string, channelId: string) => {
+        const index = are.findIndex(
+          (r) => r.userId === userId && r.channelId === channelId,
+        );
+        if (index === -1) return false;
+        are.splice(index, 1);
+        return true;
+      },
     },
     possesses: {
       addPossesses: async (
@@ -182,7 +215,11 @@ describe("jsonHandler full coverage", () => {
   test("user create/get", async () => {
     const create = await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { id: "twitch_bob", username: "bob" },
+      payload: {
+        id: "twitch_bob",
+        username: "bob",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     });
     expect(create.ok).toBe(true);
 
@@ -202,6 +239,7 @@ describe("jsonHandler full coverage", () => {
         profileImageUrl: "https://img.com/alice.png",
         channelDescription: "Alice's channel",
         scope: "chat:read",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
       },
     });
     expect(create.ok).toBe(true);
@@ -214,11 +252,15 @@ describe("jsonHandler full coverage", () => {
   test("getChannelsByUserId with userType", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { id: "twitch_chuser", username: "chuser" },
+      payload: {
+        id: "twitch_chuser",
+        username: "chuser",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createChannel",
-      payload: { name: "testchan" },
+      payload: { id: "c_testchan", name: "testchan" },
     });
     await handleJsonMessage(repo, {
       action: "createAre",
@@ -243,7 +285,11 @@ describe("jsonHandler full coverage", () => {
   test("getBadgesByUserId", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { id: "twitch_badgeuser", username: "badgeuser" },
+      payload: {
+        id: "twitch_badgeuser",
+        username: "badgeuser",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createBadge",
@@ -271,7 +317,11 @@ describe("jsonHandler full coverage", () => {
   test("getAchievementsByUserId", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { id: "twitch_achuser", username: "achuser" },
+      payload: {
+        id: "twitch_achuser",
+        username: "achuser",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createAchieved",
@@ -298,11 +348,15 @@ describe("jsonHandler full coverage", () => {
   test("getUsersByChannelId with userType", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { id: "twitch_chanmember", username: "chanmember" },
+      payload: {
+        id: "twitch_chanmember",
+        username: "chanmember",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createChannel",
-      payload: { name: "popchan" },
+      payload: { id: "c_popchan", name: "popchan" },
     });
     await handleJsonMessage(repo, {
       action: "createAre",
@@ -327,7 +381,11 @@ describe("jsonHandler full coverage", () => {
   test("getUsersByBadgeId", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { id: "twitch_badgeholder", username: "badgeholder" },
+      payload: {
+        id: "twitch_badgeholder",
+        username: "badgeholder",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createBadge",
@@ -355,7 +413,11 @@ describe("jsonHandler full coverage", () => {
   test("getUsersByAchievementId", async () => {
     await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { id: "twitch_achiever", username: "achiever" },
+      payload: {
+        id: "twitch_achiever",
+        username: "achiever",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createAchieved",
@@ -382,7 +444,7 @@ describe("jsonHandler full coverage", () => {
   test("channel create/get", async () => {
     const create = await handleJsonMessage(repo, {
       action: "createChannel",
-      payload: { name: "chan1" },
+      payload: { id: "c_chan1", name: "chan1" },
     });
     expect(create.ok).toBe(true);
 
@@ -391,6 +453,21 @@ describe("jsonHandler full coverage", () => {
       payload: { channelId: "c_chan1" },
     });
     expect(get.ok).toBe(true);
+  });
+
+  test("channel update", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "c_upd", name: "OldName" },
+    });
+    const update = await handleJsonMessage(repo, {
+      action: "updateChannel",
+      payload: { channelId: "c_upd", name: "NewName" },
+    });
+    expect(update.ok).toBe(true);
+    if (update.ok) {
+      expect(update.channel?.name).toBe("NewName");
+    }
   });
 
   test("typeAchievement create/get", async () => {
@@ -478,6 +555,119 @@ describe("jsonHandler full coverage", () => {
     expect(get.ok).toBe(true);
   });
 
+  test("getAreByUserId returns records for user", async () => {
+    await handleJsonMessage(repo, {
+      action: "createAre",
+      payload: { userId: "u2", channelId: "c1", userType: "mod" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createAre",
+      payload: { userId: "u2", channelId: "c2", userType: "viewer" },
+    });
+    const result = await handleJsonMessage(repo, {
+      action: "getAreByUserId",
+      payload: { userId: "u2" },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.records).toHaveLength(2);
+  });
+
+  test("getAreByUserId returns missing when userId not provided", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "getAreByUserId",
+      payload: {},
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("missing");
+  });
+
+  test("getAreByChannelId returns records for channel", async () => {
+    await handleJsonMessage(repo, {
+      action: "createAre",
+      payload: { userId: "u3", channelId: "c3", userType: "mod" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createAre",
+      payload: { userId: "u4", channelId: "c3", userType: "viewer" },
+    });
+    const result = await handleJsonMessage(repo, {
+      action: "getAreByChannelId",
+      payload: { channelId: "c3" },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.records).toHaveLength(2);
+  });
+
+  test("getAreByChannelId returns missing when channelId not provided", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "getAreByChannelId",
+      payload: {},
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("missing");
+  });
+
+  test("updateAre updates userType", async () => {
+    await handleJsonMessage(repo, {
+      action: "createAre",
+      payload: { userId: "u5", channelId: "c5", userType: "viewer" },
+    });
+    const result = await handleJsonMessage(repo, {
+      action: "updateAre",
+      payload: { userId: "u5", channelId: "c5", userType: "admin" },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.are?.userType).toBe("admin");
+  });
+
+  test("updateAre returns error when not found", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "updateAre",
+      payload: { userId: "none", channelId: "none", userType: "admin" },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe("not found");
+  });
+
+  test("updateAre returns missing when userId/channelId not provided", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "updateAre",
+      payload: { userType: "admin" },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("missing");
+  });
+
+  test("deleteAre deletes record", async () => {
+    await handleJsonMessage(repo, {
+      action: "createAre",
+      payload: { userId: "u6", channelId: "c6", userType: "viewer" },
+    });
+    const result = await handleJsonMessage(repo, {
+      action: "deleteAre",
+      payload: { userId: "u6", channelId: "c6" },
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  test("deleteAre returns error when not found", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "deleteAre",
+      payload: { userId: "none", channelId: "none" },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe("not found");
+  });
+
+  test("deleteAre returns missing when userId/channelId not provided", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "deleteAre",
+      payload: {},
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("missing");
+  });
+
   test("possesses create/get", async () => {
     const create = await handleJsonMessage(repo, {
       action: "createPossesses",
@@ -510,6 +700,7 @@ describe("jsonHandler full coverage", () => {
       "getUser",
       "createChannel",
       "getChannel",
+      "updateChannel",
       "createTypeAchievement",
       "getTypeAchievement",
       "createAchievement",
@@ -520,6 +711,10 @@ describe("jsonHandler full coverage", () => {
       "getAchieved",
       "createAre",
       "getAre",
+      "getAreByUserId",
+      "getAreByChannelId",
+      "updateAre",
+      "deleteAre",
       "createPossesses",
       "getPossesses",
     ];
@@ -538,7 +733,10 @@ describe("jsonHandler full coverage", () => {
 
     const res = await handleJsonMessage(throwingRepo, {
       action: "createUser",
-      payload: { username: "bob" },
+      payload: {
+        username: "bob",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     });
 
     expect(res.ok).toBe(false);
@@ -565,7 +763,11 @@ describe("jsonHandler full coverage", () => {
     };
     const res = await handleJsonMessage(repo, {
       action: "createUser",
-      payload: { id: "y", username: "x" },
+      payload: {
+        id: "y",
+        username: "x",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toBe("string error");
@@ -573,8 +775,16 @@ describe("jsonHandler full coverage", () => {
 
   test("getAllUsers returns list of users", async () => {
     const repo = makeRepoMock();
-    await repo.user.addUser({ id: "u1", username: "alice" });
-    await repo.user.addUser({ id: "u2", username: "bob" });
+    await repo.user.addUser({
+      id: "u1",
+      username: "alice",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await repo.user.addUser({
+      id: "u2",
+      username: "bob",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const res = await handleJsonMessage(repo, {
       action: "getAllUsers",
       payload: {},
@@ -585,7 +795,11 @@ describe("jsonHandler full coverage", () => {
 
   test("updateUser updates existing user", async () => {
     const repo = makeRepoMock();
-    await repo.user.addUser({ id: "u1", username: "old" });
+    await repo.user.addUser({
+      id: "u1",
+      username: "old",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const res = await handleJsonMessage(repo, {
       action: "updateUser",
       payload: { userId: "u1", username: "new" },
@@ -596,7 +810,11 @@ describe("jsonHandler full coverage", () => {
 
   test("updateUser updates profileImageUrl", async () => {
     const repo = makeRepoMock();
-    await repo.user.addUser({ id: "u1", username: "alice" });
+    await repo.user.addUser({
+      id: "u1",
+      username: "alice",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const res = await handleJsonMessage(repo, {
       action: "updateUser",
       payload: { userId: "u1", profileImageUrl: "http://img.com/a.png" },
@@ -607,7 +825,11 @@ describe("jsonHandler full coverage", () => {
 
   test("updateUser updates channelDescription", async () => {
     const repo = makeRepoMock();
-    await repo.user.addUser({ id: "u1", username: "alice" });
+    await repo.user.addUser({
+      id: "u1",
+      username: "alice",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const res = await handleJsonMessage(repo, {
       action: "updateUser",
       payload: { userId: "u1", channelDescription: "My channel" },
@@ -618,7 +840,11 @@ describe("jsonHandler full coverage", () => {
 
   test("updateUser updates scope", async () => {
     const repo = makeRepoMock();
-    await repo.user.addUser({ id: "u1", username: "alice" });
+    await repo.user.addUser({
+      id: "u1",
+      username: "alice",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const res = await handleJsonMessage(repo, {
       action: "updateUser",
       payload: { userId: "u1", scope: "read:user" },

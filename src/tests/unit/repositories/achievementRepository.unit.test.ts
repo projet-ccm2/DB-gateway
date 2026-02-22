@@ -4,7 +4,7 @@ import { MockDatabase } from "../../mocks";
 describe("achievementRepository (unit)", () => {
   it("add then getById returns the achievement", async () => {
     const db = new MockDatabase();
-    const ch = await db.addChannel({ name: "Ch" });
+    const ch = await db.addChannel({ id: "ch-ach-repo-1", name: "Ch" });
     const repo = new AchievementRepository(db);
     const created = await repo.add({
       title: "T",
@@ -30,7 +30,7 @@ describe("achievementRepository (unit)", () => {
 
   it("getByChannelId returns achievements with typeAchievement", async () => {
     const db = new MockDatabase();
-    const ch = await db.addChannel({ name: "Ch" });
+    const ch = await db.addChannel({ id: "ch-ach-repo-2", name: "Ch" });
     const repo = new AchievementRepository(db);
     await repo.add({
       title: "T1",

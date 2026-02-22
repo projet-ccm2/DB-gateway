@@ -11,6 +11,7 @@ export function createChannelsRoutes(db: Database): express.Router {
   const c = createChannelsController(channelRepo, userRepo);
   router.post("/", c.create);
   router.get("/:id", c.getById);
+  router.put("/:id", c.update);
   router.get("/:id/users", c.getUsersByChannelId);
   return router;
 }

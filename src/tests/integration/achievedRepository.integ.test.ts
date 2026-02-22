@@ -13,8 +13,12 @@ describe("AchievedRepository (integration)", () => {
     const user = await db.addUser({
       id: "twitch_achieved_integ",
       username: "AchievedIntegUser_" + Date.now(),
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const channel = await db.addChannel({ name: "AchievedCh_" + Date.now() });
+    const channel = await db.addChannel({
+      id: "ch-achieved-integ-" + Date.now(),
+      name: "AchievedCh_" + Date.now(),
+    });
     const achievement = await db.addAchievement({
       title: "AchForAchieved",
       description: "desc",
@@ -50,13 +54,17 @@ describe("AchievedRepository (integration)", () => {
     const user = await db.addUser({
       id: "twitch_no_achieved",
       username: "NoAchievedUser_" + Date.now(),
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const found = await repo.get("unknown-achievement-id", user.id);
     expect(found).toBeNull();
   });
 
   it("get with unknown userId returns null", async () => {
-    const channel = await db.addChannel({ name: "ChNoUser_" + Date.now() });
+    const channel = await db.addChannel({
+      id: "ch-achd-nouser-" + Date.now(),
+      name: "ChNoUser_" + Date.now(),
+    });
     const achievement = await db.addAchievement({
       title: "AchNoUser",
       description: "d",
@@ -73,8 +81,10 @@ describe("AchievedRepository (integration)", () => {
     const user = await db.addUser({
       id: "twitch_upsert",
       username: "UpsertUser_" + Date.now(),
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const channel = await db.addChannel({
+      id: "ch-upsert-" + Date.now(),
       name: "UpsertCh_" + Date.now(),
     });
     const achievement = await db.addAchievement({
@@ -115,8 +125,10 @@ describe("AchievedRepository (integration)", () => {
     const user = await db.addUser({
       id: "twitch_update",
       username: "UpdateUser_" + Date.now(),
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const channel = await db.addChannel({
+      id: "ch-update-" + Date.now(),
       name: "UpdateCh_" + Date.now(),
     });
     const achievement = await db.addAchievement({

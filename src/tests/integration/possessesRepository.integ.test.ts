@@ -13,6 +13,7 @@ describe("PossessesRepository (integration)", () => {
     const user = await db.addUser({
       id: "twitch_possesses_integ",
       username: "PossessesIntegUser_" + Date.now(),
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const badge = await db.addBadge({
       title: "PossessesBadge_" + Date.now(),
@@ -44,6 +45,7 @@ describe("PossessesRepository (integration)", () => {
     const user = await db.addUser({
       id: "twitch_no_poss",
       username: "UserNoPoss_" + Date.now(),
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const found = await repo.get(user.id, "unknown-badge-id");
     expect(found).toBeNull();

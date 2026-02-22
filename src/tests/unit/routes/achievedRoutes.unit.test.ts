@@ -6,7 +6,11 @@ import { MockDatabase } from "../../mocks";
 describe("achievedRoutes (unit)", () => {
   it("POST / creates achieved and returns 201", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ id: "t", username: "u" });
+    const user = await db.addUser({
+      id: "t",
+      username: "u",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const ach = await db.addAchievement({
       title: "A",
       description: "D",
@@ -31,7 +35,11 @@ describe("achievedRoutes (unit)", () => {
 
   it("PUT / updates achieved and returns 200", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ id: "t", username: "u" });
+    const user = await db.addUser({
+      id: "t",
+      username: "u",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const ach = await db.addAchievement({
       title: "A",
       description: "D",

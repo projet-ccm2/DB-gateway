@@ -8,11 +8,12 @@ datasource db {
 }
 
 model User {
-  id                  String  @id @map("User_ID") @db.VarChar(50)
-  username            String  @map("User_Username") @db.VarChar(50)
-  profileImageUrl     String? @map("Profile_Image_Url") @db.VarChar(255)
-  channelDescription  String? @map("Channel_Description") @db.VarChar(500)
-  scope               String? @map("Scope") @db.VarChar(500)
+  id                  String   @id @map("User_ID") @db.VarChar(50)
+  username            String   @map("User_Username") @db.VarChar(50)
+  profileImageUrl     String?  @map("Profile_Image_Url") @db.VarChar(255)
+  channelDescription  String?  @map("Channel_Description") @db.VarChar(500)
+  scope               String?  @map("Scope") @db.VarChar(500)
+  lastUpdateTimestamp DateTime @map("Last_Update_Timestamp") @db.DateTime(0)
 
   // relations
   achieved   Achieved[]  @relation("user_achieved")
@@ -23,7 +24,7 @@ model User {
 }
 
 model Channel {
-  id   String @id @default(uuid()) @map("Channel_ID") @db.Char(36)
+  id   String @id @map("Channel_ID") @db.VarChar(50)
   name String @map("Channel_Name") @db.VarChar(50)
 
   achievements Achievement[]
@@ -57,7 +58,7 @@ model Achievement {
   secret      Boolean @map("Achievement_Secret")
   image       String  @map("Achievement_Image") @db.VarChar(55)
 
-  channelId String? @map("Channel_ID") @db.Char(36)
+  channelId String? @map("Channel_ID") @db.VarChar(50)
   typeId   String? @map("Type_ID")   @db.Char(36)
 
   channel Channel? @relation(fields: [channelId], references: [id])
@@ -75,7 +76,7 @@ model Badge {
   title   String @map("Badge_Title") @db.VarChar(50)
   img     String @map("Badge_img") @db.VarChar(50)
 
-  channelId String? @map("Channel_ID") @db.Char(36)
+  channelId String? @map("Channel_ID") @db.VarChar(50)
   channel   Channel? @relation(fields: [channelId], references: [id])
 
   possesses Possesses[]
@@ -100,7 +101,7 @@ model Achieved {
 
 model Are {
   userId   String @map("User_ID") @db.VarChar(36)
-  channelId String @map("Channel_ID") @db.Char(36)
+  channelId String @map("Channel_ID") @db.VarChar(50)
   userType String @map("User_Type") @db.VarChar(50)
 
   user   User   @relation("user_are", fields: [userId], references: [id])
