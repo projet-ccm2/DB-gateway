@@ -51,6 +51,7 @@ function makeRepoMock(): GatewayRepo {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
+          lastUpdateTimestamp?: string;
         },
       ) => {
         const user = users.find((u) => u.id === id);
@@ -61,6 +62,8 @@ function makeRepoMock(): GatewayRepo {
         if (data.channelDescription !== undefined)
           user.channelDescription = data.channelDescription;
         if (data.scope !== undefined) user.scope = data.scope;
+        if (data.lastUpdateTimestamp !== undefined)
+          user.lastUpdateTimestamp = data.lastUpdateTimestamp;
         return user;
       },
       getChannelsByUserId: async (userId: string) =>
@@ -851,6 +854,25 @@ describe("jsonHandler full coverage", () => {
     });
     expect(res.ok).toBe(true);
     if (res.ok) expect(res.user?.scope).toBe("read:user");
+  });
+
+  test("updateUser updates lastUpdateTimestamp", async () => {
+    const repo = makeRepoMock();
+    await repo.user.addUser({
+      id: "u1",
+      username: "alice",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: {
+        userId: "u1",
+        lastUpdateTimestamp: "2024-06-15T12:30:00.000Z",
+      },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok)
+      expect(res.user?.lastUpdateTimestamp).toBe("2024-06-15T12:30:00.000Z");
   });
 
   test("updateUser returns error when user not found", async () => {
