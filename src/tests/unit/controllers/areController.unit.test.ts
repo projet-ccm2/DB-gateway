@@ -208,6 +208,26 @@ describe("areController (unit)", () => {
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
+  it("update returns 400 when userId missing", async () => {
+    const req = {
+      params: { channelId: "c" },
+      body: { userType: "admin" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("update returns 400 when channelId missing", async () => {
+    const req = {
+      params: { userId: "u" },
+      body: { userType: "admin" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
   it("update returns 500 when repo throws", async () => {
     const throwingRepo = {
       add: jest.fn(),
@@ -251,6 +271,24 @@ describe("areController (unit)", () => {
     const res = mockRes();
     await ctrl.delete(req, res);
     expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it("delete returns 400 when userId missing", async () => {
+    const req = {
+      params: { channelId: "c" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.delete(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("delete returns 400 when channelId missing", async () => {
+    const req = {
+      params: { userId: "u" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.delete(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
   });
 
   it("delete returns 500 when repo throws", async () => {
