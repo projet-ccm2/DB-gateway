@@ -10,7 +10,10 @@ describe("AchievementRepository (integration)", () => {
   });
 
   it("add with channelId then getById returns the achievement", async () => {
-    const channel = await db.addChannel({ name: "AchChannel_" + Date.now() });
+    const channel = await db.addChannel({
+      id: "ch-ach-integ-" + Date.now(),
+      name: "AchChannel_" + Date.now(),
+    });
     const input = {
       title: "IntegAch",
       description: "Integration achievement",

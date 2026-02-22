@@ -17,6 +17,7 @@ export class UserService {
   async addUser(user: {
     id: string;
     username: string;
+    lastUpdateTimestamp: string;
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;

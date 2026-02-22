@@ -4,6 +4,7 @@ export type userDTO = {
   profileImageUrl: string | null;
   channelDescription: string | null;
   scope: string | null;
+  lastUpdateTimestamp: string;
 };
 export type channelDTO = { id: string; name: string };
 export type userChannelDTO = { id: string; name: string; userType: string };
@@ -13,6 +14,7 @@ export type channelUserDTO = {
   profileImageUrl: string | null;
   channelDescription: string | null;
   scope: string | null;
+  lastUpdateTimestamp: string;
   userType: string;
 };
 export type typeAchievementDTO = { id: string; label: string; data: string };
@@ -72,6 +74,7 @@ export interface Database {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    lastUpdateTimestamp: string;
   }): Promise<userDTO>;
   updateUser(
     id: string,
@@ -80,11 +83,16 @@ export interface Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      lastUpdateTimestamp?: string;
     },
   ): Promise<userDTO | null>;
 
   getChannelById(id: string): Promise<channelDTO | null>;
-  addChannel(channel: { name: string }): Promise<channelDTO>;
+  addChannel(channel: { id: string; name: string }): Promise<channelDTO>;
+  updateChannel(
+    id: string,
+    data: { name?: string },
+  ): Promise<channelDTO | null>;
 
   getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
   addTypeAchievement(t: {
@@ -127,11 +135,19 @@ export interface Database {
   }): Promise<achievedDTO | null>;
 
   getAre(userId: string, channelId: string): Promise<areDTO | null>;
+  getAreByUserId(userId: string): Promise<areDTO[]>;
+  getAreByChannelId(channelId: string): Promise<areDTO[]>;
   addAre(payload: {
     userId: string;
     channelId: string;
     userType: string;
   }): Promise<areDTO>;
+  updateAre(
+    userId: string,
+    channelId: string,
+    data: { userType?: string },
+  ): Promise<areDTO | null>;
+  deleteAre(userId: string, channelId: string): Promise<boolean>;
 
   getPossesses(userId: string, badgeId: string): Promise<possessesDTO | null>;
   addPossesses(p: {

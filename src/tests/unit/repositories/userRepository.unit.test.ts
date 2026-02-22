@@ -9,6 +9,7 @@ describe("userRepository (unit, mock db)", () => {
     const created = await service.addUser({
       id: "twitch123",
       username: "Bob",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     expect(created).toHaveProperty("id");
     expect(created.id).toBe("twitch123");
@@ -30,6 +31,7 @@ describe("userRepository (unit, mock db)", () => {
     const created = await service.addUser({
       id: "twitch456",
       username: "Alice",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
       profileImageUrl: "https://example.com/avatar.png",
       channelDescription: "My awesome channel",
       scope: "chat:read chat:write",
@@ -49,10 +51,12 @@ describe("userRepository (unit, mock db)", () => {
     const a = await service.addUser({
       id: "twitch001",
       username: "Bobby",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const b = await service.addUser({
       id: "twitch002",
       username: "Robert",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
 
     expect(a.id).not.toBe(b.id);
@@ -66,6 +70,7 @@ describe("userRepository (unit, mock db)", () => {
     const user = await service.addUser({
       id: "twitch789",
       username: "NoChannelUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
 
     const channels = await service.getChannelsByUserId(user.id);
@@ -79,9 +84,16 @@ describe("userRepository (unit, mock db)", () => {
     const user = await service.addUser({
       id: "twitch111",
       username: "ChannelUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const channel1 = await mockDb.addChannel({ name: "Channel One" });
-    const channel2 = await mockDb.addChannel({ name: "Channel Two" });
+    const channel1 = await mockDb.addChannel({
+      id: "ch-user-1",
+      name: "Channel One",
+    });
+    const channel2 = await mockDb.addChannel({
+      id: "ch-user-2",
+      name: "Channel Two",
+    });
 
     await mockDb.addAre({
       userId: user.id,
@@ -113,10 +125,20 @@ describe("userRepository (unit, mock db)", () => {
     const user = await service.addUser({
       id: "twitch112",
       username: "MultiRoleUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const adminChannel = await mockDb.addChannel({ name: "Admin Channel" });
-    const modChannel = await mockDb.addChannel({ name: "Mod Channel" });
-    const userChannel = await mockDb.addChannel({ name: "User Channel" });
+    const adminChannel = await mockDb.addChannel({
+      id: "ch-admin",
+      name: "Admin Channel",
+    });
+    const modChannel = await mockDb.addChannel({
+      id: "ch-mod",
+      name: "Mod Channel",
+    });
+    const userChannel = await mockDb.addChannel({
+      id: "ch-user",
+      name: "User Channel",
+    });
 
     await mockDb.addAre({
       userId: user.id,
@@ -153,6 +175,7 @@ describe("userRepository (unit, mock db)", () => {
     const user = await service.addUser({
       id: "twitch222",
       username: "NoBadgeUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
 
     const badges = await service.getBadgesByUserId(user.id);
@@ -166,6 +189,7 @@ describe("userRepository (unit, mock db)", () => {
     const user = await service.addUser({
       id: "twitch333",
       username: "BadgeUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const badge1 = await mockDb.addBadge({
       title: "Gold Badge",
@@ -200,6 +224,7 @@ describe("userRepository (unit, mock db)", () => {
     const user = await service.addUser({
       id: "twitch444",
       username: "NoAchievementUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
 
     const achievements = await service.getAchievementsByUserId(user.id);
@@ -213,6 +238,7 @@ describe("userRepository (unit, mock db)", () => {
     const user = await service.addUser({
       id: "twitch555",
       username: "AchievementUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const achievement1 = await mockDb.addAchievement({
       title: "First Steps",
@@ -241,7 +267,10 @@ describe("userRepository (unit, mock db)", () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
 
-    const channel = await mockDb.addChannel({ name: "Empty Channel" });
+    const channel = await mockDb.addChannel({
+      id: "ch-empty",
+      name: "Empty Channel",
+    });
 
     const users = await service.getUsersByChannelId(channel.id);
     expect(users).toEqual([]);
@@ -254,12 +283,17 @@ describe("userRepository (unit, mock db)", () => {
     const user1 = await service.addUser({
       id: "twitch666",
       username: "User1",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const user2 = await service.addUser({
       id: "twitch777",
       username: "User2",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const channel = await mockDb.addChannel({ name: "Popular Channel" });
+    const channel = await mockDb.addChannel({
+      id: "ch-popular",
+      name: "Popular Channel",
+    });
 
     await mockDb.addAre({
       userId: user1.id,
@@ -290,16 +324,22 @@ describe("userRepository (unit, mock db)", () => {
     const admin = await service.addUser({
       id: "twitch_admin",
       username: "AdminUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const mod = await service.addUser({
       id: "twitch_mod",
       username: "ModUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const regular = await service.addUser({
       id: "twitch_regular",
       username: "RegularUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const channel = await mockDb.addChannel({ name: "TestChannel" });
+    const channel = await mockDb.addChannel({
+      id: "ch-test",
+      name: "TestChannel",
+    });
 
     await mockDb.addAre({
       userId: admin.id,
@@ -349,10 +389,12 @@ describe("userRepository (unit, mock db)", () => {
     const user1 = await service.addUser({
       id: "twitch888",
       username: "BadgeOwner1",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const user2 = await service.addUser({
       id: "twitch999",
       username: "BadgeOwner2",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const badge = await mockDb.addBadge({
       title: "Common Badge",
@@ -395,7 +437,7 @@ describe("userRepository (unit, mock db)", () => {
   it("getAchievementsByChannelId returns achievements for channel with typeAchievement", async () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
-    const ch = await mockDb.addChannel({ name: "AChannel" });
+    const ch = await mockDb.addChannel({ id: "ch-a", name: "AChannel" });
     await mockDb.addAchievement({
       title: "A1",
       description: "D1",
@@ -417,8 +459,9 @@ describe("userRepository (unit, mock db)", () => {
     const user = await service.addUser({
       id: "twitchU",
       username: "U",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ch = await mockDb.addChannel({ name: "Ch" });
+    const ch = await mockDb.addChannel({ id: "ch-user-ch", name: "Ch" });
     const ach = await mockDb.addAchievement({
       title: "A",
       description: "D",
@@ -451,8 +494,9 @@ describe("userRepository (unit, mock db)", () => {
     const user = await service.addUser({
       id: "twitchAu",
       username: "Au",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ch1 = await mockDb.addChannel({ name: "C1" });
+    const ch1 = await mockDb.addChannel({ id: "ch-c1", name: "C1" });
     const ach = await mockDb.addAchievement({
       title: "Ach",
       description: "D",
@@ -479,10 +523,12 @@ describe("userRepository (unit, mock db)", () => {
     const user1 = await service.addUser({
       id: "twitchA01",
       username: "Achiever1",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const user2 = await service.addUser({
       id: "twitchA02",
       username: "Achiever2",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const achievement = await mockDb.addAchievement({
       title: "Easy Achievement",

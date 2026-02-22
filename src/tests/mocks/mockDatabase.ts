@@ -86,6 +86,7 @@ export class MockDatabase implements Database {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    lastUpdateTimestamp: string;
   }): Promise<userDTO> {
     const newUser: userDTO = {
       id: user.id,
@@ -93,6 +94,7 @@ export class MockDatabase implements Database {
       profileImageUrl: user.profileImageUrl ?? null,
       channelDescription: user.channelDescription ?? null,
       scope: user.scope ?? null,
+      lastUpdateTimestamp: user.lastUpdateTimestamp,
     };
     this.users.push(newUser);
     return newUser;
@@ -109,6 +111,7 @@ export class MockDatabase implements Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      lastUpdateTimestamp?: string;
     },
   ): Promise<userDTO | null> {
     const user = this.users.find((u) => u.id === id);
@@ -119,6 +122,8 @@ export class MockDatabase implements Database {
     if (data.channelDescription !== undefined)
       user.channelDescription = data.channelDescription;
     if (data.scope !== undefined) user.scope = data.scope;
+    if (data.lastUpdateTimestamp !== undefined)
+      user.lastUpdateTimestamp = data.lastUpdateTimestamp;
     return user;
   }
 
@@ -126,10 +131,20 @@ export class MockDatabase implements Database {
     return this.channels.find((channel) => channel.id === id) ?? null;
   }
 
-  async addChannel(channel: { name: string }): Promise<channelDTO> {
-    const newC: channelDTO = { id: randomUUID(), name: channel.name };
+  async addChannel(channel: { id: string; name: string }): Promise<channelDTO> {
+    const newC: channelDTO = { id: channel.id, name: channel.name };
     this.channels.push(newC);
     return newC;
+  }
+
+  async updateChannel(
+    id: string,
+    data: { name?: string },
+  ): Promise<channelDTO | null> {
+    const channel = this.channels.find((c) => c.id === id);
+    if (!channel) return null;
+    if (data.name !== undefined) channel.name = data.name;
+    return channel;
   }
 
   async getTypeAchievementById(id: string): Promise<typeAchievementDTO | null> {
@@ -265,6 +280,14 @@ export class MockDatabase implements Database {
     );
   }
 
+  async getAreByUserId(userId: string): Promise<areDTO[]> {
+    return this.are.filter((record) => record.userId === userId);
+  }
+
+  async getAreByChannelId(channelId: string): Promise<areDTO[]> {
+    return this.are.filter((record) => record.channelId === channelId);
+  }
+
   async addAre(payload: {
     userId: string;
     channelId: string;
@@ -277,6 +300,28 @@ export class MockDatabase implements Database {
     };
     this.are.push(record);
     return record;
+  }
+
+  async updateAre(
+    userId: string,
+    channelId: string,
+    data: { userType?: string },
+  ): Promise<areDTO | null> {
+    const record = this.are.find(
+      (r) => r.userId === userId && r.channelId === channelId,
+    );
+    if (!record) return null;
+    if (data.userType !== undefined) record.userType = data.userType;
+    return record;
+  }
+
+  async deleteAre(userId: string, channelId: string): Promise<boolean> {
+    const index = this.are.findIndex(
+      (r) => r.userId === userId && r.channelId === channelId,
+    );
+    if (index === -1) return false;
+    this.are.splice(index, 1);
+    return true;
   }
 
   async getPossesses(
@@ -348,6 +393,7 @@ export class MockDatabase implements Database {
           profileImageUrl: user.profileImageUrl,
           channelDescription: user.channelDescription,
           scope: user.scope,
+          lastUpdateTimestamp: user.lastUpdateTimestamp,
           userType: areRecord.userType,
         };
       })

@@ -25,6 +25,7 @@ export type JsonHandlerResult =
       badges?: badgeDTO[];
       achieved?: achievedDTO | null;
       are?: areDTO | null;
+      records?: areDTO[];
       possesses?: possessesDTO | null;
     }
   | { ok: false; error: string };

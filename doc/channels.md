@@ -8,6 +8,7 @@ Creates a channel.
 
 | Field | Type   | Required | Description  |
 | ----- | ------ | -------- | ------------ |
+| id    | string | yes      | Channel ID   |
 | name  | string | yes      | Channel name |
 
 ### Responses
@@ -16,12 +17,18 @@ Creates a channel.
 
 ```json
 {
-  "id": "uuid",
+  "id": "channel-id",
   "name": "ChannelName"
 }
 ```
 
 **400 Bad Request**
+
+```json
+{
+  "error": "id required"
+}
+```
 
 ```json
 {
@@ -45,9 +52,9 @@ Returns a channel by ID.
 
 ### Path parameters
 
-| Name | Type   | Description       |
-| ---- | ------ | ----------------- |
-| id   | string | Channel ID (UUID) |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | Channel ID  |
 
 ### Responses
 
@@ -55,8 +62,53 @@ Returns a channel by ID.
 
 ```json
 {
-  "id": "uuid",
+  "id": "channel-id",
   "name": "ChannelName"
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## PUT /channels/:id
+
+Updates a channel by ID.
+
+### Path parameters
+
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | Channel ID  |
+
+### Body (JSON)
+
+| Field | Type   | Required | Description      |
+| ----- | ------ | -------- | ---------------- |
+| name  | string | no       | New channel name |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "channel-id",
+  "name": "NewChannelName"
 }
 ```
 

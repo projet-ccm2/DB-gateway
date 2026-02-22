@@ -170,6 +170,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl: u.profileImageUrl,
       channelDescription: u.channelDescription,
       scope: u.scope,
+      lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
     };
   }
 
@@ -179,6 +180,7 @@ export class PrismaDatabase implements Database {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    lastUpdateTimestamp: string;
   }): Promise<userDTO> {
     const u = await this.prisma.user.create({
       data: {
@@ -187,6 +189,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: user.profileImageUrl ?? null,
         channelDescription: user.channelDescription ?? null,
         scope: user.scope ?? null,
+        lastUpdateTimestamp: new Date(user.lastUpdateTimestamp),
       },
     });
     return {
@@ -195,6 +198,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl: u.profileImageUrl,
       channelDescription: u.channelDescription,
       scope: u.scope,
+      lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
     };
   }
 
@@ -207,12 +211,14 @@ export class PrismaDatabase implements Database {
         profileImageUrl: string | null;
         channelDescription: string | null;
         scope: string | null;
+        lastUpdateTimestamp: Date;
       }) => ({
         id: u.id,
         username: u.username,
         profileImageUrl: u.profileImageUrl,
         channelDescription: u.channelDescription,
         scope: u.scope,
+        lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
       }),
     );
   }
@@ -224,6 +230,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      lastUpdateTimestamp?: string;
     },
   ): Promise<userDTO | null> {
     // Build update payload with only provided fields
@@ -232,6 +239,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      lastUpdateTimestamp?: Date;
     } = {};
     if (data.username !== undefined) updateData.username = data.username;
     if (data.profileImageUrl !== undefined)
@@ -239,6 +247,8 @@ export class PrismaDatabase implements Database {
     if (data.channelDescription !== undefined)
       updateData.channelDescription = data.channelDescription;
     if (data.scope !== undefined) updateData.scope = data.scope;
+    if (data.lastUpdateTimestamp !== undefined)
+      updateData.lastUpdateTimestamp = new Date(data.lastUpdateTimestamp);
 
     try {
       const u = await this.prisma.user.update({
@@ -251,6 +261,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: u.profileImageUrl,
         channelDescription: u.channelDescription,
         scope: u.scope,
+        lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
       };
     } catch (error: unknown) {
       // Prisma throws P2025 when record not found
@@ -271,11 +282,37 @@ export class PrismaDatabase implements Database {
     return { id: c.id, name: c.name };
   }
 
-  async addChannel(channel: { name: string }): Promise<channelDTO> {
+  async addChannel(channel: { id: string; name: string }): Promise<channelDTO> {
     const c = await this.prisma.channel.create({
-      data: { name: channel.name },
+      data: { id: channel.id, name: channel.name },
     });
     return { id: c.id, name: c.name };
+  }
+
+  async updateChannel(
+    id: string,
+    data: { name?: string },
+  ): Promise<channelDTO | null> {
+    const updateData: { name?: string } = {};
+    if (data.name !== undefined) updateData.name = data.name;
+
+    try {
+      const c = await this.prisma.channel.update({
+        where: { id },
+        data: updateData,
+      });
+      return { id: c.id, name: c.name };
+    } catch (error: unknown) {
+      // Prisma throws P2025 when record not found
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        (error as { code: string }).code === "P2025"
+      ) {
+        return null;
+      }
+      throw error;
+    }
   }
 
   async getTypeAchievementById(id: string): Promise<typeAchievementDTO | null> {
@@ -471,6 +508,32 @@ export class PrismaDatabase implements Database {
     return { userId: r.userId, channelId: r.channelId, userType: r.userType };
   }
 
+  async getAreByUserId(userId: string): Promise<areDTO[]> {
+    const records = await this.prisma.are.findMany({
+      where: { userId },
+    });
+    return records.map(
+      (r: { userId: string; channelId: string; userType: string }) => ({
+        userId: r.userId,
+        channelId: r.channelId,
+        userType: r.userType,
+      }),
+    );
+  }
+
+  async getAreByChannelId(channelId: string): Promise<areDTO[]> {
+    const records = await this.prisma.are.findMany({
+      where: { channelId },
+    });
+    return records.map(
+      (r: { userId: string; channelId: string; userType: string }) => ({
+        userId: r.userId,
+        channelId: r.channelId,
+        userType: r.userType,
+      }),
+    );
+  }
+
   async addAre(payload: {
     userId: string;
     channelId: string;
@@ -488,6 +551,56 @@ export class PrismaDatabase implements Database {
       channelId: created.channelId,
       userType: created.userType,
     };
+  }
+
+  async updateAre(
+    userId: string,
+    channelId: string,
+    data: { userType?: string },
+  ): Promise<areDTO | null> {
+    const updateData: { userType?: string } = {};
+    if (data.userType !== undefined) updateData.userType = data.userType;
+
+    try {
+      const updated = await this.prisma.are.update({
+        // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
+        where: { userId_channelId: { userId, channelId } },
+        data: updateData,
+      });
+      return {
+        userId: updated.userId,
+        channelId: updated.channelId,
+        userType: updated.userType,
+      };
+    } catch (error: unknown) {
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        (error as { code: string }).code === "P2025"
+      ) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async deleteAre(userId: string, channelId: string): Promise<boolean> {
+    try {
+      await this.prisma.are.delete({
+        // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
+        where: { userId_channelId: { userId, channelId } },
+      });
+      return true;
+    } catch (error: unknown) {
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        (error as { code: string }).code === "P2025"
+      ) {
+        return false;
+      }
+      throw error;
+    }
   }
 
   async getPossesses(
@@ -589,6 +702,7 @@ export class PrismaDatabase implements Database {
           profileImageUrl: string | null;
           channelDescription: string | null;
           scope: string | null;
+          lastUpdateTimestamp: Date;
         };
         userType: string;
       }) => ({
@@ -597,6 +711,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: r.user.profileImageUrl,
         channelDescription: r.user.channelDescription,
         scope: r.user.scope,
+        lastUpdateTimestamp: r.user.lastUpdateTimestamp.toISOString(),
         userType: r.userType,
       }),
     );
@@ -615,6 +730,7 @@ export class PrismaDatabase implements Database {
           profileImageUrl: string | null;
           channelDescription: string | null;
           scope: string | null;
+          lastUpdateTimestamp: Date;
         };
       }) => ({
         id: r.user.id,
@@ -622,6 +738,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: r.user.profileImageUrl,
         channelDescription: r.user.channelDescription,
         scope: r.user.scope,
+        lastUpdateTimestamp: r.user.lastUpdateTimestamp.toISOString(),
       }),
     );
   }
@@ -639,6 +756,7 @@ export class PrismaDatabase implements Database {
           profileImageUrl: string | null;
           channelDescription: string | null;
           scope: string | null;
+          lastUpdateTimestamp: Date;
         };
       }) => ({
         id: r.user.id,
@@ -646,6 +764,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: r.user.profileImageUrl,
         channelDescription: r.user.channelDescription,
         scope: r.user.scope,
+        lastUpdateTimestamp: r.user.lastUpdateTimestamp.toISOString(),
       }),
     );
   }

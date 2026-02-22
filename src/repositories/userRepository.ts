@@ -45,6 +45,7 @@ export class UserRepository {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    lastUpdateTimestamp: string;
   }): Promise<userDTO> {
     return this.db.addUser(user);
   }
@@ -56,6 +57,7 @@ export class UserRepository {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      lastUpdateTimestamp?: string;
     },
   ): Promise<userDTO | null> {
     return this.db.updateUser(id, data);

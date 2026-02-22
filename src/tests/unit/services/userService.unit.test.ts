@@ -11,6 +11,7 @@ describe("UserService (unit)", () => {
     const u = await service.addUser({
       id: "twitch_svc",
       username: "svc",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     expect(u.id).toBe("twitch_svc");
     expect(u.username).toBe("svc");
@@ -22,7 +23,11 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const u = await service.addUser({ id: "t", username: "u" });
+    const u = await service.addUser({
+      id: "t",
+      username: "u",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const channels = await service.getChannelsByUserId(u.id);
     expect(channels).toEqual([]);
   });
@@ -31,7 +36,11 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const u = await service.addUser({ id: "t", username: "u" });
+    const u = await service.addUser({
+      id: "t",
+      username: "u",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const badges = await service.getBadgesByUserId(u.id);
     expect(badges).toEqual([]);
   });
@@ -40,7 +49,11 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const u = await service.addUser({ id: "t", username: "u" });
+    const u = await service.addUser({
+      id: "t",
+      username: "u",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const achievements = await service.getAchievementsByUserId(u.id);
     expect(achievements).toEqual([]);
   });
@@ -49,7 +62,7 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const ch = await db.addChannel({ name: "c1" });
+    const ch = await db.addChannel({ id: "ch-svc-users", name: "c1" });
     const users = await service.getUsersByChannelId(ch.id);
     expect(users).toEqual([]);
   });

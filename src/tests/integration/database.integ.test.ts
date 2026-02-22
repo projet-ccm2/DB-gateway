@@ -67,6 +67,7 @@ describe("UserRepository getById edge cases (integration)", () => {
     const user = await db.addUser({
       id: "twitch_empty_ch",
       username: "UserForEmptyCh_" + Date.now(),
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const data = await repo.getAchievementsByUserAndChannel(
       user.id,

@@ -43,7 +43,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("create returns 201 with channelId when provided", async () => {
-    const ch = await db.addChannel({ name: "Ch" });
+    const ch = await db.addChannel({ id: "ch-ach-ctrl-1", name: "Ch" });
     const req = {
       body: {
         title: "T2",
@@ -100,7 +100,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("getByChannelId returns 200 with array", async () => {
-    const ch = await db.addChannel({ name: "Ch" });
+    const ch = await db.addChannel({ id: "ch-ach-ctrl-2", name: "Ch" });
     await db.addAchievement({
       title: "A",
       description: "D",
@@ -132,8 +132,12 @@ describe("achievementsController (unit)", () => {
   });
 
   it("getAchievementsByUserAndChannel returns 200 with userId, channelId, achievements", async () => {
-    const user = await db.addUser({ id: "t", username: "U" });
-    const ch = await db.addChannel({ name: "Ch" });
+    const user = await db.addUser({
+      id: "t",
+      username: "U",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const ch = await db.addChannel({ id: "ch-ach-ctrl-3", name: "Ch" });
     const req = {
       params: { userId: user.id, channelId: ch.id },
     } as unknown as Request;

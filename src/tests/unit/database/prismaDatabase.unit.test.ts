@@ -4,8 +4,10 @@ interface MockUserData {
   profileImageUrl?: string | null;
   channelDescription?: string | null;
   scope?: string | null;
+  lastUpdateTimestamp: Date | string;
 }
 interface MockChannelData {
+  id: string;
   name: string;
 }
 interface MockTypeData {
@@ -108,6 +110,10 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                   profileImageUrl: data.profileImageUrl ?? null,
                   channelDescription: data.channelDescription ?? null,
                   scope: data.scope ?? null,
+                  lastUpdateTimestamp:
+                    typeof data.lastUpdateTimestamp === "string"
+                      ? new Date(data.lastUpdateTimestamp)
+                      : data.lastUpdateTimestamp,
                 };
                 this._users.set(data.id, row);
                 return row;
@@ -138,10 +144,28 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
               findUnique: async ({ where }: { where: { id: string } }) =>
                 this._channels.get(where.id) ?? null,
               create: async ({ data }: { data: MockChannelData }) => {
-                const id = "c_" + Math.random().toString(36).slice(2, 8);
-                const row = { id, name: data.name };
-                this._channels.set(id, row);
+                const row = { id: data.id, name: data.name };
+                this._channels.set(data.id, row);
                 return row;
+              },
+              update: async ({
+                where,
+                data,
+              }: {
+                where: { id: string };
+                data: Partial<MockChannelData>;
+              }) => {
+                const existing = this._channels.get(where.id);
+                if (!existing) {
+                  const err = new Error("Record not found") as Error & {
+                    code: string;
+                  };
+                  err.code = "P2025";
+                  throw err;
+                }
+                const updated = { ...existing, ...data };
+                this._channels.set(where.id, updated);
+                return updated;
               },
             };
 
@@ -373,6 +397,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       const addedUser = await db.addUser({
         id: "twitch_alice",
         username: "alice",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
       });
       expect(addedUser.username).toBe("alice");
       expect(addedUser.id).toBe("twitch_alice");
@@ -380,7 +405,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       expect(gotUser?.id).toBe(addedUser.id);
       expect(await db.getUserById("nope")).toBeNull();
 
-      const ch = await db.addChannel({ name: "ch1" });
+      const ch = await db.addChannel({ id: "ch-test-1", name: "ch1" });
       expect(ch.name).toBe("ch1");
       expect((await db.getChannelById(ch.id))?.id).toBe(ch.id);
 

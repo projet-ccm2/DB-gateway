@@ -9,5 +9,9 @@ export function createAreRoutes(db: Database): express.Router {
   const c = createAreController(repo);
   router.post("/", c.create);
   router.get("/", c.get);
+  router.get("/user/:userId", c.getByUserId);
+  router.get("/channel/:channelId", c.getByChannelId);
+  router.put("/:userId/:channelId", c.update);
+  router.delete("/:userId/:channelId", c.delete);
   return router;
 }

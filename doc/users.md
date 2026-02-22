@@ -15,7 +15,8 @@ Returns all users.
     "username": "string",
     "profileImageUrl": null,
     "channelDescription": null,
-    "scope": null
+    "scope": null,
+    "lastUpdateTimestamp": "2026-02-20T12:00:00.000Z"
   }
 ]
 ```
@@ -36,13 +37,14 @@ Creates a user.
 
 ### Body (JSON)
 
-| Field              | Type           | Required | Description         |
-| ------------------ | -------------- | -------- | ------------------- |
-| id                 | string         | yes      | Twitch user ID      |
-| username           | string         | yes      | Username            |
-| profileImageUrl    | string \| null | no       | Avatar URL          |
-| channelDescription | string \| null | no       | Channel description |
-| scope              | string \| null | no       | OAuth scope         |
+| Field               | Type           | Required | Description                    |
+| ------------------- | -------------- | -------- | ------------------------------ |
+| id                  | string         | yes      | Twitch user ID                 |
+| username            | string         | yes      | Username                       |
+| profileImageUrl     | string \| null | no       | Avatar URL                     |
+| channelDescription  | string \| null | no       | Channel description            |
+| scope               | string \| null | no       | OAuth scope                    |
+| lastUpdateTimestamp | string         | yes      | ISO 8601 datetime of last update |
 
 ### Responses
 
@@ -54,7 +56,8 @@ Creates a user.
   "username": "string",
   "profileImageUrl": null,
   "channelDescription": null,
-  "scope": null
+  "scope": null,
+  "lastUpdateTimestamp": "2026-02-20T12:00:00.000Z"
 }
 ```
 
@@ -62,7 +65,7 @@ Creates a user.
 
 ```json
 {
-  "error": "username and id required"
+  "error": "username, id and lastUpdateTimestamp required"
 }
 ```
 
@@ -120,12 +123,13 @@ Updates a user by ID.
 
 ### Body (JSON)
 
-| Field              | Type           | Required | Description         |
-| ------------------ | -------------- | -------- | ------------------- |
-| username           | string         | no       | Username            |
-| profileImageUrl    | string \| null | no       | Avatar URL          |
-| channelDescription | string \| null | no       | Channel description |
-| scope              | string \| null | no       | OAuth scope         |
+| Field               | Type           | Required | Description                    |
+| ------------------- | -------------- | -------- | ------------------------------ |
+| username            | string         | no       | Username                       |
+| profileImageUrl     | string \| null | no       | Avatar URL                     |
+| channelDescription  | string \| null | no       | Channel description            |
+| scope               | string \| null | no       | OAuth scope                    |
+| lastUpdateTimestamp | string         | no       | ISO 8601 datetime of last update |
 
 ### Responses
 

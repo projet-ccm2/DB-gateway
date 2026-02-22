@@ -16,7 +16,11 @@ describe("possessesController (unit)", () => {
   };
 
   it("create returns 201 when userId, badgeId, acquiredDate provided", async () => {
-    const user = await db.addUser({ id: "t", username: "u" });
+    const user = await db.addUser({
+      id: "t",
+      username: "u",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const badge = await db.addBadge({ title: "B", img: "i.png" });
     const req = {
       body: {
@@ -66,7 +70,11 @@ describe("possessesController (unit)", () => {
   });
 
   it("get returns 200 when found", async () => {
-    const user = await db.addUser({ id: "t2", username: "u2" });
+    const user = await db.addUser({
+      id: "t2",
+      username: "u2",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const badge = await db.addBadge({ title: "B2", img: "i2.png" });
     await db.addPossesses({
       userId: user.id,

@@ -19,6 +19,7 @@ export type GatewayRepo = {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      lastUpdateTimestamp: string;
     }): Promise<userDTO>;
     getUserById(id: string): Promise<userDTO | null>;
     getAllUsers(): Promise<userDTO[]>;
@@ -29,6 +30,7 @@ export type GatewayRepo = {
         profileImageUrl?: string | null;
         channelDescription?: string | null;
         scope?: string | null;
+        lastUpdateTimestamp?: string;
       },
     ): Promise<userDTO | null>;
     getChannelsByUserId(userId: string): Promise<userChannelDTO[]>;
@@ -39,8 +41,12 @@ export type GatewayRepo = {
     getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
   };
   channel: {
-    addChannel(name: string): Promise<channelDTO>;
+    addChannel(id: string, name: string): Promise<channelDTO>;
     getChannelById(id: string): Promise<channelDTO | null>;
+    updateChannel(
+      id: string,
+      data: { name?: string },
+    ): Promise<channelDTO | null>;
   };
   typeAchievement: {
     addTypeAchievement(
@@ -84,6 +90,14 @@ export type GatewayRepo = {
       userType: string,
     ): Promise<areDTO>;
     getAre(userId: string, channelId: string): Promise<areDTO | null>;
+    getAreByUserId(userId: string): Promise<areDTO[]>;
+    getAreByChannelId(channelId: string): Promise<areDTO[]>;
+    updateAre(
+      userId: string,
+      channelId: string,
+      data: { userType?: string },
+    ): Promise<areDTO | null>;
+    deleteAre(userId: string, channelId: string): Promise<boolean>;
   };
   possesses: {
     addPossesses(

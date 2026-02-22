@@ -12,12 +12,19 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
+          lastUpdateTimestamp?: string;
         };
-        const { id, username, profileImageUrl, channelDescription, scope } =
-          body;
-        if (!username || !id) {
+        const {
+          id,
+          username,
+          profileImageUrl,
+          channelDescription,
+          scope,
+          lastUpdateTimestamp,
+        } = body;
+        if (!username || !id || !lastUpdateTimestamp) {
           res.status(BAD_REQUEST).json({
-            error: "username and id required",
+            error: "username, id and lastUpdateTimestamp required",
           });
           return;
         }
@@ -27,6 +34,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl: profileImageUrl ?? null,
           channelDescription: channelDescription ?? null,
           scope: scope ?? null,
+          lastUpdateTimestamp,
         });
         res.status(201).json(user);
       } catch (err: unknown) {
@@ -64,6 +72,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
+          lastUpdateTimestamp?: string;
         };
         // If username is provided in the update payload, enforce that it is non-empty
         if ("username" in body && !body.username) {

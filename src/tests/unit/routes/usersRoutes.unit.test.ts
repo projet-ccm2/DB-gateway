@@ -8,17 +8,27 @@ describe("usersRoutes (unit)", () => {
     const app = express();
     app.use(express.json());
     app.use("/", createUsersRoutes(new MockDatabase()));
-    const res = await request(app)
-      .post("/")
-      .send({ id: "twitch1", username: "u1" });
+    const res = await request(app).post("/").send({
+      id: "twitch1",
+      username: "u1",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     expect(res.status).toBe(201);
     expect(res.body).toMatchObject({ id: "twitch1", username: "u1" });
   });
 
   it("GET / returns all users", async () => {
     const db = new MockDatabase();
-    await db.addUser({ id: "twitch1", username: "u1" });
-    await db.addUser({ id: "twitch2", username: "u2" });
+    await db.addUser({
+      id: "twitch1",
+      username: "u1",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await db.addUser({
+      id: "twitch2",
+      username: "u2",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const app = express();
     app.use("/", createUsersRoutes(db));
     const res = await request(app).get("/");
@@ -28,7 +38,11 @@ describe("usersRoutes (unit)", () => {
 
   it("GET /:id returns 200 when user exists", async () => {
     const db = new MockDatabase();
-    const user = await db.addUser({ id: "twitch2", username: "u2" });
+    const user = await db.addUser({
+      id: "twitch2",
+      username: "u2",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const app = express();
     app.use("/", createUsersRoutes(db));
     const res = await request(app).get(`/${user.id}`);
@@ -38,7 +52,11 @@ describe("usersRoutes (unit)", () => {
 
   it("PUT /:id updates user and returns 200", async () => {
     const db = new MockDatabase();
-    await db.addUser({ id: "twitch3", username: "u3" });
+    await db.addUser({
+      id: "twitch3",
+      username: "u3",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
     const app = express();
     app.use(express.json());
     app.use("/", createUsersRoutes(db));
