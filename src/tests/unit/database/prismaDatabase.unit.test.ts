@@ -468,6 +468,26 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       expect(updatedUser?.channelDescription).toBe("New description");
       expect(updatedUser?.scope).toBe("read:user");
 
+      // Test updateUser with lastUpdateTimestamp
+      const updatedUserWithTimestamp = await db.updateUser("twitch_alice", {
+        lastUpdateTimestamp: "2024-06-15T12:30:00.000Z",
+      });
+      expect(updatedUserWithTimestamp?.lastUpdateTimestamp).toBe(
+        "2024-06-15T12:30:00.000Z",
+      );
+
+      // Test updateChannel
+      const updatedChannel = await db.updateChannel(ch.id, {
+        name: "UpdatedChannelName",
+      });
+      expect(updatedChannel?.name).toBe("UpdatedChannelName");
+
+      // Test updateChannel for non-existent channel
+      const nonExistentChannelUpdate = await db.updateChannel("nonexistent", {
+        name: "test",
+      });
+      expect(nonExistentChannelUpdate).toBeNull();
+
       // Test updateUser for non-existent user
       const nonExistentUpdate = await db.updateUser("nonexistent", {
         username: "test",
