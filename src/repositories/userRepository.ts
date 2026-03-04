@@ -1,0 +1,89 @@
+import {
+  Database,
+  userDTO,
+  userChannelDTO,
+  channelUserDTO,
+  badgeDTO,
+  achievedDTO,
+  achievementWithTypeDTO,
+  userChannelAchievementsDTO,
+} from "../database/database";
+
+export class UserRepository {
+  async getAchievementsByChannelId(
+    channelId: string,
+  ): Promise<achievementWithTypeDTO[]> {
+    return this.db.getAchievementsByChannelId(channelId);
+  }
+
+  async getAchievementsByUserAndChannel(
+    userId: string,
+    channelId: string,
+  ): Promise<userChannelAchievementsDTO> {
+    return this.db.getAchievementsByUserAndChannel(userId, channelId);
+  }
+
+  async getAchievedByUserAndChannels(
+    userId: string,
+    channelIds: string[],
+  ): Promise<achievedDTO[]> {
+    return this.db.getAchievedByUserAndChannels(userId, channelIds);
+  }
+  constructor(private readonly db: Database) {}
+
+  async getUserById(id: string): Promise<userDTO | null> {
+    return this.db.getUserById(id);
+  }
+
+  async getAllUsers(): Promise<userDTO[]> {
+    return this.db.getAllUsers();
+  }
+
+  async addUser(user: {
+    id: string;
+    username: string;
+    profileImageUrl?: string | null;
+    channelDescription?: string | null;
+    scope?: string | null;
+    lastUpdateTimestamp: string;
+  }): Promise<userDTO> {
+    return this.db.addUser(user);
+  }
+
+  async updateUser(
+    id: string,
+    data: {
+      username?: string;
+      profileImageUrl?: string | null;
+      channelDescription?: string | null;
+      scope?: string | null;
+      lastUpdateTimestamp?: string;
+    },
+  ): Promise<userDTO | null> {
+    return this.db.updateUser(id, data);
+  }
+
+  async getChannelsByUserId(userId: string): Promise<userChannelDTO[]> {
+    return this.db.getChannelsByUserId(userId);
+  }
+
+  async getBadgesByUserId(userId: string): Promise<badgeDTO[]> {
+    return this.db.getBadgesByUserId(userId);
+  }
+
+  async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
+    return this.db.getAchievementsByUserId(userId);
+  }
+
+  async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
+    return this.db.getUsersByChannelId(channelId);
+  }
+
+  async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {
+    return this.db.getUsersByBadgeId(badgeId);
+  }
+
+  async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
+    return this.db.getUsersByAchievementId(achievementId);
+  }
+}
