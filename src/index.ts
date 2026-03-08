@@ -3,6 +3,7 @@ import type { Database } from "./database/database";
 import { PrismaDatabase } from "./database/prismaDatabase";
 import { mountRoutes } from "./routes";
 import { config } from "./config/environment";
+import { vpcAuthMiddleware } from "./middlewares/vpcAuthMiddleware";
 import { logger } from "./utils/logger";
 
 export interface Gateway {
@@ -18,6 +19,7 @@ export function createApp(db: Database): express.Express {
   const app = express();
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use(vpcAuthMiddleware(config));
   mountRoutes(app, db);
   return app;
 }
