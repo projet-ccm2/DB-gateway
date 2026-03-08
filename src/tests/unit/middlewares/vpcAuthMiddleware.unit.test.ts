@@ -8,7 +8,9 @@ import { MockDatabase } from "../../mocks";
 
 const TEST_SECRET = "test-secret";
 
-function createAppWithMiddleware(config: Pick<Config, "nodeEnv" | "jwtSecret">): express.Express {
+function createAppWithMiddleware(
+  config: Pick<Config, "nodeEnv" | "jwtSecret">,
+): express.Express {
   const app = express();
   app.use(express.json());
   app.use(vpcAuthMiddleware(config as Config));
@@ -21,7 +23,7 @@ function createValidToken(secret: string): string {
   return jwt.sign(
     { aud: "vpc-db-gateway", iat: Math.floor(Date.now() / 1000) },
     secret,
-    { expiresIn: 3600 }
+    { expiresIn: 3600 },
   );
 }
 
@@ -95,7 +97,7 @@ describe("vpcAuthMiddleware (unit)", () => {
       const expiredToken = jwt.sign(
         { aud: "vpc-db-gateway", iat: Math.floor(Date.now() / 1000) - 7200 },
         TEST_SECRET,
-        { expiresIn: "-1h" }
+        { expiresIn: "-1h" },
       );
       const res = await request(app)
         .get("/protected")

@@ -88,9 +88,9 @@ API is available at `http://localhost:3000` (or the `PORT` from your environment
 
 DB-gateway is a **private service** (int/prod). Authentication follows the [VPC Token Integration](https://github.com/projet-ccm2/user-management/blob/main/docs/VPC_TOKEN_INTEGRATION.md) guide.
 
-| Environment   | Token required | Headers                                                                 |
-| ------------- | -------------- | ----------------------------------------------------------------------- |
-| **Development** | None          | No auth required when `NODE_ENV=development`                             |
+| Environment                  | Token required               | Headers                                                                |
+| ---------------------------- | ---------------------------- | ---------------------------------------------------------------------- |
+| **Development**              | None                         | No auth required when `NODE_ENV=development`                           |
 | **Integration / Production** | VPC JWT + GCP Identity Token | `Authorization: Bearer <gcp-identity-token>`, `X-VPC-Token: <vpc-jwt>` |
 
 - **Development**: No token required. The service accepts unauthenticated requests.
