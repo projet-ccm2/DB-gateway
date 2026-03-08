@@ -4,11 +4,6 @@ import type { Config } from "../config/environment";
 
 const VPC_AUDIENCE = "vpc-db-gateway";
 
-/**
- * Extracts the VPC JWT from the request.
- * Production: JWT in X-VPC-Token (Authorization = GCP identity token).
- * Development: JWT in Authorization (no GCP token).
- */
 export function extractVpcToken(req: Request): string | null {
   const vpcToken = req.headers["x-vpc-token"] as string;
   if (vpcToken) return vpcToken;
@@ -21,10 +16,6 @@ export function extractVpcToken(req: Request): string | null {
   return null;
 }
 
-/**
- * Middleware that validates the VPC JWT for application-level auth.
- * Skips validation in development/test or for /health requests.
- */
 export function vpcAuthMiddleware(config: Config) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const { nodeEnv, jwtSecret } = config;
