@@ -37,13 +37,13 @@ Creates a user.
 
 ### Body (JSON)
 
-| Field               | Type           | Required | Description                    |
-| ------------------- | -------------- | -------- | ------------------------------ |
-| id                  | string         | yes      | Twitch user ID                 |
-| username            | string         | yes      | Username                       |
-| profileImageUrl     | string \| null | no       | Avatar URL                     |
-| channelDescription  | string \| null | no       | Channel description            |
-| scope               | string \| null | no       | OAuth scope                    |
+| Field               | Type           | Required | Description                      |
+| ------------------- | -------------- | -------- | -------------------------------- |
+| id                  | string         | yes      | Twitch user ID                   |
+| username            | string         | yes      | Username                         |
+| profileImageUrl     | string \| null | no       | Avatar URL                       |
+| channelDescription  | string \| null | no       | Channel description              |
+| scope               | string \| null | no       | OAuth scope                      |
 | lastUpdateTimestamp | string         | yes      | ISO 8601 datetime of last update |
 
 ### Responses
@@ -85,9 +85,9 @@ Returns a user by ID.
 
 ### Path parameters
 
-| Name | Type   | Description    |
-| ---- | ------ | -------------- |
-| id   | string | User ID |
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | User ID     |
 
 ### Responses
 
@@ -123,12 +123,12 @@ Updates a user by ID.
 
 ### Body (JSON)
 
-| Field               | Type           | Required | Description                    |
-| ------------------- | -------------- | -------- | ------------------------------ |
-| username            | string         | no       | Username                       |
-| profileImageUrl     | string \| null | no       | Avatar URL                     |
-| channelDescription  | string \| null | no       | Channel description            |
-| scope               | string \| null | no       | OAuth scope                    |
+| Field               | Type           | Required | Description                      |
+| ------------------- | -------------- | -------- | -------------------------------- |
+| username            | string         | no       | Username                         |
+| profileImageUrl     | string \| null | no       | Avatar URL                       |
+| channelDescription  | string \| null | no       | Channel description              |
+| scope               | string \| null | no       | OAuth scope                      |
 | lastUpdateTimestamp | string         | no       | ISO 8601 datetime of last update |
 
 ### Responses

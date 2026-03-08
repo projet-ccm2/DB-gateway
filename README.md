@@ -84,6 +84,22 @@ API is available at `http://localhost:3000` (or the `PORT` from your environment
 
 ---
 
+## VPC Authentication
+
+DB-gateway is a **private service** (int/prod). Authentication follows the [VPC Token Integration](https://github.com/projet-ccm2/user-management/blob/main/docs/VPC_TOKEN_INTEGRATION.md) guide.
+
+| Environment                  | Token required               | Headers                                                                |
+| ---------------------------- | ---------------------------- | ---------------------------------------------------------------------- |
+| **Development**              | None                         | No auth required when `NODE_ENV=development`                           |
+| **Integration / Production** | VPC JWT + GCP Identity Token | `Authorization: Bearer <gcp-identity-token>`, `X-VPC-Token: <vpc-jwt>` |
+
+- **Development**: No token required. The service accepts unauthenticated requests.
+- **Integration / Production**: Callers must obtain a VPC JWT from user-management (`POST /tokens`) and send it in `X-VPC-Token`. Cloud Run requires a GCP identity token in `Authorization`.
+
+**Environment variable**: `JWT_SECRET` is required in int/prod (must match user-management). In development, a default is used.
+
+---
+
 ## Accessing the database
 
 With the container running (`npm run dev:db`):
@@ -105,7 +121,9 @@ docker exec -it mysql_db_gateway mysql -u root -p
 ```
 src/
 ├── config/
-│   └── environment.ts       # Config (port, databaseUrl, cors)
+│   └── environment.ts       # Config (port, databaseUrl, jwtSecret, cors)
+├── middlewares/
+│   └── vpcAuthMiddleware.ts  # VPC JWT validation (X-VPC-Token / Authorization)
 ├── controllers/             # HTTP handlers (one per resource)
 │   ├── helpers.ts           # HTTP constants, paramId, queryString, sendInternalError
 │   ├── healthController.ts
