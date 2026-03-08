@@ -2,6 +2,7 @@ export interface Config {
   port: number;
   nodeEnv: string;
   databaseUrl: string;
+  jwtSecret: string;
   cors: {
     allowedOrigins: string[];
   };
@@ -17,6 +18,7 @@ function validateConfig(): Config {
     port: Number.parseInt(getEnv("PORT", "3000"), 10),
     nodeEnv: getEnv("NODE_ENV", "development"),
     databaseUrl: getEnv("DATABASE_URL", ""),
+    jwtSecret: getEnv("JWT_SECRET", "dev-secret-change-in-production"),
     cors: {
       allowedOrigins: getEnv("ALLOWED_ORIGINS", "").length
         ? getEnv("ALLOWED_ORIGINS", "")

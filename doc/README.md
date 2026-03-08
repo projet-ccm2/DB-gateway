@@ -20,4 +20,13 @@ Swagger-style (Markdown) documentation of all HTTP routes exposed by the DB-Gate
 
 - **Base URL**: `http://localhost:3000` (or the value of `PORT`).
 - **Content-Type**: `application/json` for request and response bodies.
-- **Status codes**: `200` OK, `201` Created, `400` Bad Request, `404` Not Found, `500` Internal Server Error, `503` Service Unavailable.
+- **Status codes**: `200` OK, `201` Created, `400` Bad Request, `401` Unauthorized, `404` Not Found, `500` Internal Server Error, `503` Service Unavailable.
+
+## Authentication (Integration / Production)
+
+In integration and production, all routes except `/health` require:
+
+- `Authorization: Bearer <gcp-identity-token>` (Cloud Run)
+- `X-VPC-Token: <vpc-jwt>` (application-level auth, from user-management `POST /tokens`)
+
+In development, no authentication is required.
