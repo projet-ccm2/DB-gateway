@@ -97,6 +97,9 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
           are!: unknown;
           possesses!: unknown;
           $disconnect!: () => Promise<void>;
+          $transaction!: (
+            fn: (tx: unknown) => Promise<unknown>,
+          ) => Promise<unknown>;
 
           constructor() {
             this._users = new Map();
@@ -236,7 +239,13 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 include?: unknown;
               }) => {
                 const row = this._achievements.get(where.id);
-                if (!row) return null;
+                if (!row) {
+                  const err = new Error("Record not found") as Error & {
+                    code: string;
+                  };
+                  err.code = "P2025";
+                  throw err;
+                }
                 const { type: typeNested, ...rest } = data;
                 Object.assign(row, rest);
                 if (typeNested?.update && row.typeId) {
@@ -522,6 +531,8 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.$disconnect = async () => {};
+            this.$transaction = async (fn: (tx: unknown) => Promise<unknown>) =>
+              fn(this);
           }
         },
       };

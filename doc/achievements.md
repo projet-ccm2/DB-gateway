@@ -68,7 +68,7 @@ Creates an achievement.
 
 ## DELETE /achievements/:achievementId
 
-Permanently deletes an achievement definition, its related type, and all achieved records. Returns the deleted achievement payload (including `channelId`) so the caller can invalidate caches.
+Permanently deletes an achievement definition and all its achieved records (atomically). Returns the deleted achievement payload (including `channelId`) so the caller can invalidate caches.
 
 ### Path parameters
 

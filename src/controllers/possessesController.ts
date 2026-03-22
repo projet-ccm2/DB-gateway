@@ -31,6 +31,14 @@ export function createPossessesController(repo: PossessesRepository) {
         const possesses = await repo.add(userId, badgeId, acquiredDate);
         res.status(201).json(possesses);
       } catch (err: unknown) {
+        if (
+          err instanceof Error &&
+          "code" in err &&
+          (err as { code: string }).code === "P2002"
+        ) {
+          res.status(CONFLICT).json({ error: "already exists" });
+          return;
+        }
         sendInternalError(res, "POST /possesses error", err);
       }
     },
