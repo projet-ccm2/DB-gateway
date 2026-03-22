@@ -124,8 +124,11 @@ function makeRepoMock(): GatewayRepo {
         if (data.name !== undefined) channel.name = data.name;
         return channel;
       },
-      getBadgeByChannelId: async (channelId: string) =>
-        badges.find((b) => b.channelId === channelId) ?? null,
+      getBadgeByChannelId: async (channelId: string) => {
+        const b = badges.find((b) => b.channelId === channelId);
+        if (!b) return null;
+        return { id: b.id, title: b.title, img: b.img };
+      },
     },
     typeAchievement: {
       addTypeAchievement: async (label: string, data: string) => {
@@ -239,8 +242,11 @@ function makeRepoMock(): GatewayRepo {
         badges.push(b);
         return { id: b.id, title: b.title, img: b.img };
       },
-      getBadgeById: async (id: string) =>
-        badges.find((b) => b.id === id) ?? null,
+      getBadgeById: async (id: string) => {
+        const b = badges.find((b) => b.id === id);
+        if (!b) return null;
+        return { id: b.id, title: b.title, img: b.img };
+      },
     },
     achieved: {
       addAchieved: async (a: achievedDTO) => {

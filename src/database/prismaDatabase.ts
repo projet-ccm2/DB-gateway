@@ -380,10 +380,6 @@ export class PrismaDatabase implements Database {
     id: string,
     data: AchievementUpdateData,
   ): Promise<achievementDTO | null> {
-    const existing = await this.prisma.achievement.findUnique({
-      where: { id },
-    });
-    if (!existing) return null;
     const { typeLabel, typeData: typeDataVal, ...achievementData } = data;
     const typeUpdate =
       typeLabel !== undefined || typeDataVal !== undefined
@@ -396,15 +392,17 @@ export class PrismaDatabase implements Database {
             },
           }
         : {};
-    const updated = await this.prisma.achievement.update({
-      where: { id },
-      data: {
-        ...achievementData,
-        ...typeUpdate,
-      },
-      include: { type: true },
+    return handleP2025(async () => {
+      const updated = await this.prisma.achievement.update({
+        where: { id },
+        data: {
+          ...achievementData,
+          ...typeUpdate,
+        },
+        include: { type: true },
+      });
+      return toAchievementDTO(updated);
     });
-    return toAchievementDTO(updated);
   }
 
   async deleteAchievement(id: string): Promise<achievementDTO | null> {
@@ -413,11 +411,13 @@ export class PrismaDatabase implements Database {
       include: { type: true },
     });
     if (!existing) return null;
-    await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
-      await tx.achieved.deleteMany({ where: { achievementId: id } });
-      await tx.achievement.delete({ where: { id } });
+    return handleP2025(async () => {
+      await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+        await tx.achieved.deleteMany({ where: { achievementId: id } });
+        await tx.achievement.delete({ where: { id } });
+      });
+      return toAchievementDTO(existing);
     });
-    return toAchievementDTO(existing);
   }
 
   async addAchievement(achievement: AchievementInput): Promise<achievementDTO> {
