@@ -19,6 +19,11 @@ import {
   AchievedPayload,
 } from "./database";
 
+type PrismaTransactionClient = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
+>;
+
 /* ── Prisma row shapes used by mapper helpers ── */
 
 type PrismaUser = {
@@ -408,7 +413,7 @@ export class PrismaDatabase implements Database {
       include: { type: true },
     });
     if (!existing) return null;
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
       await tx.achieved.deleteMany({ where: { achievementId: id } });
       await tx.achievement.delete({ where: { id } });
     });
@@ -416,32 +421,34 @@ export class PrismaDatabase implements Database {
   }
 
   async addAchievement(achievement: AchievementInput): Promise<achievementDTO> {
-    const created = await this.prisma.$transaction(async (tx) => {
-      const t = await tx.typeAchievement.create({
-        data: {
-          label: achievement.typeLabel,
-          data: achievement.typeData,
-        },
-      });
-      return tx.achievement.create({
-        data: {
-          title: achievement.title,
-          description: achievement.description,
-          goal: achievement.goal,
-          reward: achievement.reward,
-          label: achievement.label,
-          public: achievement.public,
-          downloads: 0,
-          visits: 0,
-          active: achievement.active,
-          secret: achievement.secret,
-          image: achievement.image,
-          channelId: achievement.channelId ?? undefined,
-          typeId: t.id,
-        },
-        include: { type: true },
-      });
-    });
+    const created = await this.prisma.$transaction(
+      async (tx: PrismaTransactionClient) => {
+        const t = await tx.typeAchievement.create({
+          data: {
+            label: achievement.typeLabel,
+            data: achievement.typeData,
+          },
+        });
+        return tx.achievement.create({
+          data: {
+            title: achievement.title,
+            description: achievement.description,
+            goal: achievement.goal,
+            reward: achievement.reward,
+            label: achievement.label,
+            public: achievement.public,
+            downloads: 0,
+            visits: 0,
+            active: achievement.active,
+            secret: achievement.secret,
+            image: achievement.image,
+            channelId: achievement.channelId ?? undefined,
+            typeId: t.id,
+          },
+          include: { type: true },
+        });
+      },
+    );
     return toAchievementDTO(created);
   }
 
