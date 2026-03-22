@@ -17,6 +17,12 @@ describe("achievedRoutes (unit)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
     const app = express();
     app.use(express.json());
@@ -46,6 +52,12 @@ describe("achievedRoutes (unit)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
     await db.addAchieved({
       achievementId: ach.id,

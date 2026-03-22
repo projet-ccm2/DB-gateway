@@ -17,6 +17,51 @@ import {
 } from "./database";
 
 export class PrismaDatabase implements Database {
+  async getPublicAchievements(): Promise<achievementWithTypeDTO[]> {
+    const achievements = await this.prisma.achievement.findMany({
+      where: { public: true },
+      include: { type: true },
+      orderBy: { id: "asc" },
+    });
+    return achievements.map(
+      (achievement: {
+        id: string;
+        title: string;
+        description: string;
+        goal: number;
+        reward: number;
+        label: string;
+        public: boolean;
+        downloads: number;
+        visits: number;
+        active: boolean;
+        secret: boolean;
+        image: string;
+        channelId: string | null;
+        type: { id: string; label: string; data: string };
+      }) => ({
+        id: achievement.id,
+        title: achievement.title,
+        description: achievement.description,
+        goal: achievement.goal,
+        reward: achievement.reward,
+        label: achievement.label,
+        public: achievement.public,
+        downloads: achievement.downloads,
+        visits: achievement.visits,
+        active: achievement.active,
+        secret: achievement.secret,
+        image: achievement.image,
+        channelId: achievement.channelId,
+        typeAchievement: {
+          id: achievement.type.id,
+          label: achievement.type.label,
+          data: achievement.type.data,
+        },
+      }),
+    );
+  }
+
   async getAchievementsByChannelId(
     channelId: string,
   ): Promise<achievementWithTypeDTO[]> {
@@ -33,7 +78,14 @@ export class PrismaDatabase implements Database {
         goal: number;
         reward: number;
         label: string;
-        type: { id: string; label: string; data: string } | null;
+        public: boolean;
+        downloads: number;
+        visits: number;
+        active: boolean;
+        secret: boolean;
+        image: string;
+        channelId: string | null;
+        type: { id: string; label: string; data: string };
       }) => ({
         id: achievement.id,
         title: achievement.title,
@@ -41,13 +93,18 @@ export class PrismaDatabase implements Database {
         goal: achievement.goal,
         reward: achievement.reward,
         label: achievement.label,
-        typeAchievement: achievement.type
-          ? {
-              id: achievement.type.id,
-              label: achievement.type.label,
-              data: achievement.type.data,
-            }
-          : null,
+        public: achievement.public,
+        downloads: achievement.downloads,
+        visits: achievement.visits,
+        active: achievement.active,
+        secret: achievement.secret,
+        image: achievement.image,
+        channelId: achievement.channelId,
+        typeAchievement: {
+          id: achievement.type.id,
+          label: achievement.type.label,
+          data: achievement.type.data,
+        },
       }),
     );
   }
@@ -72,7 +129,14 @@ export class PrismaDatabase implements Database {
         goal: number;
         reward: number;
         label: string;
-        type: { id: string; label: string; data: string } | null;
+        public: boolean;
+        downloads: number;
+        visits: number;
+        active: boolean;
+        secret: boolean;
+        image: string;
+        channelId: string | null;
+        type: { id: string; label: string; data: string };
         achieved: Array<{
           achievementId: string;
           userId: string;
@@ -90,13 +154,18 @@ export class PrismaDatabase implements Database {
           goal: achievement.goal,
           reward: achievement.reward,
           label: achievement.label,
-          typeAchievement: achievement.type
-            ? {
-                id: achievement.type.id,
-                label: achievement.type.label,
-                data: achievement.type.data,
-              }
-            : null,
+          public: achievement.public,
+          downloads: achievement.downloads,
+          visits: achievement.visits,
+          active: achievement.active,
+          secret: achievement.secret,
+          image: achievement.image,
+          channelId: achievement.channelId,
+          typeAchievement: {
+            id: achievement.type.id,
+            label: achievement.type.label,
+            data: achievement.type.data,
+          },
           achieved: achievedRecord
             ? {
                 achievementId: achievedRecord.achievementId,
@@ -170,6 +239,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl: u.profileImageUrl,
       channelDescription: u.channelDescription,
       scope: u.scope,
+      xp: u.xp,
       lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
     };
   }
@@ -180,6 +250,7 @@ export class PrismaDatabase implements Database {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    xp?: number;
     lastUpdateTimestamp: string;
   }): Promise<userDTO> {
     const u = await this.prisma.user.create({
@@ -189,6 +260,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: user.profileImageUrl ?? null,
         channelDescription: user.channelDescription ?? null,
         scope: user.scope ?? null,
+        xp: user.xp ?? 0,
         lastUpdateTimestamp: new Date(user.lastUpdateTimestamp),
       },
     });
@@ -198,6 +270,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl: u.profileImageUrl,
       channelDescription: u.channelDescription,
       scope: u.scope,
+      xp: u.xp,
       lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
     };
   }
@@ -211,6 +284,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: string | null;
         channelDescription: string | null;
         scope: string | null;
+        xp: number;
         lastUpdateTimestamp: Date;
       }) => ({
         id: u.id,
@@ -218,6 +292,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: u.profileImageUrl,
         channelDescription: u.channelDescription,
         scope: u.scope,
+        xp: u.xp,
         lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
       }),
     );
@@ -230,6 +305,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp?: string;
     },
   ): Promise<userDTO | null> {
@@ -239,6 +315,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp?: Date;
     } = {};
     if (data.username !== undefined) updateData.username = data.username;
@@ -247,6 +324,7 @@ export class PrismaDatabase implements Database {
     if (data.channelDescription !== undefined)
       updateData.channelDescription = data.channelDescription;
     if (data.scope !== undefined) updateData.scope = data.scope;
+    if (data.xp !== undefined) updateData.xp = data.xp;
     if (data.lastUpdateTimestamp !== undefined)
       updateData.lastUpdateTimestamp = new Date(data.lastUpdateTimestamp);
 
@@ -261,6 +339,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: u.profileImageUrl,
         channelDescription: u.channelDescription,
         scope: u.scope,
+        xp: u.xp,
         lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
       };
     } catch (error: unknown) {
@@ -334,6 +413,7 @@ export class PrismaDatabase implements Database {
   async getAchievementById(id: string): Promise<achievementDTO | null> {
     const achievement = await this.prisma.achievement.findUnique({
       where: { id },
+      include: { type: true },
     });
     if (!achievement) return null;
     return {
@@ -343,6 +423,183 @@ export class PrismaDatabase implements Database {
       goal: achievement.goal,
       reward: achievement.reward,
       label: achievement.label,
+      public: achievement.public,
+      downloads: achievement.downloads,
+      visits: achievement.visits,
+      active: achievement.active,
+      secret: achievement.secret,
+      image: achievement.image,
+      channelId: achievement.channelId,
+      typeAchievement: {
+        id: achievement.type.id,
+        label: achievement.type.label,
+        data: achievement.type.data,
+      },
+    };
+  }
+
+  async updateAchievementActive(
+    id: string,
+    active: boolean,
+  ): Promise<achievementDTO | null> {
+    const existing = await this.prisma.achievement.findUnique({
+      where: { id },
+    });
+    if (!existing) return null;
+    const updated = await this.prisma.achievement.update({
+      where: { id },
+      data: { active },
+      include: { type: true },
+    });
+    return {
+      id: updated.id,
+      title: updated.title,
+      description: updated.description,
+      goal: updated.goal,
+      reward: updated.reward,
+      label: updated.label,
+      public: updated.public,
+      downloads: updated.downloads,
+      visits: updated.visits,
+      active: updated.active,
+      secret: updated.secret,
+      image: updated.image,
+      channelId: updated.channelId,
+      typeAchievement: {
+        id: updated.type.id,
+        label: updated.type.label,
+        data: updated.type.data,
+      },
+    };
+  }
+
+  async updateAchievementPublic(
+    id: string,
+    isPublic: boolean,
+  ): Promise<achievementDTO | null> {
+    const existing = await this.prisma.achievement.findUnique({
+      where: { id },
+    });
+    if (!existing) return null;
+    const updated = await this.prisma.achievement.update({
+      where: { id },
+      data: { public: isPublic },
+      include: { type: true },
+    });
+    return {
+      id: updated.id,
+      title: updated.title,
+      description: updated.description,
+      goal: updated.goal,
+      reward: updated.reward,
+      label: updated.label,
+      public: updated.public,
+      downloads: updated.downloads,
+      visits: updated.visits,
+      active: updated.active,
+      secret: updated.secret,
+      image: updated.image,
+      channelId: updated.channelId,
+      typeAchievement: {
+        id: updated.type.id,
+        label: updated.type.label,
+        data: updated.type.data,
+      },
+    };
+  }
+
+  async updateAchievement(
+    id: string,
+    data: {
+      title?: string;
+      description?: string;
+      goal?: number;
+      reward?: number;
+      label?: string;
+      public?: boolean;
+      active?: boolean;
+      secret?: boolean;
+      image?: string;
+      typeLabel?: string;
+      typeData?: string;
+    },
+  ): Promise<achievementDTO | null> {
+    const existing = await this.prisma.achievement.findUnique({
+      where: { id },
+    });
+    if (!existing) return null;
+    const { typeLabel, typeData: typeDataVal, ...achievementData } = data;
+    const typeUpdate =
+      typeLabel !== undefined || typeDataVal !== undefined
+        ? {
+            type: {
+              update: {
+                ...(typeLabel !== undefined ? { label: typeLabel } : {}),
+                ...(typeDataVal !== undefined ? { data: typeDataVal } : {}),
+              },
+            },
+          }
+        : {};
+    const updated = await this.prisma.achievement.update({
+      where: { id },
+      data: {
+        ...achievementData,
+        ...typeUpdate,
+      },
+      include: { type: true },
+    });
+    return {
+      id: updated.id,
+      title: updated.title,
+      description: updated.description,
+      goal: updated.goal,
+      reward: updated.reward,
+      label: updated.label,
+      public: updated.public,
+      downloads: updated.downloads,
+      visits: updated.visits,
+      active: updated.active,
+      secret: updated.secret,
+      image: updated.image,
+      channelId: updated.channelId,
+      typeAchievement: {
+        id: updated.type.id,
+        label: updated.type.label,
+        data: updated.type.data,
+      },
+    };
+  }
+
+  async deleteAchievement(id: string): Promise<achievementDTO | null> {
+    const existing = await this.prisma.achievement.findUnique({
+      where: { id },
+      include: { type: true },
+    });
+    if (!existing) return null;
+    await this.prisma.achieved.deleteMany({ where: { achievementId: id } });
+    await this.prisma.achievement.delete({ where: { id } });
+    await this.prisma.typeAchievement.delete({
+      where: { id: existing.typeId },
+    });
+    return {
+      id: existing.id,
+      title: existing.title,
+      description: existing.description,
+      goal: existing.goal,
+      reward: existing.reward,
+      label: existing.label,
+      public: existing.public,
+      downloads: existing.downloads,
+      visits: existing.visits,
+      active: existing.active,
+      secret: existing.secret,
+      image: existing.image,
+      channelId: existing.channelId,
+      typeAchievement: {
+        id: existing.type.id,
+        label: existing.type.label,
+        data: existing.type.data,
+      },
     };
   }
 
@@ -352,8 +609,21 @@ export class PrismaDatabase implements Database {
     goal: number;
     reward: number;
     label: string;
+    public: boolean;
+    active: boolean;
+    secret: boolean;
+    image: string;
     channelId?: string | null;
+    typeLabel: string;
+    typeData: string;
   }): Promise<achievementDTO> {
+    const t = await this.prisma.typeAchievement.create({
+      data: {
+        label: achievement.typeLabel,
+        data: achievement.typeData,
+      },
+    });
+    const typeId = t.id;
     const created = await this.prisma.achievement.create({
       data: {
         title: achievement.title,
@@ -361,14 +631,16 @@ export class PrismaDatabase implements Database {
         goal: achievement.goal,
         reward: achievement.reward,
         label: achievement.label,
-        channelId: achievement.channelId ?? undefined,
-        public: false,
+        public: achievement.public,
         downloads: 0,
         visits: 0,
-        active: true,
-        secret: false,
-        image: "",
+        active: achievement.active,
+        secret: achievement.secret,
+        image: achievement.image,
+        channelId: achievement.channelId ?? undefined,
+        typeId,
       },
+      include: { type: true },
     });
     return {
       id: created.id,
@@ -377,6 +649,18 @@ export class PrismaDatabase implements Database {
       goal: created.goal,
       reward: created.reward,
       label: created.label,
+      public: created.public,
+      downloads: created.downloads,
+      visits: created.visits,
+      active: created.active,
+      secret: created.secret,
+      image: created.image,
+      channelId: created.channelId,
+      typeAchievement: {
+        id: created.type.id,
+        label: created.type.label,
+        data: created.type.data,
+      },
     };
   }
 
@@ -386,9 +670,23 @@ export class PrismaDatabase implements Database {
     return { id: b.id, title: b.title, img: b.img };
   }
 
-  async addBadge(b: { title: string; img: string }): Promise<badgeDTO> {
+  async getBadgeByChannelId(channelId: string): Promise<badgeDTO | null> {
+    const b = await this.prisma.badge.findFirst({ where: { channelId } });
+    if (!b) return null;
+    return { id: b.id, title: b.title, img: b.img };
+  }
+
+  async addBadge(b: {
+    title: string;
+    img: string;
+    channelId?: string | null;
+  }): Promise<badgeDTO> {
     const nb = await this.prisma.badge.create({
-      data: { title: b.title, img: b.img },
+      data: {
+        title: b.title,
+        img: b.img,
+        ...(b.channelId ? { channelId: b.channelId } : {}),
+      },
     });
     return { id: nb.id, title: nb.title, img: nb.img };
   }
@@ -689,6 +987,77 @@ export class PrismaDatabase implements Database {
     );
   }
 
+  async getAchievementDefinitionsByUserId(
+    userId: string,
+  ): Promise<achievementWithTypeAndAchievedDTO[]> {
+    const achievements = await this.prisma.achievement.findMany({
+      where: { achieved: { some: { userId } } },
+      include: {
+        type: true,
+        achieved: { where: { userId } },
+      },
+      orderBy: { id: "asc" },
+    });
+    return achievements.map(
+      (achievement: {
+        id: string;
+        title: string;
+        description: string;
+        goal: number;
+        reward: number;
+        label: string;
+        public: boolean;
+        downloads: number;
+        visits: number;
+        active: boolean;
+        secret: boolean;
+        image: string;
+        channelId: string | null;
+        type: { id: string; label: string; data: string };
+        achieved: Array<{
+          achievementId: string;
+          userId: string;
+          count: number;
+          finished: boolean;
+          labelActive: boolean;
+          acquiredDate: Date;
+        }>;
+      }) => {
+        const achievedRecord = achievement.achieved[0];
+        return {
+          id: achievement.id,
+          title: achievement.title,
+          description: achievement.description,
+          goal: achievement.goal,
+          reward: achievement.reward,
+          label: achievement.label,
+          public: achievement.public,
+          downloads: achievement.downloads,
+          visits: achievement.visits,
+          active: achievement.active,
+          secret: achievement.secret,
+          image: achievement.image,
+          channelId: achievement.channelId,
+          typeAchievement: {
+            id: achievement.type.id,
+            label: achievement.type.label,
+            data: achievement.type.data,
+          },
+          achieved: achievedRecord
+            ? {
+                achievementId: achievedRecord.achievementId,
+                userId: achievedRecord.userId,
+                count: achievedRecord.count,
+                finished: achievedRecord.finished,
+                labelActive: achievedRecord.labelActive,
+                acquiredDate: achievedRecord.acquiredDate.toISOString(),
+              }
+            : null,
+        };
+      },
+    );
+  }
+
   async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
     const areRecords = await this.prisma.are.findMany({
       where: { channelId },
@@ -702,6 +1071,7 @@ export class PrismaDatabase implements Database {
           profileImageUrl: string | null;
           channelDescription: string | null;
           scope: string | null;
+          xp: number;
           lastUpdateTimestamp: Date;
         };
         userType: string;
@@ -711,6 +1081,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: r.user.profileImageUrl,
         channelDescription: r.user.channelDescription,
         scope: r.user.scope,
+        xp: r.user.xp,
         lastUpdateTimestamp: r.user.lastUpdateTimestamp.toISOString(),
         userType: r.userType,
       }),
@@ -730,6 +1101,7 @@ export class PrismaDatabase implements Database {
           profileImageUrl: string | null;
           channelDescription: string | null;
           scope: string | null;
+          xp: number;
           lastUpdateTimestamp: Date;
         };
       }) => ({
@@ -738,6 +1110,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: r.user.profileImageUrl,
         channelDescription: r.user.channelDescription,
         scope: r.user.scope,
+        xp: r.user.xp,
         lastUpdateTimestamp: r.user.lastUpdateTimestamp.toISOString(),
       }),
     );
@@ -756,6 +1129,7 @@ export class PrismaDatabase implements Database {
           profileImageUrl: string | null;
           channelDescription: string | null;
           scope: string | null;
+          xp: number;
           lastUpdateTimestamp: Date;
         };
       }) => ({
@@ -764,6 +1138,7 @@ export class PrismaDatabase implements Database {
         profileImageUrl: r.user.profileImageUrl,
         channelDescription: r.user.channelDescription,
         scope: r.user.scope,
+        xp: r.user.xp,
         lastUpdateTimestamp: r.user.lastUpdateTimestamp.toISOString(),
       }),
     );

@@ -21,6 +21,7 @@ export class UserService {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    xp?: number;
   }): Promise<userDTO> {
     return this.repo.addUser(user);
   }

@@ -27,6 +27,12 @@ describe("achievedController (unit)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
     const req = {
       body: {
@@ -58,6 +64,12 @@ describe("achievedController (unit)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
     const first = {
       achievementId: ach.id,
@@ -142,6 +154,12 @@ describe("achievedController (unit)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
     await db.addAchieved({
       achievementId: ach.id,
@@ -197,6 +215,12 @@ describe("achievedController (unit)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
     await db.addAchieved({
       achievementId: ach.id,

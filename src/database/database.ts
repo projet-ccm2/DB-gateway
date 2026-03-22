@@ -4,6 +4,7 @@ export type userDTO = {
   profileImageUrl: string | null;
   channelDescription: string | null;
   scope: string | null;
+  xp: number;
   lastUpdateTimestamp: string;
 };
 export type channelDTO = { id: string; name: string };
@@ -14,6 +15,7 @@ export type channelUserDTO = {
   profileImageUrl: string | null;
   channelDescription: string | null;
   scope: string | null;
+  xp: number;
   lastUpdateTimestamp: string;
   userType: string;
 };
@@ -25,9 +27,17 @@ export type achievementDTO = {
   goal: number;
   reward: number;
   label: string;
+  public: boolean;
+  downloads: number;
+  visits: number;
+  active: boolean;
+  secret: boolean;
+  image: string;
+  channelId: string | null;
+  typeAchievement: typeAchievementDTO;
 };
 export type achievementWithTypeDTO = achievementDTO & {
-  typeAchievement: typeAchievementDTO | null;
+  typeAchievement: typeAchievementDTO;
 };
 export type achievementWithTypeAndAchievedDTO = achievementWithTypeDTO & {
   achieved: achievedDTO | null;
@@ -55,6 +65,7 @@ export type possessesDTO = {
 
 export interface Database {
   healthCheck(): Promise<boolean>;
+  getPublicAchievements(): Promise<achievementWithTypeDTO[]>;
   getAchievementsByChannelId(
     channelId: string,
   ): Promise<achievementWithTypeDTO[]>;
@@ -74,6 +85,7 @@ export interface Database {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    xp?: number;
     lastUpdateTimestamp: string;
   }): Promise<userDTO>;
   updateUser(
@@ -83,6 +95,7 @@ export interface Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp?: string;
     },
   ): Promise<userDTO | null>;
@@ -101,17 +114,53 @@ export interface Database {
   }): Promise<typeAchievementDTO>;
 
   getAchievementById(id: string): Promise<achievementDTO | null>;
+  updateAchievementActive(
+    id: string,
+    active: boolean,
+  ): Promise<achievementDTO | null>;
+  updateAchievementPublic(
+    id: string,
+    isPublic: boolean,
+  ): Promise<achievementDTO | null>;
+  updateAchievement(
+    id: string,
+    data: {
+      title?: string;
+      description?: string;
+      goal?: number;
+      reward?: number;
+      label?: string;
+      public?: boolean;
+      active?: boolean;
+      secret?: boolean;
+      image?: string;
+      typeLabel?: string;
+      typeData?: string;
+    },
+  ): Promise<achievementDTO | null>;
   addAchievement(achievement: {
     title: string;
     description: string;
     goal: number;
     reward: number;
     label: string;
+    public: boolean;
+    active: boolean;
+    secret: boolean;
+    image: string;
     channelId?: string | null;
+    typeLabel: string;
+    typeData: string;
   }): Promise<achievementDTO>;
+  deleteAchievement(id: string): Promise<achievementDTO | null>;
 
   getBadgeById(id: string): Promise<badgeDTO | null>;
-  addBadge(badge: { title: string; img: string }): Promise<badgeDTO>;
+  getBadgeByChannelId(channelId: string): Promise<badgeDTO | null>;
+  addBadge(badge: {
+    title: string;
+    img: string;
+    channelId?: string | null;
+  }): Promise<badgeDTO>;
 
   getAchieved(
     achievementId: string,
@@ -159,6 +208,9 @@ export interface Database {
   getChannelsByUserId(userId: string): Promise<userChannelDTO[]>;
   getBadgesByUserId(userId: string): Promise<badgeDTO[]>;
   getAchievementsByUserId(userId: string): Promise<achievedDTO[]>;
+  getAchievementDefinitionsByUserId(
+    userId: string,
+  ): Promise<achievementWithTypeAndAchievedDTO[]>;
 
   getUsersByChannelId(channelId: string): Promise<channelUserDTO[]>;
   getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;

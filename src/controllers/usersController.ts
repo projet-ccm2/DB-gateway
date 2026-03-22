@@ -12,6 +12,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
+          xp?: number;
           lastUpdateTimestamp?: string;
         };
         const {
@@ -20,6 +21,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl,
           channelDescription,
           scope,
+          xp,
           lastUpdateTimestamp,
         } = body;
         if (!username || !id || !lastUpdateTimestamp) {
@@ -34,6 +36,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl: profileImageUrl ?? null,
           channelDescription: channelDescription ?? null,
           scope: scope ?? null,
+          xp: xp ?? 0,
           lastUpdateTimestamp,
         });
         res.status(201).json(user);
@@ -72,6 +75,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
+          xp?: number;
           lastUpdateTimestamp?: string;
         };
         // If username is provided in the update payload, enforce that it is non-empty

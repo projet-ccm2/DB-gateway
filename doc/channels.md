@@ -164,3 +164,43 @@ Lists users linked to the channel with their role.
   "error": "Internal server error"
 }
 ```
+
+---
+
+## GET /channels/:id/badge
+
+Returns the badge associated with a channel.
+
+### Path parameters
+
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | Channel ID  |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "badge-uuid",
+  "title": "string",
+  "img": "string"
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```

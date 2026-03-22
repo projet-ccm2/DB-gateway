@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import type { PossessesRepository } from "../repositories/possessesRepository";
 import {
   BAD_REQUEST,
+  CONFLICT,
   NOT_FOUND,
   queryString,
   sendInternalError,
@@ -20,6 +21,11 @@ export function createPossessesController(repo: PossessesRepository) {
           res.status(BAD_REQUEST).json({
             error: "userId, badgeId, acquiredDate required",
           });
+          return;
+        }
+        const existing = await repo.get(userId, badgeId);
+        if (existing) {
+          res.status(CONFLICT).json({ error: "already exists" });
           return;
         }
         const possesses = await repo.add(userId, badgeId, acquiredDate);

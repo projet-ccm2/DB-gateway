@@ -32,6 +32,14 @@ Records that a user owns a badge (acquisition date).
 }
 ```
 
+**409 Conflict**
+
+```json
+{
+  "error": "already exists"
+}
+```
+
 **500 Internal Server Error**
 
 ```json

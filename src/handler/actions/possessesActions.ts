@@ -9,6 +9,10 @@ export const possessesHandlers: Record<string, HandlerFn> = {
     if (!userId || !badgeId || !acquiredDate) {
       return missing("userId", "badgeId", "acquiredDate");
     }
+    const existing = await repo.possesses.getPossesses(userId, badgeId);
+    if (existing) {
+      return { ok: false, error: "already exists" };
+    }
     const possesses = await repo.possesses.addPossesses(
       userId,
       badgeId,

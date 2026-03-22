@@ -5,6 +5,8 @@ import type {
   channelUserDTO,
   typeAchievementDTO,
   achievementDTO,
+  achievementWithTypeDTO,
+  achievementWithTypeAndAchievedDTO,
   badgeDTO,
   achievedDTO,
   areDTO,
@@ -20,7 +22,10 @@ export type JsonHandlerResult =
       channels?: userChannelDTO[];
       typeAchievement?: typeAchievementDTO | null;
       achievement?: achievementDTO | null;
-      achievements?: achievedDTO[];
+      achievements?:
+        | achievedDTO[]
+        | achievementWithTypeDTO[]
+        | achievementWithTypeAndAchievedDTO[];
       badge?: badgeDTO | null;
       badges?: badgeDTO[];
       achieved?: achievedDTO | null;

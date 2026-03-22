@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS Users(
     Profile_Image_Url     VARCHAR(255),
     Channel_Description   VARCHAR(255),
     Scope                 VARCHAR(255),
+    Xp                    INT NOT NULL DEFAULT 0,
     Last_Update_Timestamp DATETIME NOT NULL,
     CONSTRAINT Users_PK PRIMARY KEY (User_ID)
 ) ENGINE=InnoDB;
@@ -39,7 +40,7 @@ CREATE TABLE IF NOT EXISTS Achievements(
     Achievement_Secret      BOOL NOT NULL,
     Achievement_Image       VARCHAR(55) NOT NULL,
     Channel_ID              VARCHAR(50),
-    Type_ID                 CHAR(36),
+    Type_ID                 CHAR(36) NOT NULL,
     CONSTRAINT Achievements_PK PRIMARY KEY (Achievement_ID),
     CONSTRAINT Achievements_Channels_FK FOREIGN KEY (Channel_ID) REFERENCES Channels(Channel_ID),
     CONSTRAINT Achievements_Type_Achievements0_FK FOREIGN KEY (Type_ID) REFERENCES Type_Achievements(Type_ID)

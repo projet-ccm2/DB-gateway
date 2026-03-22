@@ -5,6 +5,8 @@ import type {
   channelUserDTO,
   typeAchievementDTO,
   achievementDTO,
+  achievementWithTypeDTO,
+  achievementWithTypeAndAchievedDTO,
   badgeDTO,
   achievedDTO,
   areDTO,
@@ -19,6 +21,7 @@ export type GatewayRepo = {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp: string;
     }): Promise<userDTO>;
     getUserById(id: string): Promise<userDTO | null>;
@@ -30,6 +33,7 @@ export type GatewayRepo = {
         profileImageUrl?: string | null;
         channelDescription?: string | null;
         scope?: string | null;
+        xp?: number;
         lastUpdateTimestamp?: string;
       },
     ): Promise<userDTO | null>;
@@ -47,6 +51,7 @@ export type GatewayRepo = {
       id: string,
       data: { name?: string },
     ): Promise<channelDTO | null>;
+    getBadgeByChannelId(channelId: string): Promise<badgeDTO | null>;
   };
   typeAchievement: {
     addTypeAchievement(
@@ -62,8 +67,44 @@ export type GatewayRepo = {
       goal: number;
       reward: number;
       label: string;
+      public: boolean;
+      active: boolean;
+      secret: boolean;
+      image: string;
+      channelId?: string | null;
+      typeLabel: string;
+      typeData: string;
     }): Promise<achievementDTO>;
     getAchievementById(id: string): Promise<achievementDTO | null>;
+    updateAchievementActive(
+      id: string,
+      active: boolean,
+    ): Promise<achievementDTO | null>;
+    updateAchievementPublic(
+      id: string,
+      isPublic: boolean,
+    ): Promise<achievementDTO | null>;
+    updateAchievement(
+      id: string,
+      data: {
+        title?: string;
+        description?: string;
+        goal?: number;
+        reward?: number;
+        label?: string;
+        public?: boolean;
+        active?: boolean;
+        secret?: boolean;
+        image?: string;
+        typeLabel?: string;
+        typeData?: string;
+      },
+    ): Promise<achievementDTO | null>;
+    deleteAchievement(id: string): Promise<achievementDTO | null>;
+    getPublicAchievements(): Promise<achievementWithTypeDTO[]>;
+    getAchievementDefinitionsByUserId(
+      userId: string,
+    ): Promise<achievementWithTypeAndAchievedDTO[]>;
   };
   badge: {
     addBadge(title: string, img: string): Promise<badgeDTO>;

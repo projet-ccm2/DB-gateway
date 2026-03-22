@@ -25,4 +25,11 @@ export const channelHandlers: Record<string, HandlerFn> = {
     const channel = await repo.channel.updateChannel(id, { name });
     return { ok: true, channel };
   },
+
+  getBadgeByChannelId: async (repo, payload) => {
+    const id = str(payload, "channelId", "id");
+    if (!id) return missing("channelId");
+    const badge = await repo.channel.getBadgeByChannelId(id);
+    return { ok: true, badge };
+  },
 };
