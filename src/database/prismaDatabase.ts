@@ -389,8 +389,8 @@ export class PrismaDatabase implements Database {
         ? {
             type: {
               update: {
-                ...(typeLabel !== undefined ? { label: typeLabel } : {}),
-                ...(typeDataVal !== undefined ? { data: typeDataVal } : {}),
+                ...(typeLabel === undefined ? {} : { label: typeLabel }),
+                ...(typeDataVal === undefined ? {} : { data: typeDataVal }),
               },
             },
           }
