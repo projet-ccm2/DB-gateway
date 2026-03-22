@@ -1,59 +1,83 @@
-import type { HandlerFn } from "../types";
+import type { HandlerFn, JsonHandlerResult, Payload } from "../types";
+import type { GatewayRepo } from "../types/gatewayRepo";
+import type { achievementDTO } from "../../database/database";
 import { bool, missing, num, str, strOrNull } from "../payload";
+
+const ACHIEVEMENT_FIELDS = [
+  "title",
+  "description",
+  "goal",
+  "reward",
+  "label",
+  "public",
+  "active",
+  "secret",
+  "image",
+  "typeLabel",
+  "typeData",
+] as const;
+
+function extractAchievementFields(payload: Payload) {
+  const title = str(payload, "title");
+  const description = str(payload, "description");
+  const goal = num(payload, "goal");
+  const reward = num(payload, "reward");
+  const label = str(payload, "label");
+  const isPublic = bool(payload, "public");
+  const active = bool(payload, "active");
+  const secret = bool(payload, "secret");
+  const image = str(payload, "image");
+  const typeLabel = str(payload, "typeLabel");
+  const typeData = str(payload, "typeData");
+  if (
+    !title ||
+    !description ||
+    goal == null ||
+    reward == null ||
+    !label ||
+    isPublic == null ||
+    active == null ||
+    secret == null ||
+    image == null ||
+    !typeLabel ||
+    !typeData
+  ) {
+    return null;
+  }
+  return {
+    title,
+    description,
+    goal,
+    reward,
+    label,
+    public: isPublic,
+    active,
+    secret,
+    image,
+    typeLabel,
+    typeData,
+  };
+}
+
+async function toggleAchievement(
+  repo: GatewayRepo,
+  payload: Payload,
+  updater: (id: string) => Promise<achievementDTO | null>,
+): Promise<JsonHandlerResult> {
+  const id = str(payload, "achievementId", "id");
+  if (!id) return missing("achievementId");
+  const achievement = await updater(id);
+  if (!achievement) return { ok: false, error: "not found" };
+  return { ok: true, achievement };
+}
 
 export const achievementHandlers: Record<string, HandlerFn> = {
   createAchievement: async (repo, payload) => {
-    const title = str(payload, "title");
-    const description = str(payload, "description");
-    const goal = num(payload, "goal");
-    const reward = num(payload, "reward");
-    const label = str(payload, "label");
-    const isPublic = bool(payload, "public");
-    const active = bool(payload, "active");
-    const secret = bool(payload, "secret");
-    const image = str(payload, "image");
-    const typeLabel = str(payload, "typeLabel");
-    const typeData = str(payload, "typeData");
-    if (
-      !title ||
-      !description ||
-      goal == null ||
-      reward == null ||
-      !label ||
-      isPublic == null ||
-      active == null ||
-      secret == null ||
-      image == null ||
-      !typeLabel ||
-      !typeData
-    ) {
-      return missing(
-        "title",
-        "description",
-        "goal",
-        "reward",
-        "label",
-        "public",
-        "active",
-        "secret",
-        "image",
-        "typeLabel",
-        "typeData",
-      );
-    }
+    const fields = extractAchievementFields(payload);
+    if (!fields) return missing(...ACHIEVEMENT_FIELDS);
     const achievement = await repo.achievement.addAchievement({
-      title,
-      description,
-      goal,
-      reward,
-      label,
-      public: isPublic,
-      active,
-      secret,
-      image,
+      ...fields,
       channelId: strOrNull(payload, "channelId"),
-      typeLabel,
-      typeData,
     });
     return { ok: true, achievement };
   },
@@ -61,57 +85,9 @@ export const achievementHandlers: Record<string, HandlerFn> = {
   updateAchievement: async (repo, payload) => {
     const id = str(payload, "achievementId", "id");
     if (!id) return missing("achievementId");
-    const title = str(payload, "title");
-    const description = str(payload, "description");
-    const goal = num(payload, "goal");
-    const reward = num(payload, "reward");
-    const label = str(payload, "label");
-    const isPublic = bool(payload, "public");
-    const active = bool(payload, "active");
-    const secret = bool(payload, "secret");
-    const image = str(payload, "image");
-    const typeLabel = str(payload, "typeLabel");
-    const typeData = str(payload, "typeData");
-    if (
-      !title ||
-      !description ||
-      goal == null ||
-      reward == null ||
-      !label ||
-      isPublic == null ||
-      active == null ||
-      secret == null ||
-      image == null ||
-      !typeLabel ||
-      !typeData
-    ) {
-      return missing(
-        "title",
-        "description",
-        "goal",
-        "reward",
-        "label",
-        "public",
-        "active",
-        "secret",
-        "image",
-        "typeLabel",
-        "typeData",
-      );
-    }
-    const achievement = await repo.achievement.updateAchievement(id, {
-      title,
-      description,
-      goal,
-      reward,
-      label,
-      public: isPublic,
-      active,
-      secret,
-      image,
-      typeLabel,
-      typeData,
-    });
+    const fields = extractAchievementFields(payload);
+    if (!fields) return missing(...ACHIEVEMENT_FIELDS);
+    const achievement = await repo.achievement.updateAchievement(id, fields);
     if (!achievement) return { ok: false, error: "not found" };
     return { ok: true, achievement };
   },
@@ -144,47 +120,23 @@ export const achievementHandlers: Record<string, HandlerFn> = {
     return { ok: true, achievements };
   },
 
-  activateAchievement: async (repo, payload) => {
-    const id = str(payload, "achievementId", "id");
-    if (!id) return missing("achievementId");
-    const achievement = await repo.achievement.updateAchievementActive(
-      id,
-      true,
-    );
-    if (!achievement) return { ok: false, error: "not found" };
-    return { ok: true, achievement };
-  },
+  activateAchievement: (repo, payload) =>
+    toggleAchievement(repo, payload, (id) =>
+      repo.achievement.updateAchievementActive(id, true),
+    ),
 
-  deactivateAchievement: async (repo, payload) => {
-    const id = str(payload, "achievementId", "id");
-    if (!id) return missing("achievementId");
-    const achievement = await repo.achievement.updateAchievementActive(
-      id,
-      false,
-    );
-    if (!achievement) return { ok: false, error: "not found" };
-    return { ok: true, achievement };
-  },
+  deactivateAchievement: (repo, payload) =>
+    toggleAchievement(repo, payload, (id) =>
+      repo.achievement.updateAchievementActive(id, false),
+    ),
 
-  publicAchievement: async (repo, payload) => {
-    const id = str(payload, "achievementId", "id");
-    if (!id) return missing("achievementId");
-    const achievement = await repo.achievement.updateAchievementPublic(
-      id,
-      true,
-    );
-    if (!achievement) return { ok: false, error: "not found" };
-    return { ok: true, achievement };
-  },
+  publicAchievement: (repo, payload) =>
+    toggleAchievement(repo, payload, (id) =>
+      repo.achievement.updateAchievementPublic(id, true),
+    ),
 
-  privateAchievement: async (repo, payload) => {
-    const id = str(payload, "achievementId", "id");
-    if (!id) return missing("achievementId");
-    const achievement = await repo.achievement.updateAchievementPublic(
-      id,
-      false,
-    );
-    if (!achievement) return { ok: false, error: "not found" };
-    return { ok: true, achievement };
-  },
+  privateAchievement: (repo, payload) =>
+    toggleAchievement(repo, payload, (id) =>
+      repo.achievement.updateAchievementPublic(id, false),
+    ),
 };

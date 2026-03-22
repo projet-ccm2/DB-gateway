@@ -11,6 +11,9 @@ import type {
   achievedDTO,
   areDTO,
   possessesDTO,
+  AchievementInput,
+  AchievementUpdateData,
+  AchievedPayload,
 } from "../../database/database";
 
 export type GatewayRepo = {
@@ -61,20 +64,7 @@ export type GatewayRepo = {
     getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
   };
   achievement: {
-    addAchievement(achievement: {
-      title: string;
-      description: string;
-      goal: number;
-      reward: number;
-      label: string;
-      public: boolean;
-      active: boolean;
-      secret: boolean;
-      image: string;
-      channelId?: string | null;
-      typeLabel: string;
-      typeData: string;
-    }): Promise<achievementDTO>;
+    addAchievement(achievement: AchievementInput): Promise<achievementDTO>;
     getAchievementById(id: string): Promise<achievementDTO | null>;
     updateAchievementActive(
       id: string,
@@ -86,19 +76,7 @@ export type GatewayRepo = {
     ): Promise<achievementDTO | null>;
     updateAchievement(
       id: string,
-      data: {
-        title?: string;
-        description?: string;
-        goal?: number;
-        reward?: number;
-        label?: string;
-        public?: boolean;
-        active?: boolean;
-        secret?: boolean;
-        image?: string;
-        typeLabel?: string;
-        typeData?: string;
-      },
+      data: AchievementUpdateData,
     ): Promise<achievementDTO | null>;
     deleteAchievement(id: string): Promise<achievementDTO | null>;
     getPublicAchievements(): Promise<achievementWithTypeDTO[]>;
@@ -111,14 +89,7 @@ export type GatewayRepo = {
     getBadgeById(id: string): Promise<badgeDTO | null>;
   };
   achieved: {
-    addAchieved(payload: {
-      achievementId: string;
-      userId: string;
-      count: number;
-      finished: boolean;
-      labelActive: boolean;
-      acquiredDate: string;
-    }): Promise<achievedDTO>;
+    addAchieved(payload: AchievedPayload): Promise<achievedDTO>;
     getAchieved(
       achievementId: string,
       userId: string,

@@ -63,6 +63,44 @@ export type possessesDTO = {
   acquiredDate: string;
 };
 
+export type AchievementInput = {
+  title: string;
+  description: string;
+  goal: number;
+  reward: number;
+  label: string;
+  public: boolean;
+  active: boolean;
+  secret: boolean;
+  image: string;
+  channelId?: string | null;
+  typeLabel: string;
+  typeData: string;
+};
+
+export type AchievementUpdateData = {
+  title?: string;
+  description?: string;
+  goal?: number;
+  reward?: number;
+  label?: string;
+  public?: boolean;
+  active?: boolean;
+  secret?: boolean;
+  image?: string;
+  typeLabel?: string;
+  typeData?: string;
+};
+
+export type AchievedPayload = {
+  achievementId: string;
+  userId: string;
+  count: number;
+  finished: boolean;
+  labelActive: boolean;
+  acquiredDate: string;
+};
+
 export interface Database {
   healthCheck(): Promise<boolean>;
   getPublicAchievements(): Promise<achievementWithTypeDTO[]>;
@@ -124,34 +162,9 @@ export interface Database {
   ): Promise<achievementDTO | null>;
   updateAchievement(
     id: string,
-    data: {
-      title?: string;
-      description?: string;
-      goal?: number;
-      reward?: number;
-      label?: string;
-      public?: boolean;
-      active?: boolean;
-      secret?: boolean;
-      image?: string;
-      typeLabel?: string;
-      typeData?: string;
-    },
+    data: AchievementUpdateData,
   ): Promise<achievementDTO | null>;
-  addAchievement(achievement: {
-    title: string;
-    description: string;
-    goal: number;
-    reward: number;
-    label: string;
-    public: boolean;
-    active: boolean;
-    secret: boolean;
-    image: string;
-    channelId?: string | null;
-    typeLabel: string;
-    typeData: string;
-  }): Promise<achievementDTO>;
+  addAchievement(achievement: AchievementInput): Promise<achievementDTO>;
   deleteAchievement(id: string): Promise<achievementDTO | null>;
 
   getBadgeById(id: string): Promise<badgeDTO | null>;
@@ -166,22 +179,8 @@ export interface Database {
     achievementId: string,
     userId: string,
   ): Promise<achievedDTO | null>;
-  addAchieved(payload: {
-    achievementId: string;
-    userId: string;
-    count: number;
-    finished: boolean;
-    labelActive: boolean;
-    acquiredDate: string;
-  }): Promise<achievedDTO>;
-  updateAchieved(payload: {
-    achievementId: string;
-    userId: string;
-    count: number;
-    finished: boolean;
-    labelActive: boolean;
-    acquiredDate: string;
-  }): Promise<achievedDTO | null>;
+  addAchieved(payload: AchievedPayload): Promise<achievedDTO>;
+  updateAchieved(payload: AchievedPayload): Promise<achievedDTO | null>;
 
   getAre(userId: string, channelId: string): Promise<areDTO | null>;
   getAreByUserId(userId: string): Promise<areDTO[]>;
