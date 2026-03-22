@@ -22,10 +22,9 @@ export type JsonHandlerResult =
       channels?: userChannelDTO[];
       typeAchievement?: typeAchievementDTO | null;
       achievement?: achievementDTO | null;
-      achievements?:
-        | achievedDTO[]
-        | achievementWithTypeDTO[]
-        | achievementWithTypeAndAchievedDTO[];
+      achievedRecords?: achievedDTO[];
+      achievementsWithType?: achievementWithTypeDTO[];
+      achievementDefinitions?: achievementWithTypeAndAchievedDTO[];
       badge?: badgeDTO | null;
       badges?: badgeDTO[];
       achieved?: achievedDTO | null;

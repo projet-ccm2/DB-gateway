@@ -108,16 +108,16 @@ export const achievementHandlers: Record<string, HandlerFn> = {
   },
 
   getPublicAchievements: async (repo) => {
-    const achievements = await repo.achievement.getPublicAchievements();
-    return { ok: true, achievements };
+    const achievementsWithType = await repo.achievement.getPublicAchievements();
+    return { ok: true, achievementsWithType };
   },
 
   getAchievementDefinitionsByUserId: async (repo, payload) => {
     const userId = str(payload, "userId", "id");
     if (!userId) return missing("userId");
-    const achievements =
+    const achievementDefinitions =
       await repo.achievement.getAchievementDefinitionsByUserId(userId);
-    return { ok: true, achievements };
+    return { ok: true, achievementDefinitions };
   },
 
   activateAchievement: (repo, payload) =>

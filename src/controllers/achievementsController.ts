@@ -35,17 +35,17 @@ export function createAchievementsController(
           typeData,
         } = body;
         if (
-          title == null ||
-          description == null ||
+          !title ||
+          !description ||
           goal == null ||
           reward == null ||
-          label == null ||
+          !label ||
           body.public == null ||
           body.active == null ||
           body.secret == null ||
-          body.image == null ||
-          typeLabel == null ||
-          typeData == null
+          !body.image ||
+          !typeLabel ||
+          !typeData
         ) {
           res.status(BAD_REQUEST).json({
             error:
@@ -96,17 +96,17 @@ export function createAchievementsController(
         const { title, description, goal, reward, label, typeLabel, typeData } =
           body;
         if (
-          title == null ||
-          description == null ||
+          !title ||
+          !description ||
           goal == null ||
           reward == null ||
-          label == null ||
+          !label ||
           body.public == null ||
           body.active == null ||
           body.secret == null ||
-          body.image == null ||
-          typeLabel == null ||
-          typeData == null
+          !body.image ||
+          !typeLabel ||
+          !typeData
         ) {
           res.status(BAD_REQUEST).json({
             error:

@@ -83,8 +83,8 @@ export const userHandlers: Record<string, HandlerFn> = {
   getAchievementsByUserId: async (repo, payload) => {
     const userId = str(payload, "userId");
     if (!userId) return missing("userId");
-    const achievements = await repo.user.getAchievementsByUserId(userId);
-    return { ok: true, achievements };
+    const achievedRecords = await repo.user.getAchievementsByUserId(userId);
+    return { ok: true, achievedRecords };
   },
 
   getUsersByChannelId: async (repo, payload) => {

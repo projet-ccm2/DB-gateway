@@ -16,7 +16,7 @@ function makeRepoMock(): GatewayRepo {
   const channels: channelDTO[] = [];
   const typeAchievements: typeAchievementDTO[] = [];
   const achievements: achievementDTO[] = [];
-  const badges: badgeDTO[] = [];
+  const badges: (badgeDTO & { channelId?: string })[] = [];
   const achieved: achievedDTO[] = [];
   const are: areDTO[] = [];
   const possesses: possessesDTO[] = [];
@@ -125,7 +125,7 @@ function makeRepoMock(): GatewayRepo {
         return channel;
       },
       getBadgeByChannelId: async (channelId: string) =>
-        badges.find((b) => (b as any).channelId === channelId) ?? null,
+        badges.find((b) => b.channelId === channelId) ?? null,
     },
     typeAchievement: {
       addTypeAchievement: async (label: string, data: string) => {
@@ -229,10 +229,15 @@ function makeRepoMock(): GatewayRepo {
       },
     },
     badge: {
-      addBadge: async (title: string, img: string) => {
-        const b = { id: "b_" + title, title, img };
+      addBadge: async (title: string, img: string, channelId?: string) => {
+        const b = {
+          id: "b_" + title,
+          title,
+          img,
+          ...(channelId ? { channelId } : {}),
+        };
         badges.push(b);
-        return b;
+        return { id: b.id, title: b.title, img: b.img };
       },
       getBadgeById: async (id: string) =>
         badges.find((b) => b.id === id) ?? null,
@@ -434,9 +439,9 @@ describe("jsonHandler full coverage", () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.achievements).toHaveLength(1);
+    expect(result.achievedRecords).toHaveLength(1);
     expect(
-      (result.achievements![0] as { achievementId: string }).achievementId,
+      (result.achievedRecords![0] as { achievementId: string }).achievementId,
     ).toBe("a1");
   });
 
@@ -565,7 +570,7 @@ describe("jsonHandler full coverage", () => {
     }
   });
 
-  test("getBadgeByChannelId returns badge when linked", async () => {
+  test("getBadgeByChannelId returns null for unknown channel", async () => {
     const res = await handleJsonMessage(repo, {
       action: "getBadgeByChannelId",
       payload: { channelId: "no-channel" },
@@ -573,6 +578,28 @@ describe("jsonHandler full coverage", () => {
     expect(res.ok).toBe(true);
     if (res.ok) {
       expect(res.badge).toBeNull();
+    }
+  });
+
+  test("getBadgeByChannelId returns badge when linked", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_linked", name: "LinkedChannel" },
+    });
+    // Directly add a badge with channelId to the mock
+    await (
+      repo.badge as {
+        addBadge: (t: string, i: string, c?: string) => Promise<badgeDTO>;
+      }
+    ).addBadge("linked_badge", "linked.png", "ch_linked");
+    const res = await handleJsonMessage(repo, {
+      action: "getBadgeByChannelId",
+      payload: { channelId: "ch_linked" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.badge).not.toBeNull();
+      expect(res.badge?.title).toBe("linked_badge");
     }
   });
 
@@ -747,8 +774,8 @@ describe("jsonHandler full coverage", () => {
     });
     expect(result.ok).toBe(true);
     const achievements = (
-      result as unknown as { achievements: Array<{ public: boolean }> }
-    ).achievements;
+      result as unknown as { achievementsWithType: Array<{ public: boolean }> }
+    ).achievementsWithType;
     expect(achievements.length).toBeGreaterThanOrEqual(1);
     expect(achievements.every((a) => a.public === true)).toBe(true);
   });
@@ -790,12 +817,12 @@ describe("jsonHandler full coverage", () => {
     expect(result.ok).toBe(true);
     const achs = (
       result as unknown as {
-        achievements: Array<{
+        achievementDefinitions: Array<{
           title: string;
           achieved: { userId: string } | null;
         }>;
       }
-    ).achievements;
+    ).achievementDefinitions;
     expect(achs.length).toBeGreaterThanOrEqual(1);
     const match = achs.find((a) => a.title === "DefByUser");
     expect(match).toBeDefined();
