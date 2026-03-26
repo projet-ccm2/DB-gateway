@@ -36,4 +36,26 @@ describe("channelRepository (unit)", () => {
     const updated = await repo.updateChannel("unknown-id", { name: "N" });
     expect(updated).toBeNull();
   });
+
+  it("getBadgeByChannelId returns badge when linked", async () => {
+    const db = new MockDatabase();
+    const repo = new ChannelRepository(db);
+    const ch = await db.addChannel({ id: "ch-badge", name: "C" });
+    const badge = await db.addBadge({
+      title: "B1",
+      img: "i.png",
+      channelId: ch.id,
+    });
+    const found = await repo.getBadgeByChannelId(ch.id);
+    expect(found).not.toBeNull();
+    expect(found?.id).toBe(badge.id);
+    expect(found?.title).toBe("B1");
+  });
+
+  it("getBadgeByChannelId returns null when no badge", async () => {
+    const db = new MockDatabase();
+    const repo = new ChannelRepository(db);
+    const found = await repo.getBadgeByChannelId("no-ch");
+    expect(found).toBeNull();
+  });
 });

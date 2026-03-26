@@ -27,7 +27,24 @@ describe("usersController (unit)", () => {
     await ctrl.create(req, res);
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "twitch1", username: "u1" }),
+      expect.objectContaining({ id: "twitch1", username: "u1", xp: 0 }),
+    );
+  });
+
+  it("create returns 201 with custom xp", async () => {
+    const req = {
+      body: {
+        id: "twitch_xp",
+        username: "xpUser",
+        xp: 50,
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "twitch_xp", xp: 50 }),
     );
   });
 

@@ -44,6 +44,24 @@ describe("possessesController (unit)", () => {
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
+  it("create returns 409 when possesses already exists", async () => {
+    const user = await db.addUser({
+      id: "t-dup",
+      username: "dup",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const badge = await db.addBadge({ title: "Bdup", img: "d.png" });
+    const date = new Date().toISOString();
+    await repo.add(user.id, badge.id, date);
+    const req = {
+      body: { userId: user.id, badgeId: badge.id, acquiredDate: date },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith({ error: "already exists" });
+  });
+
   it("create returns 500 when repo.add throws", async () => {
     const throwingRepo = {
       add: jest.fn().mockRejectedValue(new Error("db")),

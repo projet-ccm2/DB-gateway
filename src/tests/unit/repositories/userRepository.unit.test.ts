@@ -17,6 +17,7 @@ describe("userRepository (unit, mock db)", () => {
     expect(created.profileImageUrl).toBeNull();
     expect(created.channelDescription).toBeNull();
     expect(created.scope).toBeNull();
+    expect(created.xp).toBe(0);
 
     const fetched = await service.getUserById(created.id);
     expect(fetched).not.toBeNull();
@@ -42,6 +43,25 @@ describe("userRepository (unit, mock db)", () => {
     expect(created.profileImageUrl).toBe("https://example.com/avatar.png");
     expect(created.channelDescription).toBe("My awesome channel");
     expect(created.scope).toBe("chat:read chat:write");
+    expect(created.xp).toBe(0);
+  });
+
+  it("should create user with custom xp value", async () => {
+    const mockDb = new MockDatabase();
+    const service = new UserRepository(mockDb);
+
+    const created = await service.addUser({
+      id: "twitch_xp",
+      username: "XpUser",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      xp: 100,
+    });
+
+    expect(created.id).toBe("twitch_xp");
+    expect(created.xp).toBe(100);
+
+    const fetched = await service.getUserById(created.id);
+    expect(fetched?.xp).toBe(100);
   });
 
   it("adding multiple users creates separate entries", async () => {
@@ -246,6 +266,12 @@ describe("userRepository (unit, mock db)", () => {
       goal: 1,
       reward: 10,
       label: "beginner",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
 
     await mockDb.addAchieved({
@@ -428,6 +454,12 @@ describe("userRepository (unit, mock db)", () => {
       goal: 100,
       reward: 1000,
       label: "expert",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
 
     const users = await service.getUsersByAchievementId(achievement.id);
@@ -444,13 +476,19 @@ describe("userRepository (unit, mock db)", () => {
       goal: 1,
       reward: 1,
       label: "L1",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
       channelId: ch.id,
+      typeLabel: "TL",
+      typeData: "TD",
     });
     const list = await service.getAchievementsByChannelId(ch.id);
     expect(list).toHaveLength(1);
     expect(list[0].title).toBe("A1");
     expect(list[0]).toHaveProperty("typeAchievement");
-    expect(list[0].typeAchievement).toBeNull();
+    expect(list[0].typeAchievement).not.toBeNull();
   });
 
   it("getAchievementsByUserAndChannel returns full structure with achieved", async () => {
@@ -468,7 +506,13 @@ describe("userRepository (unit, mock db)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
       channelId: ch.id,
+      typeLabel: "TL",
+      typeData: "TD",
     });
     await mockDb.addAchieved({
       achievementId: ach.id,
@@ -483,7 +527,7 @@ describe("userRepository (unit, mock db)", () => {
     expect(data.channelId).toBe(ch.id);
     expect(data.achievements).toHaveLength(1);
     expect(data.achievements[0].id).toBe(ach.id);
-    expect(data.achievements[0].typeAchievement).toBeNull();
+    expect(data.achievements[0].typeAchievement).not.toBeNull();
     expect(data.achievements[0].achieved).not.toBeNull();
     expect(data.achievements[0].achieved?.count).toBe(1);
   });
@@ -503,6 +547,12 @@ describe("userRepository (unit, mock db)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
     await mockDb.addAchieved({
       achievementId: ach.id,
@@ -536,6 +586,12 @@ describe("userRepository (unit, mock db)", () => {
       goal: 1,
       reward: 5,
       label: "starter",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
 
     await mockDb.addAchieved({

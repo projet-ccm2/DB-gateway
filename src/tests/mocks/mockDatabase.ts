@@ -21,18 +21,25 @@ export class MockDatabase implements Database {
     return true;
   }
 
-  async getAchievementsByChannelId(
-    channelId: string,
-  ): Promise<achievementWithTypeDTO[]> {
-    const list = this.achievements.filter((achievement) =>
-      (achievement as achievementDTO & { channelId?: string }).channelId
-        ? (achievement as achievementDTO & { channelId?: string }).channelId ===
-          channelId
-        : true,
+  async getPublicAchievements(): Promise<achievementWithTypeDTO[]> {
+    const list = this.achievements.filter(
+      (achievement) => achievement.public === true,
     );
     return list.map((achievement) => ({
       ...achievement,
-      typeAchievement: null as typeAchievementDTO | null,
+      typeAchievement: achievement.typeAchievement,
+    }));
+  }
+
+  async getAchievementsByChannelId(
+    channelId: string,
+  ): Promise<achievementWithTypeDTO[]> {
+    const list = this.achievements.filter(
+      (achievement) => achievement.channelId === channelId,
+    );
+    return list.map((achievement) => ({
+      ...achievement,
+      typeAchievement: achievement.typeAchievement,
     }));
   }
 
@@ -40,18 +47,15 @@ export class MockDatabase implements Database {
     userId: string,
     channelId: string,
   ): Promise<userChannelAchievementsDTO> {
-    const list = this.achievements.filter((achievement) =>
-      (achievement as achievementDTO & { channelId?: string }).channelId
-        ? (achievement as achievementDTO & { channelId?: string }).channelId ===
-          channelId
-        : true,
+    const list = this.achievements.filter(
+      (achievement) => achievement.channelId === channelId,
     );
     const achievements: achievementWithTypeAndAchievedDTO[] = await Promise.all(
       list.map(async (achievement) => {
         const achievedRecord = await this.getAchieved(achievement.id, userId);
         return {
           ...achievement,
-          typeAchievement: null,
+          typeAchievement: achievement.typeAchievement,
           achieved: achievedRecord,
         };
       }),
@@ -71,7 +75,7 @@ export class MockDatabase implements Database {
   private readonly channels: channelDTO[] = [];
   private readonly types: typeAchievementDTO[] = [];
   private readonly achievements: achievementDTO[] = [];
-  private readonly badges: badgeDTO[] = [];
+  private readonly badges: (badgeDTO & { channelId?: string | null })[] = [];
   private readonly achieved: achievedDTO[] = [];
   private readonly are: areDTO[] = [];
   private readonly possesses: possessesDTO[] = [];
@@ -86,6 +90,7 @@ export class MockDatabase implements Database {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    xp?: number;
     lastUpdateTimestamp: string;
   }): Promise<userDTO> {
     const newUser: userDTO = {
@@ -94,6 +99,7 @@ export class MockDatabase implements Database {
       profileImageUrl: user.profileImageUrl ?? null,
       channelDescription: user.channelDescription ?? null,
       scope: user.scope ?? null,
+      xp: user.xp ?? 0,
       lastUpdateTimestamp: user.lastUpdateTimestamp,
     };
     this.users.push(newUser);
@@ -111,6 +117,7 @@ export class MockDatabase implements Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp?: string;
     },
   ): Promise<userDTO | null> {
@@ -122,6 +129,7 @@ export class MockDatabase implements Database {
     if (data.channelDescription !== undefined)
       user.channelDescription = data.channelDescription;
     if (data.scope !== undefined) user.scope = data.scope;
+    if (data.xp !== undefined) user.xp = data.xp;
     if (data.lastUpdateTimestamp !== undefined)
       user.lastUpdateTimestamp = data.lastUpdateTimestamp;
     return user;
@@ -170,14 +178,101 @@ export class MockDatabase implements Database {
     );
   }
 
+  async updateAchievementActive(
+    id: string,
+    active: boolean,
+  ): Promise<achievementDTO | null> {
+    const achievement = this.achievements.find((a) => a.id === id);
+    if (!achievement) return null;
+    achievement.active = active;
+    return { ...achievement };
+  }
+
+  async updateAchievementPublic(
+    id: string,
+    isPublic: boolean,
+  ): Promise<achievementDTO | null> {
+    const achievement = this.achievements.find((a) => a.id === id);
+    if (!achievement) return null;
+    achievement.public = isPublic;
+    return { ...achievement };
+  }
+
+  async updateAchievement(
+    id: string,
+    data: {
+      title?: string;
+      description?: string;
+      goal?: number;
+      reward?: number;
+      label?: string;
+      public?: boolean;
+      active?: boolean;
+      secret?: boolean;
+      image?: string;
+      typeLabel?: string;
+      typeData?: string;
+    },
+  ): Promise<achievementDTO | null> {
+    const achievement = this.achievements.find((a) => a.id === id);
+    if (!achievement) return null;
+    if (data.title !== undefined) achievement.title = data.title;
+    if (data.description !== undefined)
+      achievement.description = data.description;
+    if (data.goal !== undefined) achievement.goal = data.goal;
+    if (data.reward !== undefined) achievement.reward = data.reward;
+    if (data.label !== undefined) achievement.label = data.label;
+    if (data.public !== undefined) achievement.public = data.public;
+    if (data.active !== undefined) achievement.active = data.active;
+    if (data.secret !== undefined) achievement.secret = data.secret;
+    if (data.image !== undefined) achievement.image = data.image;
+    if (data.typeLabel !== undefined || data.typeData !== undefined) {
+      const typeRecord = this.types.find(
+        (t) => t.id === achievement.typeAchievement.id,
+      );
+      if (typeRecord) {
+        if (data.typeLabel !== undefined) typeRecord.label = data.typeLabel;
+        if (data.typeData !== undefined) typeRecord.data = data.typeData;
+        achievement.typeAchievement = { ...typeRecord };
+      }
+    }
+    return { ...achievement };
+  }
+
+  async deleteAchievement(id: string): Promise<achievementDTO | null> {
+    const idx = this.achievements.findIndex((a) => a.id === id);
+    if (idx === -1) return null;
+    const [removed] = this.achievements.splice(idx, 1);
+    const typeIdx = this.types.findIndex(
+      (t) => t.id === removed.typeAchievement.id,
+    );
+    if (typeIdx !== -1) this.types.splice(typeIdx, 1);
+    for (let i = this.achieved.length - 1; i >= 0; i--) {
+      if (this.achieved[i].achievementId === id) this.achieved.splice(i, 1);
+    }
+    return removed;
+  }
+
   async addAchievement(achievement: {
     title: string;
     description: string;
     goal: number;
     reward: number;
     label: string;
+    public: boolean;
+    active: boolean;
+    secret: boolean;
+    image: string;
     channelId?: string | null;
+    typeLabel: string;
+    typeData: string;
   }): Promise<achievementDTO> {
+    const typeAchievement: typeAchievementDTO = {
+      id: randomUUID(),
+      label: achievement.typeLabel,
+      data: achievement.typeData,
+    };
+    this.types.push(typeAchievement);
     const created: achievementDTO = {
       id: randomUUID(),
       title: achievement.title,
@@ -185,24 +280,44 @@ export class MockDatabase implements Database {
       goal: achievement.goal,
       reward: achievement.reward,
       label: achievement.label,
+      public: achievement.public,
+      downloads: 0,
+      visits: 0,
+      active: achievement.active,
+      secret: achievement.secret,
+      image: achievement.image,
+      channelId: achievement.channelId ?? null,
+      typeAchievement,
     };
-    (
-      this.achievements as (achievementDTO & { channelId?: string | null })[]
-    ).push({
-      ...created,
-      channelId: achievement.channelId ?? undefined,
-    });
+    this.achievements.push(created);
     return created;
   }
 
   async getBadgeById(id: string): Promise<badgeDTO | null> {
-    return this.badges.find((badge) => badge.id === id) ?? null;
+    const badge = this.badges.find((b) => b.id === id);
+    if (!badge) return null;
+    return { id: badge.id, title: badge.title, img: badge.img };
   }
 
-  async addBadge(b: { title: string; img: string }): Promise<badgeDTO> {
-    const nb: badgeDTO = { id: randomUUID(), title: b.title, img: b.img };
+  async getBadgeByChannelId(channelId: string): Promise<badgeDTO | null> {
+    const badge = this.badges.find((b) => b.channelId === channelId);
+    if (!badge) return null;
+    return { id: badge.id, title: badge.title, img: badge.img };
+  }
+
+  async addBadge(b: {
+    title: string;
+    img: string;
+    channelId?: string | null;
+  }): Promise<badgeDTO> {
+    const nb = {
+      id: randomUUID(),
+      title: b.title,
+      img: b.img,
+      channelId: b.channelId ?? null,
+    };
     this.badges.push(nb);
-    return nb;
+    return { id: nb.id, title: nb.title, img: nb.img };
   }
 
   async getAchieved(
@@ -381,6 +496,29 @@ export class MockDatabase implements Database {
     return this.achieved.filter((record) => record.userId === userId);
   }
 
+  async getAchievementDefinitionsByUserId(
+    userId: string,
+  ): Promise<achievementWithTypeAndAchievedDTO[]> {
+    const userAchievedIds = new Set(
+      this.achieved
+        .filter((record) => record.userId === userId)
+        .map((record) => record.achievementId),
+    );
+    const matchingAchievements = this.achievements.filter((a) =>
+      userAchievedIds.has(a.id),
+    );
+    return Promise.all(
+      matchingAchievements.map(async (achievement) => {
+        const achievedRecord = await this.getAchieved(achievement.id, userId);
+        return {
+          ...achievement,
+          typeAchievement: achievement.typeAchievement,
+          achieved: achievedRecord,
+        };
+      }),
+    );
+  }
+
   async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
     return this.are
       .filter((record) => record.channelId === channelId)
@@ -393,6 +531,7 @@ export class MockDatabase implements Database {
           profileImageUrl: user.profileImageUrl,
           channelDescription: user.channelDescription,
           scope: user.scope,
+          xp: user.xp,
           lastUpdateTimestamp: user.lastUpdateTimestamp,
           userType: areRecord.userType,
         };

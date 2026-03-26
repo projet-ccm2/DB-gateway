@@ -25,7 +25,13 @@ describe("AchievedRepository (integration)", () => {
       goal: 1,
       reward: 10,
       label: "l",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
       channelId: channel.id,
+      typeLabel: "TL",
+      typeData: "TD",
     });
     const acquiredDate = new Date().toISOString();
     const created = await repo.add({
@@ -71,7 +77,13 @@ describe("AchievedRepository (integration)", () => {
       goal: 1,
       reward: 1,
       label: "l",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
       channelId: channel.id,
+      typeLabel: "TL",
+      typeData: "TD",
     });
     const found = await repo.get(achievement.id, "unknown-user-id");
     expect(found).toBeNull();
@@ -93,7 +105,13 @@ describe("AchievedRepository (integration)", () => {
       goal: 1,
       reward: 1,
       label: "l",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
       channelId: channel.id,
+      typeLabel: "TL",
+      typeData: "TD",
     });
     const firstDate = new Date().toISOString();
     const created = await repo.add({
@@ -137,7 +155,13 @@ describe("AchievedRepository (integration)", () => {
       goal: 1,
       reward: 1,
       label: "l",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
       channelId: channel.id,
+      typeLabel: "TL",
+      typeData: "TD",
     });
     await repo.add({
       achievementId: achievement.id,

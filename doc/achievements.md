@@ -6,14 +6,20 @@ Creates an achievement.
 
 ### Body (JSON)
 
-| Field       | Type           | Required | Description           |
-| ----------- | -------------- | -------- | --------------------- |
-| title       | string         | yes      | Title                 |
-| description | string         | yes      | Description           |
-| goal        | number         | yes      | Goal                  |
-| reward      | number         | yes      | Reward                |
-| label       | string         | yes      | Label                 |
-| channelId   | string \| null | no       | Associated channel ID |
+| Field       | Type           | Required | Description                         |
+| ----------- | -------------- | -------- | ----------------------------------- |
+| title       | string         | yes      | Title                               |
+| description | string         | yes      | Description                         |
+| goal        | number         | yes      | Goal                                |
+| reward      | number         | yes      | Reward                              |
+| label       | string         | yes      | Label                               |
+| public      | boolean        | yes      | Whether the achievement is public   |
+| active      | boolean        | yes      | Whether the achievement is active   |
+| secret      | boolean        | yes      | Whether the achievement is secret   |
+| image       | string         | yes      | Image URL / path                    |
+| channelId   | string \| null | no       | Associated channel ID               |
+| typeLabel   | string         | yes      | Label for nested type (creates new) |
+| typeData    | string         | yes      | Data for nested type (creates new)  |
 
 ### Responses
 
@@ -26,7 +32,19 @@ Creates an achievement.
   "description": "string",
   "goal": 1,
   "reward": 2,
-  "label": "string"
+  "label": "string",
+  "public": false,
+  "downloads": 0,
+  "visits": 0,
+  "active": true,
+  "secret": false,
+  "image": "string",
+  "channelId": "uuid | null",
+  "typeAchievement": {
+    "id": "uuid",
+    "label": "string",
+    "data": "string"
+  }
 }
 ```
 
@@ -34,7 +52,418 @@ Creates an achievement.
 
 ```json
 {
-  "error": "title, description, goal, reward, label required"
+  "error": "title, description, goal, reward, label, public, active, secret, image, typeLabel, typeData required"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## DELETE /achievements/:achievementId
+
+Permanently deletes an achievement definition and all its achieved records (atomically). Returns the deleted achievement payload (including `channelId`) so the caller can invalidate caches.
+
+### Path parameters
+
+| Param         | Type   | Description        |
+| ------------- | ------ | ------------------ |
+| achievementId | string | The achievement ID |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid",
+  "title": "string",
+  "description": "string",
+  "goal": 1,
+  "reward": 2,
+  "label": "string",
+  "public": false,
+  "downloads": 0,
+  "visits": 0,
+  "active": true,
+  "secret": false,
+  "image": "string",
+  "channelId": "uuid | null",
+  "typeAchievement": {
+    "id": "uuid",
+    "label": "string",
+    "data": "string"
+  }
+}
+```
+
+**400 Bad Request**
+
+```json
+{
+  "error": "achievementId required"
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## PUT /achievements/:achievementId
+
+Updates an existing achievement definition (including its nested type).
+
+### Path parameters
+
+| Param         | Type   | Description        |
+| ------------- | ------ | ------------------ |
+| achievementId | string | The achievement ID |
+
+### Body (JSON)
+
+| Field     | Type    | Required | Description                        |
+| --------- | ------- | -------- | ---------------------------------- |
+| title     | string  | yes      | Title                              |
+| description | string | yes     | Description                        |
+| goal      | number  | yes      | Goal                               |
+| reward    | number  | yes      | Reward                             |
+| label     | string  | yes      | Label                              |
+| public    | boolean | yes      | Whether the achievement is public  |
+| active    | boolean | yes      | Whether the achievement is active  |
+| secret    | boolean | yes      | Whether the achievement is secret  |
+| image     | string  | yes      | Image URL / path                   |
+| typeLabel | string  | yes      | Label for nested type (updated)    |
+| typeData  | string  | yes      | Data for nested type (updated)     |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid",
+  "title": "string",
+  "description": "string",
+  "goal": 1,
+  "reward": 2,
+  "label": "string",
+  "public": true,
+  "downloads": 0,
+  "visits": 0,
+  "active": false,
+  "secret": true,
+  "image": "string",
+  "channelId": "uuid | null",
+  "typeAchievement": {
+    "id": "uuid",
+    "label": "string",
+    "data": "string"
+  }
+}
+```
+
+**400 Bad Request**
+
+```json
+{
+  "error": "achievementId required"
+}
+```
+
+```json
+{
+  "error": "title, description, goal, reward, label, public, active, secret, image, typeLabel, typeData required"
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## GET /achievements/public
+
+Returns all public achievements (marketplace browsing). Includes type achievement data for card rendering and prefill usage.
+
+### Responses
+
+**200 OK** — Array of achievement objects with `typeAchievement` where `public` is `true`
+
+```json
+[
+  {
+    "id": "uuid",
+    "title": "string",
+    "description": "string",
+    "goal": 1,
+    "reward": 2,
+    "label": "string",
+    "public": true,
+    "downloads": 0,
+    "visits": 0,
+    "active": true,
+    "secret": false,
+    "image": "string",
+    "channelId": "uuid | null",
+    "typeAchievement": {
+      "id": "uuid",
+      "label": "string",
+      "data": "string"
+    }
+  }
+]
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## PATCH /achievements/:achievementId/activate
+
+Activates a previously inactive achievement (sets `active` to `true`).
+
+### Path parameters
+
+| Name          | Type   | Description    |
+| ------------- | ------ | -------------- |
+| achievementId | string | Achievement ID |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid",
+  "title": "string",
+  "description": "string",
+  "goal": 1,
+  "reward": 2,
+  "label": "string",
+  "public": false,
+  "downloads": 0,
+  "visits": 0,
+  "active": true,
+  "secret": false,
+  "image": "string",
+  "channelId": "uuid | null",
+  "typeAchievement": {
+    "id": "uuid",
+    "label": "string",
+    "data": "string"
+  }
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## PATCH /achievements/:achievementId/deactivate
+
+Deactivates an achievement without deleting it (sets `active` to `false`).
+
+### Path parameters
+
+| Name          | Type   | Description    |
+| ------------- | ------ | -------------- |
+| achievementId | string | Achievement ID |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid",
+  "title": "string",
+  "description": "string",
+  "goal": 1,
+  "reward": 2,
+  "label": "string",
+  "public": false,
+  "downloads": 0,
+  "visits": 0,
+  "active": false,
+  "secret": false,
+  "image": "string",
+  "channelId": "uuid | null",
+  "typeAchievement": {
+    "id": "uuid",
+    "label": "string",
+    "data": "string"
+  }
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## PATCH /achievements/:achievementId/public
+
+Makes an achievement public (sets `public` to `true`).
+
+### Path parameters
+
+| Name          | Type   | Description    |
+| ------------- | ------ | -------------- |
+| achievementId | string | Achievement ID |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid",
+  "title": "string",
+  "description": "string",
+  "goal": 1,
+  "reward": 2,
+  "label": "string",
+  "public": true,
+  "downloads": 0,
+  "visits": 0,
+  "active": true,
+  "secret": false,
+  "image": "string",
+  "channelId": "uuid | null",
+  "typeAchievement": {
+    "id": "uuid",
+    "label": "string",
+    "data": "string"
+  }
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## PATCH /achievements/:achievementId/private
+
+Makes an achievement private (sets `public` to `false`).
+
+### Path parameters
+
+| Name          | Type   | Description    |
+| ------------- | ------ | -------------- |
+| achievementId | string | Achievement ID |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid",
+  "title": "string",
+  "description": "string",
+  "goal": 1,
+  "reward": 2,
+  "label": "string",
+  "public": false,
+  "downloads": 0,
+  "visits": 0,
+  "active": true,
+  "secret": false,
+  "image": "string",
+  "channelId": "uuid | null",
+  "typeAchievement": {
+    "id": "uuid",
+    "label": "string",
+    "data": "string"
+  }
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
 }
 ```
 
@@ -95,6 +524,13 @@ Returns all achievements for a given channel with their type achievement.
     "goal": 1,
     "reward": 2,
     "label": "string",
+    "public": false,
+    "downloads": 0,
+    "visits": 0,
+    "active": true,
+    "secret": false,
+    "image": "string",
+    "channelId": "uuid",
     "typeAchievement": {
       "id": "uuid",
       "label": "string",
@@ -104,13 +540,78 @@ Returns all achievements for a given channel with their type achievement.
 ]
 ```
 
-`typeAchievement` may be `null` if no type is associated with the achievement.
-
 **400 Bad Request**
 
 ```json
 {
   "error": "channelId required"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## GET /achievements/user/:userId
+
+Returns all achievement definitions enriched with the user's progression state from the `achieved` table. Only achievements where the user has at least one achieved record are returned.
+
+### Path parameters
+
+| Name   | Type   | Description |
+| ------ | ------ | ----------- |
+| userId | string | User ID     |
+
+### Responses
+
+**200 OK** — Array of achievement objects with `typeAchievement` and `achieved`
+
+```json
+[
+  {
+    "id": "uuid",
+    "title": "string",
+    "description": "string",
+    "goal": 5,
+    "reward": 10,
+    "label": "string",
+    "public": false,
+    "downloads": 0,
+    "visits": 0,
+    "active": true,
+    "secret": false,
+    "image": "string",
+    "channelId": "uuid | null",
+    "typeAchievement": {
+      "id": "uuid",
+      "label": "string",
+      "data": "string"
+    },
+    "achieved": {
+      "achievementId": "uuid",
+      "userId": "uuid",
+      "count": 3,
+      "finished": false,
+      "labelActive": true,
+      "acquiredDate": "2024-01-01T00:00:00.000Z"
+    }
+  }
+]
+```
+
+- `achieved` is the user's progression on this achievement (count, finished, etc.). It is always present since only achievements with user progress are returned.
+
+**400 Bad Request**
+
+```json
+{
+  "error": "userId required"
 }
 ```
 
@@ -151,6 +652,13 @@ Returns all achievements for a user on a channel with complete data (achievement
       "goal": 1,
       "reward": 2,
       "label": "string",
+      "public": false,
+      "downloads": 0,
+      "visits": 0,
+      "active": true,
+      "secret": false,
+      "image": "string",
+      "channelId": "uuid",
       "typeAchievement": {
         "id": "uuid",
         "label": "string",
@@ -169,7 +677,6 @@ Returns all achievements for a user on a channel with complete data (achievement
 }
 ```
 
-- `typeAchievement` may be `null` if no type is associated.
 - `achieved` may be `null` if the user has no progress on this achievement.
 - All achievements for the channel are returned, even without user progress.
 
@@ -212,7 +719,19 @@ Returns an achievement by ID.
   "description": "string",
   "goal": 1,
   "reward": 2,
-  "label": "string"
+  "label": "string",
+  "public": false,
+  "downloads": 0,
+  "visits": 0,
+  "active": true,
+  "secret": false,
+  "image": "string",
+  "channelId": "uuid | null",
+  "typeAchievement": {
+    "id": "uuid",
+    "label": "string",
+    "data": "string"
+  }
 }
 ```
 

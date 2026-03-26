@@ -1,5 +1,5 @@
 import type { HandlerFn } from "../types";
-import { missing, str, strOrNull } from "../payload";
+import { missing, num, str, strOrNull } from "../payload";
 
 export const userHandlers: Record<string, HandlerFn> = {
   createUser: async (repo, payload) => {
@@ -14,6 +14,7 @@ export const userHandlers: Record<string, HandlerFn> = {
       profileImageUrl: strOrNull(payload, "profileImageUrl"),
       channelDescription: strOrNull(payload, "channelDescription"),
       scope: strOrNull(payload, "scope"),
+      xp: num(payload, "xp") ?? 0,
       lastUpdateTimestamp,
     });
     return { ok: true, user };
@@ -39,6 +40,7 @@ export const userHandlers: Record<string, HandlerFn> = {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp?: string;
     } = {};
     if ("username" in payload) {
@@ -51,6 +53,10 @@ export const userHandlers: Record<string, HandlerFn> = {
     if ("channelDescription" in payload)
       data.channelDescription = strOrNull(payload, "channelDescription");
     if ("scope" in payload) data.scope = strOrNull(payload, "scope");
+    if ("xp" in payload) {
+      const xpVal = num(payload, "xp");
+      if (xpVal !== undefined) data.xp = xpVal;
+    }
     if ("lastUpdateTimestamp" in payload) {
       const ts = str(payload, "lastUpdateTimestamp");
       if (ts) data.lastUpdateTimestamp = ts;
@@ -77,8 +83,8 @@ export const userHandlers: Record<string, HandlerFn> = {
   getAchievementsByUserId: async (repo, payload) => {
     const userId = str(payload, "userId");
     if (!userId) return missing("userId");
-    const achievements = await repo.user.getAchievementsByUserId(userId);
-    return { ok: true, achievements };
+    const achievedRecords = await repo.user.getAchievementsByUserId(userId);
+    return { ok: true, achievedRecords };
   },
 
   getUsersByChannelId: async (repo, payload) => {

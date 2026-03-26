@@ -15,6 +15,12 @@ describe("achievedRepository (unit)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
     const repo = new AchievedRepository(db);
     const created = await repo.add({
@@ -52,6 +58,12 @@ describe("achievedRepository (unit)", () => {
       goal: 1,
       reward: 1,
       label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeLabel: "TL",
+      typeData: "TD",
     });
     const repo = new AchievedRepository(db);
     await repo.add({

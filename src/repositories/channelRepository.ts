@@ -1,10 +1,14 @@
-import { Database, channelDTO } from "../database/database";
+import { Database, channelDTO, badgeDTO } from "../database/database";
 
 export class ChannelRepository {
   constructor(private readonly db: Database) {}
 
   async getChannelById(id: string): Promise<channelDTO | null> {
     return this.db.getChannelById(id);
+  }
+
+  async getBadgeByChannelId(channelId: string): Promise<badgeDTO | null> {
+    return this.db.getBadgeByChannelId(channelId);
   }
 
   async addChannel(id: string, name: string): Promise<channelDTO> {

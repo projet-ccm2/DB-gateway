@@ -41,4 +41,19 @@ describe("ChannelRepository (integration)", () => {
     });
     expect(updated).toBeNull();
   });
+
+  it("getBadgeByChannelId returns badge when linked", async () => {
+    const chId = "ch_badge_" + Date.now();
+    await repo.addChannel(chId, "BadgeChannel");
+    await db.addBadge({ title: "IntegBadge", img: "ib.png", channelId: chId });
+    const found = await repo.getBadgeByChannelId(chId);
+    expect(found).not.toBeNull();
+    expect(found?.title).toBe("IntegBadge");
+    expect(found?.img).toBe("ib.png");
+  });
+
+  it("getBadgeByChannelId returns null when no badge", async () => {
+    const found = await repo.getBadgeByChannelId("no-badge-channel");
+    expect(found).toBeNull();
+  });
 });

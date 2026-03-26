@@ -16,6 +16,7 @@ Returns all users.
     "profileImageUrl": null,
     "channelDescription": null,
     "scope": null,
+    "xp": 0,
     "lastUpdateTimestamp": "2026-02-20T12:00:00.000Z"
   }
 ]
@@ -44,6 +45,7 @@ Creates a user.
 | profileImageUrl     | string \| null | no       | Avatar URL                       |
 | channelDescription  | string \| null | no       | Channel description              |
 | scope               | string \| null | no       | OAuth scope                      |
+| xp                  | number         | no       | Experience points (default 0)    |
 | lastUpdateTimestamp | string         | yes      | ISO 8601 datetime of last update |
 
 ### Responses
@@ -57,6 +59,7 @@ Creates a user.
   "profileImageUrl": null,
   "channelDescription": null,
   "scope": null,
+  "xp": 0,
   "lastUpdateTimestamp": "2026-02-20T12:00:00.000Z"
 }
 ```
@@ -129,6 +132,7 @@ Updates a user by ID.
 | profileImageUrl     | string \| null | no       | Avatar URL                       |
 | channelDescription  | string \| null | no       | Channel description              |
 | scope               | string \| null | no       | OAuth scope                      |
+| xp                  | number         | no       | Experience points                |
 | lastUpdateTimestamp | string         | no       | ISO 8601 datetime of last update |
 
 ### Responses

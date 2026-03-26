@@ -14,7 +14,7 @@ describe("usersRoutes (unit)", () => {
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({ id: "twitch1", username: "u1" });
+    expect(res.body).toMatchObject({ id: "twitch1", username: "u1", xp: 0 });
   });
 
   it("GET / returns all users", async () => {
