@@ -74,8 +74,7 @@ export type AchievementInput = {
   secret: boolean;
   image: string;
   channelId?: string | null;
-  typeLabel: string;
-  typeData: string;
+  typeId: string;
 };
 
 export type AchievementUpdateData = {
@@ -88,8 +87,7 @@ export type AchievementUpdateData = {
   active?: boolean;
   secret?: boolean;
   image?: string;
-  typeLabel?: string;
-  typeData?: string;
+  typeId?: string;
 };
 
 export type AchievedPayload = {
@@ -164,7 +162,7 @@ export interface Database {
     id: string,
     data: AchievementUpdateData,
   ): Promise<achievementDTO | null>;
-  addAchievement(achievement: AchievementInput): Promise<achievementDTO>;
+  addAchievement(achievement: AchievementInput): Promise<achievementDTO | null>;
   deleteAchievement(id: string): Promise<achievementDTO | null>;
 
   getBadgeById(id: string): Promise<badgeDTO | null>;

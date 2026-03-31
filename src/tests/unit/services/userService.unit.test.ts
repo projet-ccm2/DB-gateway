@@ -81,7 +81,8 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const ach = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await db.addAchievement({
       title: "a1",
       description: "d",
       goal: 1,
@@ -91,9 +92,8 @@ describe("UserService (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const users = await service.getUsersByAchievementId(ach.id);
     expect(users).toEqual([]);
   });

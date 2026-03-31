@@ -10,6 +10,13 @@ describe("achievementsController (unit)", () => {
   const userRepo = new UserRepository(db);
   const ctrl = createAchievementsController(achievementRepo, userRepo);
 
+  let type: { id: string; label: string; data: string };
+  let type2: { id: string; label: string; data: string };
+  beforeAll(async () => {
+    type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    type2 = await db.addTypeAchievement({ label: "NewTL", data: "NewTD" });
+  });
+
   const mockRes = (): Response => {
     const res = {} as Response;
     res.status = jest.fn().mockReturnThis();
@@ -29,8 +36,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as Request;
     const res = mockRes();
@@ -62,8 +68,7 @@ describe("achievementsController (unit)", () => {
         secret: false,
         image: "img.png",
         channelId: ch.id,
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as Request;
     const res = mockRes();
@@ -72,7 +77,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("update returns 200 with updated achievement", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "OldCtrl",
       description: "D",
       goal: 1,
@@ -82,9 +87,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = {
       params: { achievementId: a.id },
       body: {
@@ -97,8 +101,7 @@ describe("achievementsController (unit)", () => {
         active: false,
         secret: true,
         image: "new.png",
-        typeLabel: "NewTL",
-        typeData: "NewTD",
+        typeId: type2.id,
       },
     } as unknown as Request;
     const res = mockRes();
@@ -121,8 +124,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as unknown as Request;
     const res = mockRes();
@@ -153,8 +155,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as unknown as Request;
     const res = mockRes();
@@ -179,8 +180,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as unknown as Request;
     const res = mockRes();
@@ -189,7 +189,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("getById returns 200 when found", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Found",
       description: "D",
       goal: 1,
@@ -199,9 +199,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { id: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getById(req, res);
@@ -211,7 +210,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("getUsersByAchievementId returns 200 and array", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -221,9 +220,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { id: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getUsersByAchievementId(req, res);
@@ -253,8 +251,7 @@ describe("achievementsController (unit)", () => {
       secret: false,
       image: "img.png",
       channelId: ch.id,
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     const req = { params: { channelId: ch.id } } as unknown as Request;
     const res = mockRes();
@@ -272,6 +269,10 @@ describe("achievementsController (unit)", () => {
       freshAchievementRepo,
       freshUserRepo,
     );
+    const freshType = await freshDb.addTypeAchievement({
+      label: "TL",
+      data: "TD",
+    });
     await freshDb.addAchievement({
       title: "PubCtrl",
       description: "D",
@@ -282,8 +283,7 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: freshType.id,
     });
     await freshDb.addAchievement({
       title: "PrivCtrl",
@@ -295,8 +295,7 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: freshType.id,
     });
     const req = {} as unknown as Request;
     const res = mockRes();
@@ -329,7 +328,11 @@ describe("achievementsController (unit)", () => {
       freshAchievementRepo,
       freshUserRepo,
     );
-    const ach = await freshDb.addAchievement({
+    const freshType = await freshDb.addTypeAchievement({
+      label: "TL",
+      data: "TD",
+    });
+    const ach = (await freshDb.addAchievement({
       title: "CtrlDefAch",
       description: "D",
       goal: 5,
@@ -339,9 +342,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: freshType.id,
+    }))!;
     await freshDb.addAchieved({
       achievementId: ach.id,
       userId: "ctrl-def-user",
@@ -430,8 +432,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as Request;
     const res = mockRes();
@@ -463,7 +464,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("activate returns 200 and sets active to true", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Inactive",
       description: "D",
       goal: 1,
@@ -473,9 +474,8 @@ describe("achievementsController (unit)", () => {
       active: false,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.activate(req, res);
@@ -503,7 +503,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("deactivate returns 200 and sets active to false", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Active",
       description: "D",
       goal: 1,
@@ -513,9 +513,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.deactivate(req, res);
@@ -543,7 +542,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("makePublic returns 200 and sets public to true", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Private",
       description: "D",
       goal: 1,
@@ -553,9 +552,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.makePublic(req, res);
@@ -583,7 +581,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("makePrivate returns 200 and sets public to false", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Public",
       description: "D",
       goal: 1,
@@ -593,9 +591,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.makePrivate(req, res);
@@ -623,7 +620,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("remove returns 200 with deleted achievement", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "ToRemove",
       description: "D",
       goal: 1,
@@ -633,9 +630,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.remove(req, res);

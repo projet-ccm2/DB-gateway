@@ -13,8 +13,7 @@ const ACHIEVEMENT_FIELDS = [
   "active",
   "secret",
   "image",
-  "typeLabel",
-  "typeData",
+  "typeId",
 ] as const;
 
 function extractAchievementFields(payload: Payload) {
@@ -27,8 +26,7 @@ function extractAchievementFields(payload: Payload) {
   const active = bool(payload, "active");
   const secret = bool(payload, "secret");
   const image = str(payload, "image");
-  const typeLabel = str(payload, "typeLabel");
-  const typeData = str(payload, "typeData");
+  const typeId = str(payload, "typeId");
   if (
     !title ||
     !description ||
@@ -39,8 +37,7 @@ function extractAchievementFields(payload: Payload) {
     active == null ||
     secret == null ||
     image == null ||
-    !typeLabel ||
-    !typeData
+    !typeId
   ) {
     return null;
   }
@@ -54,8 +51,7 @@ function extractAchievementFields(payload: Payload) {
     active,
     secret,
     image,
-    typeLabel,
-    typeData,
+    typeId,
   };
 }
 
@@ -79,6 +75,7 @@ export const achievementHandlers: Record<string, HandlerFn> = {
       ...fields,
       channelId: strOrNull(payload, "channelId"),
     });
+    if (!achievement) return { ok: false, error: "typeId not found" };
     return { ok: true, achievement };
   },
 

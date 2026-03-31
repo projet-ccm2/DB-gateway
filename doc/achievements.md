@@ -18,8 +18,7 @@ Creates an achievement.
 | secret      | boolean        | yes      | Whether the achievement is secret   |
 | image       | string         | yes      | Image URL / path                    |
 | channelId   | string \| null | no       | Associated channel ID               |
-| typeLabel   | string         | yes      | Label for nested type (creates new) |
-| typeData    | string         | yes      | Data for nested type (creates new)  |
+| typeId      | string         | yes      | ID of an existing type achievement  |
 
 ### Responses
 
@@ -52,7 +51,15 @@ Creates an achievement.
 
 ```json
 {
-  "error": "title, description, goal, reward, label, public, active, secret, image, typeLabel, typeData required"
+  "error": "title, description, goal, reward, label, public, active, secret, image, typeId required"
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "typeId not found"
 }
 ```
 
@@ -131,7 +138,7 @@ Permanently deletes an achievement definition and all its achieved records (atom
 
 ## PUT /achievements/:achievementId
 
-Updates an existing achievement definition (including its nested type).
+Updates an existing achievement definition (reassigns type by ID).
 
 ### Path parameters
 
@@ -152,8 +159,7 @@ Updates an existing achievement definition (including its nested type).
 | active    | boolean | yes      | Whether the achievement is active  |
 | secret    | boolean | yes      | Whether the achievement is secret  |
 | image     | string  | yes      | Image URL / path                   |
-| typeLabel | string  | yes      | Label for nested type (updated)    |
-| typeData  | string  | yes      | Data for nested type (updated)     |
+| typeId    | string  | yes      | ID of an existing type achievement |
 
 ### Responses
 
@@ -192,7 +198,7 @@ Updates an existing achievement definition (including its nested type).
 
 ```json
 {
-  "error": "title, description, goal, reward, label, public, active, secret, image, typeLabel, typeData required"
+  "error": "title, description, goal, reward, label, public, active, secret, image, typeId required"
 }
 ```
 

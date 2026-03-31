@@ -5,6 +5,15 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
   const db = new PrismaDatabase();
   const service = new UserRepository(db);
 
+  let type1: { id: string; label: string; data: string };
+  let type2: { id: string; label: string; data: string };
+  let type3: { id: string; label: string; data: string };
+  beforeAll(async () => {
+    type1 = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    type2 = await db.addTypeAchievement({ label: "TL2", data: "TD2" });
+    type3 = await db.addTypeAchievement({ label: "TL3", data: "TD3" });
+  });
+
   afterAll(async () => {
     await db.disconnect();
   });
@@ -14,7 +23,7 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       id: "ch-ach-" + Date.now(),
       name: "TestChannelForAchievements",
     });
-    const achievement1 = await db.addAchievement({
+    const achievement1 = (await db.addAchievement({
       title: "ChannelAch1",
       description: "First channel achievement",
       goal: 1,
@@ -25,10 +34,9 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
-    const achievement2 = await db.addAchievement({
+      typeId: type1.id,
+    }))!;
+    const achievement2 = (await db.addAchievement({
       title: "ChannelAch2",
       description: "Second channel achievement",
       goal: 2,
@@ -39,9 +47,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL2",
-      typeData: "TD2",
-    });
+      typeId: type2.id,
+    }))!;
     const otherChannel = await db.addChannel({
       id: "ch-other-" + Date.now(),
       name: "OtherChannelForAchievements",
@@ -57,8 +64,7 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       secret: false,
       image: "img.png",
       channelId: otherChannel.id,
-      typeLabel: "TL3",
-      typeData: "TD3",
+      typeId: type3.id,
     });
     const achievements = await service.getAchievementsByChannelId(channel.id);
     expect(achievements.length).toBeGreaterThanOrEqual(2);
@@ -81,7 +87,7 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       id: "ch-merged-" + Date.now(),
       name: "MergedChannel_" + Date.now(),
     });
-    const achievement1 = await db.addAchievement({
+    const achievement1 = (await db.addAchievement({
       title: "MergedAch1",
       description: "d1",
       goal: 1,
@@ -92,9 +98,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type1.id,
+    }))!;
     await db.addAchievement({
       title: "MergedAch2",
       description: "d2",
@@ -106,8 +111,7 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL2",
-      typeData: "TD2",
+      typeId: type2.id,
     });
     await db.addAchieved({
       achievementId: achievement1.id,
@@ -152,7 +156,7 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       id: "ch-ach2-" + Date.now(),
       name: "AchievedChannel2",
     });
-    const achievement1 = await db.addAchievement({
+    const achievement1 = (await db.addAchievement({
       title: "Achieved1",
       description: "desc1",
       goal: 1,
@@ -163,10 +167,9 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       secret: false,
       image: "img.png",
       channelId: channel1.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
-    const achievement2 = await db.addAchievement({
+      typeId: type1.id,
+    }))!;
+    const achievement2 = (await db.addAchievement({
       title: "Achieved2",
       description: "desc2",
       goal: 2,
@@ -177,9 +180,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       secret: false,
       image: "img.png",
       channelId: channel2.id,
-      typeLabel: "TL2",
-      typeData: "TD2",
-    });
+      typeId: type2.id,
+    }))!;
     await db.addAchieved({
       achievementId: achievement1.id,
       userId: user.id,
@@ -349,7 +351,7 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       id: "ch-achusr-" + Date.now(),
       name: "AchievementUserChannel",
     });
-    const achievement = await db.addAchievement({
+    const achievement = (await db.addAchievement({
       title: "IntegAchievement",
       description: "Integration test achievement",
       goal: 10,
@@ -360,9 +362,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type1.id,
+    }))!;
     await db.addAchieved({
       achievementId: achievement.id,
       userId: user.id,
@@ -471,7 +472,7 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       id: "ch-holder-" + Date.now(),
       name: "HolderAchievementChannel",
     });
-    const achievement = await db.addAchievement({
+    const achievement = (await db.addAchievement({
       title: "HolderAchievement",
       description: "Test holder",
       goal: 1,
@@ -482,9 +483,8 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type1.id,
+    }))!;
     await db.addAchieved({
       achievementId: achievement.id,
       userId: user.id,

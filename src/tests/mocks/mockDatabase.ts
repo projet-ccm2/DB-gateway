@@ -210,8 +210,7 @@ export class MockDatabase implements Database {
       active?: boolean;
       secret?: boolean;
       image?: string;
-      typeLabel?: string;
-      typeData?: string;
+      typeId?: string;
     },
   ): Promise<achievementDTO | null> {
     const achievement = this.achievements.find((a) => a.id === id);
@@ -226,13 +225,9 @@ export class MockDatabase implements Database {
     if (data.active !== undefined) achievement.active = data.active;
     if (data.secret !== undefined) achievement.secret = data.secret;
     if (data.image !== undefined) achievement.image = data.image;
-    if (data.typeLabel !== undefined || data.typeData !== undefined) {
-      const typeRecord = this.types.find(
-        (t) => t.id === achievement.typeAchievement.id,
-      );
+    if (data.typeId !== undefined) {
+      const typeRecord = this.types.find((t) => t.id === data.typeId);
       if (typeRecord) {
-        if (data.typeLabel !== undefined) typeRecord.label = data.typeLabel;
-        if (data.typeData !== undefined) typeRecord.data = data.typeData;
         achievement.typeAchievement = { ...typeRecord };
       }
     }
@@ -264,15 +259,10 @@ export class MockDatabase implements Database {
     secret: boolean;
     image: string;
     channelId?: string | null;
-    typeLabel: string;
-    typeData: string;
-  }): Promise<achievementDTO> {
-    const typeAchievement: typeAchievementDTO = {
-      id: randomUUID(),
-      label: achievement.typeLabel,
-      data: achievement.typeData,
-    };
-    this.types.push(typeAchievement);
+    typeId: string;
+  }): Promise<achievementDTO | null> {
+    const typeAchievement = this.types.find((t) => t.id === achievement.typeId);
+    if (!typeAchievement) return null;
     const created: achievementDTO = {
       id: randomUUID(),
       title: achievement.title,
@@ -287,7 +277,7 @@ export class MockDatabase implements Database {
       secret: achievement.secret,
       image: achievement.image,
       channelId: achievement.channelId ?? null,
-      typeAchievement,
+      typeAchievement: { ...typeAchievement },
     };
     this.achievements.push(created);
     return created;

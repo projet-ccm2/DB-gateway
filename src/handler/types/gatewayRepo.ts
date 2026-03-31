@@ -64,7 +64,9 @@ export type GatewayRepo = {
     getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
   };
   achievement: {
-    addAchievement(achievement: AchievementInput): Promise<achievementDTO>;
+    addAchievement(
+      achievement: AchievementInput,
+    ): Promise<achievementDTO | null>;
     getAchievementById(id: string): Promise<achievementDTO | null>;
     updateAchievementActive(
       id: string,

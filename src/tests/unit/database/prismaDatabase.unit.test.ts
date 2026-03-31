@@ -570,27 +570,27 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "L",
-        typeData: "D",
+        typeId: t.id,
       });
-      expect(a.title).toBe("T");
+      expect(a).not.toBeNull();
+      expect(a!.title).toBe("T");
 
-      const activated = await db.updateAchievementActive(a.id, false);
+      const activated = await db.updateAchievementActive(a!.id, false);
       expect(activated).not.toBeNull();
       expect(activated?.active).toBe(false);
 
-      const reactivated = await db.updateAchievementActive(a.id, true);
+      const reactivated = await db.updateAchievementActive(a!.id, true);
       expect(reactivated).not.toBeNull();
       expect(reactivated?.active).toBe(true);
 
       const notFound = await db.updateAchievementActive("unknown", true);
       expect(notFound).toBeNull();
 
-      const madePublic = await db.updateAchievementPublic(a.id, true);
+      const madePublic = await db.updateAchievementPublic(a!.id, true);
       expect(madePublic).not.toBeNull();
       expect(madePublic?.public).toBe(true);
 
-      const madePrivate = await db.updateAchievementPublic(a.id, false);
+      const madePrivate = await db.updateAchievementPublic(a!.id, false);
       expect(madePrivate).not.toBeNull();
       expect(madePrivate?.public).toBe(false);
 
@@ -598,7 +598,8 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       expect(publicNotFound).toBeNull();
 
       // Test updateAchievement
-      const fullUpdated = await db.updateAchievement(a.id, {
+      const t2 = await db.addTypeAchievement({ label: "newTL", data: "newTD" });
+      const fullUpdated = await db.updateAchievement(a!.id, {
         title: "Updated",
         description: "New D",
         goal: 99,
@@ -608,8 +609,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         active: false,
         secret: true,
         image: "new.png",
-        typeLabel: "newTL",
-        typeData: "newTD",
+        typeId: t2.id,
       });
       expect(fullUpdated).not.toBeNull();
       expect(fullUpdated?.title).toBe("Updated");
@@ -640,12 +640,12 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: t.id,
       });
-      const deleted = await db.deleteAchievement(toDelete.id);
+      expect(toDelete).not.toBeNull();
+      const deleted = await db.deleteAchievement(toDelete!.id);
       expect(deleted).not.toBeNull();
-      expect(deleted?.id).toBe(toDelete.id);
+      expect(deleted?.id).toBe(toDelete!.id);
       expect(deleted?.title).toBe("DelMe");
 
       const deleteNotFound = await db.deleteAchievement("unknown");

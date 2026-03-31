@@ -141,12 +141,8 @@ function makeRepoMock(): GatewayRepo {
     },
     achievement: {
       addAchievement: async (a) => {
-        const typeAch = {
-          id: "t_" + a.typeLabel,
-          label: a.typeLabel,
-          data: a.typeData,
-        };
-        typeAchievements.push(typeAch);
+        const typeAch = typeAchievements.find((t) => t.id === a.typeId);
+        if (!typeAch) return null;
         const ach = {
           id: "a_" + a.title,
           ...a,
@@ -184,8 +180,7 @@ function makeRepoMock(): GatewayRepo {
           active?: boolean;
           secret?: boolean;
           image?: string;
-          typeLabel?: string;
-          typeData?: string;
+          typeId?: string;
         },
       ) => {
         const ach = achievements.find((a) => a.id === id);
@@ -199,10 +194,10 @@ function makeRepoMock(): GatewayRepo {
         if (data.active !== undefined) ach.active = data.active;
         if (data.secret !== undefined) ach.secret = data.secret;
         if (data.image !== undefined) ach.image = data.image;
-        if (data.typeLabel !== undefined)
-          ach.typeAchievement.label = data.typeLabel;
-        if (data.typeData !== undefined)
-          ach.typeAchievement.data = data.typeData;
+        if (data.typeId !== undefined) {
+          const newType = typeAchievements.find((t) => t.id === data.typeId);
+          if (newType) ach.typeAchievement = newType;
+        }
         return ach;
       },
       getPublicAchievements: async () => {
@@ -312,8 +307,11 @@ function makeRepoMock(): GatewayRepo {
 describe("jsonHandler full coverage", () => {
   let repo: GatewayRepo;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repo = makeRepoMock();
+    // Seed types used by achievement tests
+    await repo.typeAchievement.addTypeAchievement("TL", "TD");
+    await repo.typeAchievement.addTypeAchievement("NTL", "NTD");
   });
 
   test("user create/get", async () => {
@@ -636,8 +634,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     expect(create.ok).toBe(true);
@@ -662,8 +659,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     expect(create.ok).toBe(true);
@@ -708,8 +704,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     expect(create.ok).toBe(true);
@@ -754,8 +749,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     await handleJsonMessage(repo, {
@@ -770,8 +764,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     const result = await handleJsonMessage(repo, {
@@ -799,8 +792,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     const achId = (createRes as unknown as { achievement: { id: string } })
@@ -857,8 +849,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "i.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     expect(create.ok).toBe(true);
@@ -879,8 +870,7 @@ describe("jsonHandler full coverage", () => {
         active: false,
         secret: true,
         image: "n.png",
-        typeLabel: "NTL",
-        typeData: "NTD",
+        typeId: "t_NTL",
       },
     });
     expect(result.ok).toBe(true);
@@ -905,8 +895,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "i.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     expect(result.ok).toBe(false);
@@ -925,8 +914,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "i.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     expect(result.ok).toBe(false);
@@ -945,8 +933,7 @@ describe("jsonHandler full coverage", () => {
         active: true,
         secret: false,
         image: "i.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: "t_TL",
       },
     });
     expect(create.ok).toBe(true);

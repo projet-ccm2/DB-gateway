@@ -21,19 +21,10 @@ export function createAchievementsController(
           secret?: boolean;
           image?: string;
           channelId?: string | null;
-          typeLabel?: string;
-          typeData?: string;
+          typeId?: string;
         };
-        const {
-          title,
-          description,
-          goal,
-          reward,
-          label,
-          channelId,
-          typeLabel,
-          typeData,
-        } = body;
+        const { title, description, goal, reward, label, channelId, typeId } =
+          body;
         if (
           !title ||
           !description ||
@@ -44,12 +35,11 @@ export function createAchievementsController(
           body.active == null ||
           body.secret == null ||
           !body.image ||
-          !typeLabel ||
-          !typeData
+          !typeId
         ) {
           res.status(BAD_REQUEST).json({
             error:
-              "title, description, goal, reward, label, public, active, secret, image, typeLabel, typeData required",
+              "title, description, goal, reward, label, public, active, secret, image, typeId required",
           });
           return;
         }
@@ -64,9 +54,12 @@ export function createAchievementsController(
           secret: body.secret,
           image: body.image,
           channelId: channelId ?? null,
-          typeLabel,
-          typeData,
+          typeId,
         });
+        if (!achievement) {
+          res.status(NOT_FOUND).json({ error: "typeId not found" });
+          return;
+        }
         res.status(201).json(achievement);
       } catch (err: unknown) {
         sendInternalError(res, "POST /achievements error", err);
@@ -90,11 +83,9 @@ export function createAchievementsController(
           active?: boolean;
           secret?: boolean;
           image?: string;
-          typeLabel?: string;
-          typeData?: string;
+          typeId?: string;
         };
-        const { title, description, goal, reward, label, typeLabel, typeData } =
-          body;
+        const { title, description, goal, reward, label, typeId } = body;
         if (
           !title ||
           !description ||
@@ -105,12 +96,11 @@ export function createAchievementsController(
           body.active == null ||
           body.secret == null ||
           !body.image ||
-          !typeLabel ||
-          !typeData
+          !typeId
         ) {
           res.status(BAD_REQUEST).json({
             error:
-              "title, description, goal, reward, label, public, active, secret, image, typeLabel, typeData required",
+              "title, description, goal, reward, label, public, active, secret, image, typeId required",
           });
           return;
         }
@@ -124,8 +114,7 @@ export function createAchievementsController(
           active: body.active,
           secret: body.secret,
           image: body.image,
-          typeLabel,
-          typeData,
+          typeId,
         });
         if (!achievement) {
           res.status(NOT_FOUND).json({ error: "not found" });

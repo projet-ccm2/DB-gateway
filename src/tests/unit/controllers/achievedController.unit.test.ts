@@ -16,12 +16,13 @@ describe("achievedController (unit)", () => {
   };
 
   it("create returns 201 when all fields provided", async () => {
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     const user = await db.addUser({
       id: "t",
       username: "u",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ach = await db.addAchievement({
+    const ach = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -31,9 +32,8 @@ describe("achievedController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = {
       body: {
         achievementId: ach.id,
@@ -53,12 +53,13 @@ describe("achievedController (unit)", () => {
   });
 
   it("create upserts: second POST with same achievementId and userId returns 201 with updated body", async () => {
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     const user = await db.addUser({
       id: "t3",
       username: "u3",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ach = await db.addAchievement({
+    const ach = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -68,9 +69,8 @@ describe("achievedController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const first = {
       achievementId: ach.id,
       userId: user.id,
@@ -143,12 +143,13 @@ describe("achievedController (unit)", () => {
   });
 
   it("get returns 200 and achieved when found", async () => {
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     const user = await db.addUser({
       id: "t2",
       username: "u2",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ach = await db.addAchievement({
+    const ach = (await db.addAchievement({
       title: "A2",
       description: "D",
       goal: 1,
@@ -158,9 +159,8 @@ describe("achievedController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     await db.addAchieved({
       achievementId: ach.id,
       userId: user.id,
@@ -204,12 +204,13 @@ describe("achievedController (unit)", () => {
   });
 
   it("update returns 200 and achieved when record exists and all fields provided", async () => {
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     const user = await db.addUser({
       id: "tPut",
       username: "uPut",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ach = await db.addAchievement({
+    const ach = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -219,9 +220,8 @@ describe("achievedController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     await db.addAchieved({
       achievementId: ach.id,
       userId: user.id,

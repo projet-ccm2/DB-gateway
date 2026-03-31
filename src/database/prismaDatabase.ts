@@ -380,24 +380,13 @@ export class PrismaDatabase implements Database {
     id: string,
     data: AchievementUpdateData,
   ): Promise<achievementDTO | null> {
-    const { typeLabel, typeData: typeDataVal, ...achievementData } = data;
-    const typeUpdate =
-      typeLabel !== undefined || typeDataVal !== undefined
-        ? {
-            type: {
-              update: {
-                ...(typeLabel === undefined ? {} : { label: typeLabel }),
-                ...(typeDataVal === undefined ? {} : { data: typeDataVal }),
-              },
-            },
-          }
-        : {};
+    const { typeId, ...achievementData } = data;
     return handleP2025(async () => {
       const updated = await this.prisma.achievement.update({
         where: { id },
         data: {
           ...achievementData,
-          ...typeUpdate,
+          ...(typeId !== undefined ? { typeId } : {}),
         },
         include: { type: true },
       });
@@ -420,35 +409,31 @@ export class PrismaDatabase implements Database {
     });
   }
 
-  async addAchievement(achievement: AchievementInput): Promise<achievementDTO> {
-    const created = await this.prisma.$transaction(
-      async (tx: PrismaTransactionClient) => {
-        const t = await tx.typeAchievement.create({
-          data: {
-            label: achievement.typeLabel,
-            data: achievement.typeData,
-          },
-        });
-        return tx.achievement.create({
-          data: {
-            title: achievement.title,
-            description: achievement.description,
-            goal: achievement.goal,
-            reward: achievement.reward,
-            label: achievement.label,
-            public: achievement.public,
-            downloads: 0,
-            visits: 0,
-            active: achievement.active,
-            secret: achievement.secret,
-            image: achievement.image,
-            channelId: achievement.channelId ?? undefined,
-            typeId: t.id,
-          },
-          include: { type: true },
-        });
+  async addAchievement(
+    achievement: AchievementInput,
+  ): Promise<achievementDTO | null> {
+    const typeExists = await this.prisma.typeAchievement.findUnique({
+      where: { id: achievement.typeId },
+    });
+    if (!typeExists) return null;
+    const created = await this.prisma.achievement.create({
+      data: {
+        title: achievement.title,
+        description: achievement.description,
+        goal: achievement.goal,
+        reward: achievement.reward,
+        label: achievement.label,
+        public: achievement.public,
+        downloads: 0,
+        visits: 0,
+        active: achievement.active,
+        secret: achievement.secret,
+        image: achievement.image,
+        channelId: achievement.channelId ?? undefined,
+        typeId: achievement.typeId,
       },
-    );
+      include: { type: true },
+    });
     return toAchievementDTO(created);
   }
 

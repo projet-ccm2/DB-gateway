@@ -38,8 +38,7 @@ export class AchievementRepository {
       active?: boolean;
       secret?: boolean;
       image?: string;
-      typeLabel?: string;
-      typeData?: string;
+      typeId?: string;
     },
   ): Promise<achievementDTO | null> {
     return this.db.updateAchievement(id, data);
@@ -76,9 +75,8 @@ export class AchievementRepository {
     secret: boolean;
     image: string;
     channelId?: string | null;
-    typeLabel: string;
-    typeData: string;
-  }): Promise<achievementDTO> {
+    typeId: string;
+  }): Promise<achievementDTO | null> {
     return this.db.addAchievement(achievement);
   }
 }

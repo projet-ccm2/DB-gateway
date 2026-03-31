@@ -5,9 +5,11 @@ import { MockDatabase } from "../../mocks";
 
 describe("achievementsRoutes (unit)", () => {
   it("POST / creates achievement and returns 201", async () => {
+    const db = new MockDatabase();
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     const app = express();
     app.use(express.json());
-    app.use("/", createAchievementsRoutes(new MockDatabase()));
+    app.use("/", createAchievementsRoutes(db));
     const res = await request(app).post("/").send({
       title: "T",
       description: "D",
@@ -18,8 +20,7 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     expect(res.status).toBe(201);
     expect(res.body.title).toBe("T");
@@ -27,7 +28,12 @@ describe("achievementsRoutes (unit)", () => {
 
   it("PUT /:achievementId updates and returns 200", async () => {
     const db = new MockDatabase();
-    const a = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const type2 = await db.addTypeAchievement({
+      label: "NewTL",
+      data: "NewTD",
+    });
+    const a = (await db.addAchievement({
       title: "Old",
       description: "OldD",
       goal: 1,
@@ -37,9 +43,8 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "old.png",
-      typeLabel: "OldTL",
-      typeData: "OldTD",
-    });
+      typeId: type.id,
+    }))!;
     const app = express();
     app.use(express.json());
     app.use("/", createAchievementsRoutes(db));
@@ -53,8 +58,7 @@ describe("achievementsRoutes (unit)", () => {
       active: false,
       secret: true,
       image: "new.png",
-      typeLabel: "NewTL",
-      typeData: "NewTD",
+      typeId: type2.id,
     });
     expect(res.status).toBe(200);
     expect(res.body.title).toBe("New");
@@ -64,9 +68,11 @@ describe("achievementsRoutes (unit)", () => {
   });
 
   it("PUT /:achievementId returns 404 when not found", async () => {
+    const db = new MockDatabase();
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     const app = express();
     app.use(express.json());
-    app.use("/", createAchievementsRoutes(new MockDatabase()));
+    app.use("/", createAchievementsRoutes(db));
     const res = await request(app).put("/unknown").send({
       title: "T",
       description: "D",
@@ -77,8 +83,7 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     expect(res.status).toBe(404);
   });
@@ -95,6 +100,7 @@ describe("achievementsRoutes (unit)", () => {
 
   it("GET /channel/:channelId returns 200 and array with typeAchievement", async () => {
     const db = new MockDatabase();
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     const ch = await db.addChannel({ id: "ch-ach-route-1", name: "Ch" });
     await db.addAchievement({
       title: "A",
@@ -107,8 +113,7 @@ describe("achievementsRoutes (unit)", () => {
       secret: false,
       image: "img.png",
       channelId: ch.id,
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     const app = express();
     app.use("/", createAchievementsRoutes(db));
@@ -128,6 +133,7 @@ describe("achievementsRoutes (unit)", () => {
 
   it("GET /public returns 200 and array of public achievements", async () => {
     const db = new MockDatabase();
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     await db.addAchievement({
       title: "Pub",
       description: "D",
@@ -138,8 +144,7 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     await db.addAchievement({
       title: "Priv",
@@ -151,8 +156,7 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     const app = express();
     app.use("/", createAchievementsRoutes(db));
@@ -192,12 +196,13 @@ describe("achievementsRoutes (unit)", () => {
 
   it("GET /user/:userId returns 200 with achievements + achieved", async () => {
     const db = new MockDatabase();
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     const user = await db.addUser({
       id: "u-route-def",
       username: "U",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ach = await db.addAchievement({
+    const ach = (await db.addAchievement({
       title: "RouteDefAch",
       description: "D",
       goal: 5,
@@ -207,9 +212,8 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     await db.addAchieved({
       achievementId: ach.id,
       userId: user.id,
@@ -241,7 +245,8 @@ describe("achievementsRoutes (unit)", () => {
 
   it("PATCH /:achievementId/activate returns 200 and sets active to true", async () => {
     const db = new MockDatabase();
-    const a = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const a = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -251,9 +256,8 @@ describe("achievementsRoutes (unit)", () => {
       active: false,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const app = express();
     app.use(express.json());
     app.use("/", createAchievementsRoutes(db));
@@ -272,7 +276,8 @@ describe("achievementsRoutes (unit)", () => {
 
   it("PATCH /:achievementId/deactivate returns 200 and sets active to false", async () => {
     const db = new MockDatabase();
-    const a = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const a = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -282,9 +287,8 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const app = express();
     app.use(express.json());
     app.use("/", createAchievementsRoutes(db));
@@ -303,7 +307,8 @@ describe("achievementsRoutes (unit)", () => {
 
   it("PATCH /:achievementId/public returns 200 and sets public to true", async () => {
     const db = new MockDatabase();
-    const a = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const a = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -313,9 +318,8 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const app = express();
     app.use(express.json());
     app.use("/", createAchievementsRoutes(db));
@@ -334,7 +338,8 @@ describe("achievementsRoutes (unit)", () => {
 
   it("PATCH /:achievementId/private returns 200 and sets public to false", async () => {
     const db = new MockDatabase();
-    const a = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const a = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -344,9 +349,8 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const app = express();
     app.use(express.json());
     app.use("/", createAchievementsRoutes(db));
@@ -365,7 +369,8 @@ describe("achievementsRoutes (unit)", () => {
 
   it("DELETE /:achievementId deletes and returns 200", async () => {
     const db = new MockDatabase();
-    const a = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const a = (await db.addAchievement({
       title: "Del",
       description: "D",
       goal: 1,
@@ -375,9 +380,8 @@ describe("achievementsRoutes (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const app = express();
     app.use(express.json());
     app.use("/", createAchievementsRoutes(db));
