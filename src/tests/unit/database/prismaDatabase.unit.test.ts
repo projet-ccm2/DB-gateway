@@ -755,7 +755,6 @@ describe("prismaDatabase not-found branches", () => {
           achievement!: { findUnique: () => Promise<null> };
           badge!: {
             findUnique: () => Promise<null>;
-            findFirst: () => Promise<null>;
           };
           achieved!: { findUnique: () => Promise<null> };
           are!: { findUnique: () => Promise<null> };
@@ -768,7 +767,6 @@ describe("prismaDatabase not-found branches", () => {
             this.achievement = { findUnique: async () => null };
             this.badge = {
               findUnique: async () => null,
-              findFirst: async () => null,
             };
             this.achieved = { findUnique: async () => null };
             this.are = { findUnique: async () => null };

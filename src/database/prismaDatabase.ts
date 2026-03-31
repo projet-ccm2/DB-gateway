@@ -444,7 +444,7 @@ export class PrismaDatabase implements Database {
   }
 
   async getBadgeByChannelId(channelId: string): Promise<badgeDTO | null> {
-    const b = await this.prisma.badge.findFirst({ where: { channelId } });
+    const b = await this.prisma.badge.findUnique({ where: { channelId } });
     if (!b) return null;
     return { id: b.id, title: b.title, img: b.img };
   }

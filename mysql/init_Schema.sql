@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS Badges(
     Badge_img   VARCHAR(50) NOT NULL,
     Channel_ID  VARCHAR(50),
     CONSTRAINT Badges_PK PRIMARY KEY (Badge_ID),
+    CONSTRAINT Badges_Channel_UQ UNIQUE (Channel_ID),
     CONSTRAINT Badges_Channels_FK FOREIGN KEY (Channel_ID) REFERENCES Channels(Channel_ID)
 ) ENGINE=InnoDB;
 
