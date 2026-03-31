@@ -214,10 +214,12 @@ describe("userRepository (unit, mock db)", () => {
     const badge1 = await mockDb.addBadge({
       title: "Gold Badge",
       img: "gold.png",
+      channelId: "ch-gold",
     });
     const badge2 = await mockDb.addBadge({
       title: "Silver Badge",
       img: "silver.png",
+      channelId: "ch-silver",
     });
 
     await mockDb.addPossesses({
@@ -402,6 +404,7 @@ describe("userRepository (unit, mock db)", () => {
     const badge = await mockDb.addBadge({
       title: "Rare Badge",
       img: "rare.png",
+      channelId: "ch-rare",
     });
 
     const users = await service.getUsersByBadgeId(badge.id);
@@ -425,6 +428,7 @@ describe("userRepository (unit, mock db)", () => {
     const badge = await mockDb.addBadge({
       title: "Common Badge",
       img: "common.png",
+      channelId: "ch-common",
     });
 
     await mockDb.addPossesses({

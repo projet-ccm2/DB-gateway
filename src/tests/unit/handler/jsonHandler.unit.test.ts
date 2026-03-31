@@ -227,12 +227,12 @@ function makeRepoMock(): GatewayRepo {
       },
     },
     badge: {
-      addBadge: async (title: string, img: string, channelId?: string) => {
+      addBadge: async (title: string, img: string, channelId: string) => {
         const b = {
           id: "b_" + title,
           title,
           img,
-          ...(channelId ? { channelId } : {}),
+          channelId,
         };
         badges.push(b);
         return { id: b.id, title: b.title, img: b.img };
@@ -395,7 +395,11 @@ describe("jsonHandler full coverage", () => {
     });
     await handleJsonMessage(repo, {
       action: "createBadge",
-      payload: { title: "testbadge", img: "badge.png" },
+      payload: {
+        title: "testbadge",
+        img: "badge.png",
+        channelId: "ch_testbadge",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createPossesses",
@@ -493,7 +497,11 @@ describe("jsonHandler full coverage", () => {
     });
     await handleJsonMessage(repo, {
       action: "createBadge",
-      payload: { title: "rarebadge", img: "rare.png" },
+      payload: {
+        title: "rarebadge",
+        img: "rare.png",
+        channelId: "ch_rarebadge",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createPossesses",
@@ -590,12 +598,14 @@ describe("jsonHandler full coverage", () => {
       action: "createChannel",
       payload: { id: "ch_linked", name: "LinkedChannel" },
     });
-    // Directly add a badge with channelId to the mock
-    await (
-      repo.badge as {
-        addBadge: (t: string, i: string, c?: string) => Promise<badgeDTO>;
-      }
-    ).addBadge("linked_badge", "linked.png", "ch_linked");
+    await handleJsonMessage(repo, {
+      action: "createBadge",
+      payload: {
+        title: "linked_badge",
+        img: "linked.png",
+        channelId: "ch_linked",
+      },
+    });
     const res = await handleJsonMessage(repo, {
       action: "getBadgeByChannelId",
       payload: { channelId: "ch_linked" },
@@ -970,7 +980,7 @@ describe("jsonHandler full coverage", () => {
   test("badge create/get", async () => {
     const create = await handleJsonMessage(repo, {
       action: "createBadge",
-      payload: { title: "B", img: "i" },
+      payload: { title: "B", img: "i", channelId: "ch-badge-cg" },
     });
     expect(create.ok).toBe(true);
 

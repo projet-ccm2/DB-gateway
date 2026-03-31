@@ -10,12 +10,18 @@ export function createBadgesController(
   return {
     create: async (req: Request, res: Response): Promise<void> => {
       try {
-        const { title, img } = req.body as { title?: string; img?: string };
-        if (!title || !img) {
-          res.status(BAD_REQUEST).json({ error: "title and img required" });
+        const { title, img, channelId } = req.body as {
+          title?: string;
+          img?: string;
+          channelId?: string;
+        };
+        if (!title || !img || !channelId) {
+          res
+            .status(BAD_REQUEST)
+            .json({ error: "title, img and channelId required" });
           return;
         }
-        const badge = await badgeRepo.add(title, img);
+        const badge = await badgeRepo.add(title, img, channelId);
         res.status(201).json(badge);
       } catch (err: unknown) {
         sendInternalError(res, "POST /badges error", err);

@@ -5,8 +5,10 @@ export const badgeHandlers: Record<string, HandlerFn> = {
   createBadge: async (repo, payload) => {
     const title = str(payload, "title");
     const img = str(payload, "img");
-    if (!title || !img) return missing("title", "img");
-    const badge = await repo.badge.addBadge(title, img);
+    const channelId = str(payload, "channelId");
+    if (!title || !img || !channelId)
+      return missing("title", "img", "channelId");
+    const badge = await repo.badge.addBadge(title, img, channelId);
     return { ok: true, badge };
   },
 

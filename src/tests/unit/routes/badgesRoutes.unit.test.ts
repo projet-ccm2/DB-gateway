@@ -10,7 +10,7 @@ describe("badgesRoutes (unit)", () => {
     app.use("/", createBadgesRoutes(new MockDatabase()));
     const res = await request(app)
       .post("/")
-      .send({ title: "Badge", img: "img.png" });
+      .send({ title: "Badge", img: "img.png", channelId: "ch-route-test" });
     expect(res.status).toBe(201);
     expect(res.body).toMatchObject({ title: "Badge", img: "img.png" });
   });

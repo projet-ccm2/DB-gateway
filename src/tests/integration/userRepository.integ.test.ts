@@ -326,9 +326,12 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       username: "BadgeIntegUser",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
+    const chId004 = "ch_badge_integ_004_" + Date.now();
+    await db.addChannel({ id: chId004, name: "BadgeIntegCh" });
     const badge = await db.addBadge({
       title: "IntegBadge",
       img: "badge.png",
+      channelId: chId004,
     });
     await db.addPossesses({
       userId: user.id,
@@ -447,9 +450,12 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       username: "BadgeHolder",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
+    const chId007 = "ch_badge_integ_007_" + Date.now();
+    await db.addChannel({ id: chId007, name: "HolderCh" });
     const badge = await db.addBadge({
       title: "HolderBadge",
       img: "holder.png",
+      channelId: chId007,
     });
     await db.addPossesses({
       userId: user.id,

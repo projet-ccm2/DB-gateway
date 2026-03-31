@@ -298,13 +298,13 @@ export class MockDatabase implements Database {
   async addBadge(b: {
     title: string;
     img: string;
-    channelId?: string | null;
+    channelId: string;
   }): Promise<badgeDTO> {
     const nb = {
       id: randomUUID(),
       title: b.title,
       img: b.img,
-      channelId: b.channelId ?? null,
+      channelId: b.channelId,
     };
     this.badges.push(nb);
     return { id: nb.id, title: nb.title, img: nb.img };

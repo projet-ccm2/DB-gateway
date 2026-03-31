@@ -452,13 +452,13 @@ export class PrismaDatabase implements Database {
   async addBadge(b: {
     title: string;
     img: string;
-    channelId?: string | null;
+    channelId: string;
   }): Promise<badgeDTO> {
     const nb = await this.prisma.badge.create({
       data: {
         title: b.title,
         img: b.img,
-        ...(b.channelId ? { channelId: b.channelId } : {}),
+        channelId: b.channelId,
       },
     });
     return { id: nb.id, title: nb.title, img: nb.img };

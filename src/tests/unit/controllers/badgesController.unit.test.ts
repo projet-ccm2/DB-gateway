@@ -18,7 +18,9 @@ describe("badgesController (unit)", () => {
   };
 
   it("create returns 201 when title and img provided", async () => {
-    const req = { body: { title: "Badge", img: "img.png" } } as Request;
+    const req = {
+      body: { title: "Badge", img: "img.png", channelId: "ch-ctrl-1" },
+    } as Request;
     const res = mockRes();
     await ctrl.create(req, res);
     expect(res.status).toHaveBeenCalledWith(201);
@@ -42,7 +44,11 @@ describe("badgesController (unit)", () => {
   });
 
   it("getById returns 200 when found", async () => {
-    const badge = await db.addBadge({ title: "Found", img: "f.png" });
+    const badge = await db.addBadge({
+      title: "Found",
+      img: "f.png",
+      channelId: "ch-ctrl-found",
+    });
     const req = { params: { id: badge.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getById(req, res);
@@ -52,7 +58,11 @@ describe("badgesController (unit)", () => {
   });
 
   it("getUsersByBadgeId returns 200 and array", async () => {
-    const badge = await db.addBadge({ title: "B", img: "i.png" });
+    const badge = await db.addBadge({
+      title: "B",
+      img: "i.png",
+      channelId: "ch-ctrl-users",
+    });
     const req = { params: { id: badge.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getUsersByBadgeId(req, res);
@@ -65,7 +75,9 @@ describe("badgesController (unit)", () => {
       getById: jest.fn(),
     } as unknown as InstanceType<typeof BadgeRepository>;
     const c = createBadgesController(throwingBadgeRepo, userRepo);
-    const req = { body: { title: "T", img: "i" } } as Request;
+    const req = {
+      body: { title: "T", img: "i", channelId: "ch-err" },
+    } as Request;
     const res = mockRes();
     await c.create(req, res);
     expect(res.status).toHaveBeenCalledWith(500);

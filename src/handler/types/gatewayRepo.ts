@@ -87,7 +87,7 @@ export type GatewayRepo = {
     ): Promise<achievementWithTypeAndAchievedDTO[]>;
   };
   badge: {
-    addBadge(title: string, img: string): Promise<badgeDTO>;
+    addBadge(title: string, img: string, channelId: string): Promise<badgeDTO>;
     getBadgeById(id: string): Promise<badgeDTO | null>;
   };
   achieved: {

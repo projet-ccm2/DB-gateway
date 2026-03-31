@@ -72,7 +72,11 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const badge = await db.addBadge({ title: "b1", img: "i1" });
+    const badge = await db.addBadge({
+      title: "b1",
+      img: "i1",
+      channelId: "ch-svc",
+    });
     const users = await service.getUsersByBadgeId(badge.id);
     expect(users).toEqual([]);
   });

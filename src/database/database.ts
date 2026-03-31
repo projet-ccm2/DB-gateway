@@ -170,7 +170,7 @@ export interface Database {
   addBadge(badge: {
     title: string;
     img: string;
-    channelId?: string | null;
+    channelId: string;
   }): Promise<badgeDTO>;
 
   getAchieved(

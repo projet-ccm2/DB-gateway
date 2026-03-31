@@ -21,7 +21,11 @@ describe("possessesController (unit)", () => {
       username: "u",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await db.addBadge({ title: "B", img: "i.png" });
+    const badge = await db.addBadge({
+      title: "B",
+      img: "i.png",
+      channelId: "ch-poss-ctrl-1",
+    });
     const req = {
       body: {
         userId: user.id,
@@ -50,7 +54,11 @@ describe("possessesController (unit)", () => {
       username: "dup",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await db.addBadge({ title: "Bdup", img: "d.png" });
+    const badge = await db.addBadge({
+      title: "Bdup",
+      img: "d.png",
+      channelId: "ch-poss-ctrl-dup",
+    });
     const date = new Date().toISOString();
     await repo.add(user.id, badge.id, date);
     const req = {
@@ -93,7 +101,11 @@ describe("possessesController (unit)", () => {
       username: "u2",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await db.addBadge({ title: "B2", img: "i2.png" });
+    const badge = await db.addBadge({
+      title: "B2",
+      img: "i2.png",
+      channelId: "ch-poss-ctrl-2",
+    });
     await db.addPossesses({
       userId: user.id,
       badgeId: badge.id,

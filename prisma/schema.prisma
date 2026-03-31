@@ -77,8 +77,8 @@ model Badge {
   title   String @map("Badge_Title") @db.VarChar(50)
   img     String @map("Badge_img") @db.VarChar(50)
 
-  channelId String? @unique @map("Channel_ID") @db.VarChar(50)
-  channel   Channel? @relation(fields: [channelId], references: [id])
+  channelId String @unique @map("Channel_ID") @db.VarChar(50)
+  channel   Channel @relation(fields: [channelId], references: [id])
 
   possesses Possesses[]
 

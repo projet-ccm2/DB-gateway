@@ -32,6 +32,7 @@ interface MockAchievementData {
 interface MockBadgeData {
   title: string;
   img: string;
+  channelId: string;
 }
 interface MockAchievedData {
   achievementId: string;
@@ -328,11 +329,27 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             };
 
             this.badge = {
-              findUnique: async ({ where }: { where: { id: string } }) =>
-                this._badges.get(where.id) ?? null,
+              findUnique: async ({
+                where,
+              }: {
+                where: { id?: string; channelId?: string };
+              }) => {
+                if (where.id) return this._badges.get(where.id) ?? null;
+                if (where.channelId) {
+                  for (const [, b] of this._badges) {
+                    if (b.channelId === where.channelId) return b;
+                  }
+                }
+                return null;
+              },
               create: async ({ data }: { data: MockBadgeData }) => {
                 const id = "b_" + Math.random().toString(36).slice(2, 8);
-                const row = { id, title: data.title, img: data.img };
+                const row = {
+                  id,
+                  title: data.title,
+                  img: data.img,
+                  channelId: data.channelId,
+                };
                 this._badges.set(id, row);
                 return row;
               },
@@ -654,7 +671,11 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       const pubList = await db.getPublicAchievements();
       expect(Array.isArray(pubList)).toBe(true);
 
-      const b = await db.addBadge({ title: "B", img: "i" });
+      const b = await db.addBadge({
+        title: "B",
+        img: "i",
+        channelId: "ch-prisma",
+      });
       expect(b.title).toBe("B");
 
       const achv = await db.addAchieved({
