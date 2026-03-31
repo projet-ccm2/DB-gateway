@@ -30,13 +30,23 @@ export function createUsersController(repo: UserRepository) {
           });
           return;
         }
+        let parsedXp = 0;
+        if (xp !== undefined) {
+          parsedXp = Number(xp);
+          if (!Number.isFinite(parsedXp) || parsedXp < 0) {
+            res
+              .status(BAD_REQUEST)
+              .json({ error: "xp must be a non-negative number" });
+            return;
+          }
+        }
         const user = await repo.addUser({
           id,
           username,
           profileImageUrl: profileImageUrl ?? null,
           channelDescription: channelDescription ?? null,
           scope: scope ?? null,
-          xp: xp ?? 0,
+          xp: parsedXp,
           lastUpdateTimestamp,
         });
         res.status(201).json(user);
@@ -84,6 +94,16 @@ export function createUsersController(repo: UserRepository) {
             error: "username must be non-empty when provided",
           });
           return;
+        }
+        if ("xp" in body) {
+          const parsedXp = Number(body.xp);
+          if (!Number.isFinite(parsedXp) || parsedXp < 0) {
+            res
+              .status(BAD_REQUEST)
+              .json({ error: "xp must be a non-negative number" });
+            return;
+          }
+          body.xp = parsedXp;
         }
         const user = await repo.updateUser(id, body);
         if (!user) {

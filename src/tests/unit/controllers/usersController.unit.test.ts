@@ -246,4 +246,89 @@ describe("usersController (unit)", () => {
     await c.update(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
   });
+
+  it("create returns 400 when xp is a non-numeric string", async () => {
+    const req = {
+      body: {
+        id: "twitch_xp_str",
+        username: "u",
+        xp: "abc",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "xp must be a non-negative number",
+    });
+  });
+
+  it("create returns 400 when xp is negative", async () => {
+    const req = {
+      body: {
+        id: "twitch_xp_neg",
+        username: "u",
+        xp: -10,
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "xp must be a non-negative number",
+    });
+  });
+
+  it("create coerces string xp to number when valid", async () => {
+    const req = {
+      body: {
+        id: "twitch_xp_coerce",
+        username: "u",
+        xp: "42",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ xp: 42 }));
+  });
+
+  it("update returns 400 when xp is negative", async () => {
+    const user = await repo.addUser({
+      id: "twitch_up_xp",
+      username: "upxp",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const req = {
+      params: { id: user.id },
+      body: { xp: -5 },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "xp must be a non-negative number",
+    });
+  });
+
+  it("update returns 400 when xp is a non-numeric string", async () => {
+    const user = await repo.addUser({
+      id: "twitch_up_xp_str",
+      username: "upxpstr",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const req = {
+      params: { id: user.id },
+      body: { xp: "notanumber" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "xp must be a non-negative number",
+    });
+  });
 });

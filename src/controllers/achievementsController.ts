@@ -31,9 +31,9 @@ export function createAchievementsController(
           goal == null ||
           reward == null ||
           !label ||
-          body.public == null ||
-          body.active == null ||
-          body.secret == null ||
+          typeof body.public !== "boolean" ||
+          typeof body.active !== "boolean" ||
+          typeof body.secret !== "boolean" ||
           !body.image ||
           !typeId
         ) {
@@ -92,9 +92,9 @@ export function createAchievementsController(
           goal == null ||
           reward == null ||
           !label ||
-          body.public == null ||
-          body.active == null ||
-          body.secret == null ||
+          typeof body.public !== "boolean" ||
+          typeof body.active !== "boolean" ||
+          typeof body.secret !== "boolean" ||
           !body.image ||
           !typeId
         ) {

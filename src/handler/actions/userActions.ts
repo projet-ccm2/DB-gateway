@@ -8,13 +8,15 @@ export const userHandlers: Record<string, HandlerFn> = {
     const lastUpdateTimestamp = str(payload, "lastUpdateTimestamp");
     if (!username || !id || !lastUpdateTimestamp)
       return missing("username", "id", "lastUpdateTimestamp");
+    const xp = num(payload, "xp") ?? 0;
+    if (xp < 0) return { ok: false, error: "xp must be a non-negative number" };
     const user = await repo.user.addUser({
       id,
       username,
       profileImageUrl: strOrNull(payload, "profileImageUrl"),
       channelDescription: strOrNull(payload, "channelDescription"),
       scope: strOrNull(payload, "scope"),
-      xp: num(payload, "xp") ?? 0,
+      xp,
       lastUpdateTimestamp,
     });
     return { ok: true, user };
@@ -55,7 +57,11 @@ export const userHandlers: Record<string, HandlerFn> = {
     if ("scope" in payload) data.scope = strOrNull(payload, "scope");
     if ("xp" in payload) {
       const xpVal = num(payload, "xp");
-      if (xpVal !== undefined) data.xp = xpVal;
+      if (xpVal !== undefined) {
+        if (xpVal < 0)
+          return { ok: false, error: "xp must be a non-negative number" };
+        data.xp = xpVal;
+      }
     }
     if ("lastUpdateTimestamp" in payload) {
       const ts = str(payload, "lastUpdateTimestamp");

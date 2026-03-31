@@ -1388,4 +1388,37 @@ describe("jsonHandler full coverage", () => {
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toContain("missing");
   });
+
+  test("createUser returns error when xp is negative", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_neg_xp",
+        username: "negxp",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+        xp: -1,
+      },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("xp must be a non-negative number");
+  });
+
+  test("updateUser returns error when xp is negative", async () => {
+    const repo = makeRepoMock();
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_up_neg",
+        username: "upneg",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    });
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { userId: "twitch_up_neg", xp: -5 },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("xp must be a non-negative number");
+  });
 });

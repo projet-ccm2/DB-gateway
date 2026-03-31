@@ -664,4 +664,85 @@ describe("achievementsController (unit)", () => {
     await c.remove(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
   });
+
+  it("create returns 400 when public is a string instead of boolean", async () => {
+    const req = {
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: "false",
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: type.id,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("create returns 400 when active is a string instead of boolean", async () => {
+    const req = {
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: false,
+        active: "true",
+        secret: false,
+        image: "img.png",
+        typeId: type.id,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("create returns 400 when secret is a string instead of boolean", async () => {
+    const req = {
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: false,
+        active: true,
+        secret: "false",
+        image: "img.png",
+        typeId: type.id,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("update returns 400 when boolean fields are strings", async () => {
+    const req = {
+      params: { achievementId: "some-id" },
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: "true",
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: type.id,
+      },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
 });
