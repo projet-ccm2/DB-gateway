@@ -3,7 +3,7 @@ import {
   createDecipheriv,
   createHash,
   randomBytes,
-} from "crypto";
+} from "node:crypto";
 import { config } from "../config/environment";
 
 const ALGORITHM = "aes-256-gcm";

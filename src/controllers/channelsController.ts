@@ -56,9 +56,9 @@ export function createChannelsController(
         const channel = await channelRepo.updateChannel(paramId(req, "id"), {
           name,
           discordWebhookUrl:
-            req.body.discordWebhookUrl !== undefined
-              ? (discordWebhookUrl ?? null)
-              : undefined,
+            req.body.discordWebhookUrl === undefined
+              ? undefined
+              : (discordWebhookUrl ?? null),
         });
         if (!channel) {
           res.status(NOT_FOUND).json({ error: "not found" });

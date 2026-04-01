@@ -1,6 +1,16 @@
 import type { HandlerFn } from "../types";
 import { missing, num, str, strOrNull } from "../payload";
 
+function parseXpField(
+  payload: Record<string, unknown>,
+): { error: string } | { xp?: number } {
+  if (!("xp" in payload)) return {};
+  const xpVal = num(payload, "xp");
+  if (xpVal === undefined) return {};
+  if (xpVal < 0) return { error: "xp must be a non-negative number" };
+  return { xp: xpVal };
+}
+
 export const userHandlers: Record<string, HandlerFn> = {
   createUser: async (repo, payload) => {
     const username = str(payload, "username");
@@ -55,14 +65,9 @@ export const userHandlers: Record<string, HandlerFn> = {
     if ("channelDescription" in payload)
       data.channelDescription = strOrNull(payload, "channelDescription");
     if ("scope" in payload) data.scope = strOrNull(payload, "scope");
-    if ("xp" in payload) {
-      const xpVal = num(payload, "xp");
-      if (xpVal !== undefined) {
-        if (xpVal < 0)
-          return { ok: false, error: "xp must be a non-negative number" };
-        data.xp = xpVal;
-      }
-    }
+    const xpResult = parseXpField(payload);
+    if ("error" in xpResult) return { ok: false, error: xpResult.error };
+    if (xpResult.xp !== undefined) data.xp = xpResult.xp;
     if ("lastUpdateTimestamp" in payload) {
       const ts = str(payload, "lastUpdateTimestamp");
       if (ts) data.lastUpdateTimestamp = ts;

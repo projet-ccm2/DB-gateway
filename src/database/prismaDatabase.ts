@@ -419,7 +419,7 @@ export class PrismaDatabase implements Database {
         where: { id },
         data: {
           ...achievementData,
-          ...(typeId !== undefined ? { typeId } : {}),
+          ...(typeId === undefined ? {} : { typeId }),
         },
         include: { type: true },
       });

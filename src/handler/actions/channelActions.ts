@@ -27,7 +27,7 @@ export const channelHandlers: Record<string, HandlerFn> = {
     const channel = await repo.channel.updateChannel(id, {
       name,
       discordWebhookUrl:
-        payload.discordWebhookUrl !== undefined ? discordWebhookUrl : undefined,
+        payload.discordWebhookUrl === undefined ? undefined : discordWebhookUrl,
     });
     return { ok: true, channel };
   },
