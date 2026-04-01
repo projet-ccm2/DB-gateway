@@ -90,6 +90,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
               where: { id: string };
               data: Partial<MockUserData>;
             }) => Promise<unknown>;
+            delete: (arg: { where: { id: string } }) => Promise<unknown>;
           };
           channel!: unknown;
           typeAchievement!: unknown;
@@ -151,6 +152,12 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._users.set(where.id, updated);
                 return updated;
               },
+              delete: async ({ where }: { where: { id: string } }) => {
+                const row = this._users.get(where.id);
+                if (!row) throw Object.assign(new Error(), { code: "P2025" });
+                this._users.delete(where.id);
+                return row;
+              },
             };
 
             this.channel = {
@@ -183,6 +190,12 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 const updated = { ...existing, ...data };
                 this._channels.set(where.id, updated);
                 return updated;
+              },
+              delete: async ({ where }: { where: { id: string } }) => {
+                const row = this._channels.get(where.id);
+                if (!row) throw Object.assign(new Error(), { code: "P2025" });
+                this._channels.delete(where.id);
+                return row;
               },
             };
 
@@ -331,6 +344,20 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._achievements.delete(where.id);
                 return row;
               },
+              deleteMany: async ({
+                where,
+              }: {
+                where: { channelId?: string };
+              }) => {
+                let count = 0;
+                for (const [key, v] of this._achievements) {
+                  if (where?.channelId && v.channelId !== where.channelId)
+                    continue;
+                  this._achievements.delete(key);
+                  count++;
+                }
+                return { count };
+              },
             };
 
             this.badge = {
@@ -356,6 +383,12 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                   channelId: data.channelId,
                 };
                 this._badges.set(id, row);
+                return row;
+              },
+              delete: async ({ where }: { where: { id: string } }) => {
+                const row = this._badges.get(where.id);
+                if (!row) throw Object.assign(new Error(), { code: "P2025" });
+                this._badges.delete(where.id);
                 return row;
               },
             };
@@ -393,14 +426,25 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
               deleteMany: async ({
                 where,
               }: {
-                where: { achievementId?: string };
+                where: {
+                  achievementId?: string | { in: string[] };
+                  userId?: string;
+                };
               }) => {
                 let count = 0;
                 for (const [key, v] of this._achieved) {
-                  if (
-                    where?.achievementId &&
-                    v.achievementId === where.achievementId
-                  ) {
+                  let match = true;
+                  if (where?.userId && v.userId !== where.userId) match = false;
+                  if (where?.achievementId) {
+                    if (typeof where.achievementId === "string") {
+                      if (v.achievementId !== where.achievementId)
+                        match = false;
+                    } else if (
+                      !where.achievementId.in.includes(v.achievementId)
+                    )
+                      match = false;
+                  }
+                  if (match) {
                     this._achieved.delete(key);
                     count++;
                   }
@@ -510,6 +554,24 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 }
                 return results;
               },
+              deleteMany: async ({
+                where,
+              }: {
+                where: { userId?: string; channelId?: string };
+              }) => {
+                let count = 0;
+                for (const [key, v] of this._are) {
+                  let match = true;
+                  if (where?.userId && v.userId !== where.userId) match = false;
+                  if (where?.channelId && v.channelId !== where.channelId)
+                    match = false;
+                  if (match) {
+                    this._are.delete(key);
+                    count++;
+                  }
+                }
+                return { count };
+              },
             };
 
             this.possesses = {
@@ -549,6 +611,24 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                   results.push(row);
                 }
                 return results;
+              },
+              deleteMany: async ({
+                where,
+              }: {
+                where: { userId?: string; badgeId?: string };
+              }) => {
+                let count = 0;
+                for (const [key, v] of this._possesses) {
+                  let match = true;
+                  if (where?.userId && v.userId !== where.userId) match = false;
+                  if (where?.badgeId && v.badgeId !== where.badgeId)
+                    match = false;
+                  if (match) {
+                    this._possesses.delete(key);
+                    count++;
+                  }
+                }
+                return { count };
               },
             };
 
@@ -793,6 +873,98 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         username: "test",
       });
       expect(nonExistentUpdate).toBeNull();
+
+      // ── nukeUser ────────────────────────────────────────────────────
+      // Create a second user with a full channel ecosystem
+      const nukeTarget = await db.addUser({
+        id: "twitch_nuke",
+        username: "nuke_me",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      });
+      const nukeCh = await db.addChannel({ id: nukeTarget.id, name: "nukeCh" });
+      const nukeType = await db.addTypeAchievement({ label: "NL", data: "ND" });
+      const nukeAch = await db.addAchievement({
+        title: "NukeAch",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        typeId: nukeType.id,
+        public: false,
+        active: true,
+        secret: false,
+        image: "",
+      });
+      // Manually set channelId since addAchievement may not wire it
+      // The mock stores the row, so we update it directly via the adapter
+      const nukeAchUpdated = await db.updateAchievement(nukeAch!.id, {
+        channelId: nukeCh.id,
+      });
+      expect(nukeAchUpdated).not.toBeNull();
+
+      const nukeBadge = await db.addBadge({
+        title: "NukeBadge",
+        img: "nb.png",
+        channelId: nukeCh.id,
+      });
+
+      // Target user's own records
+      await db.addAchieved({
+        achievementId: nukeAch!.id,
+        userId: nukeTarget.id,
+        count: 1,
+        finished: false,
+        labelActive: true,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addPossesses({
+        userId: nukeTarget.id,
+        badgeId: nukeBadge.id,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addAre({
+        userId: nukeTarget.id,
+        channelId: nukeCh.id,
+        userType: "admin",
+      });
+
+      // Another user (alice) linked to nuke target's channel
+      await db.addAchieved({
+        achievementId: nukeAch!.id,
+        userId: "twitch_alice",
+        count: 2,
+        finished: true,
+        labelActive: false,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addPossesses({
+        userId: "twitch_alice",
+        badgeId: nukeBadge.id,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addAre({
+        userId: "twitch_alice",
+        channelId: nukeCh.id,
+        userType: "viewer",
+      });
+
+      // nukeUser returns false for nonexistent
+      expect(await db.nukeUser("nonexistent")).toBe(false);
+
+      // nukeUser succeeds
+      expect(await db.nukeUser(nukeTarget.id)).toBe(true);
+
+      // The nuked user should be gone
+      expect(await db.getUserById(nukeTarget.id)).toBeNull();
+
+      // Channel should be gone
+      expect(await db.getChannelById(nukeCh.id)).toBeNull();
+
+      // alice should still exist (she wasn't the target)
+      expect(await db.getUserById("twitch_alice")).not.toBeNull();
+
+      // Type achievement should still exist (nukeUser does not delete types)
+      expect(await db.getTypeAchievementById(nukeType.id)).not.toBeNull();
 
       await db.disconnect();
     });

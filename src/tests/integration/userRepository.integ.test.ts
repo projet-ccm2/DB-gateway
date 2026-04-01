@@ -504,4 +504,320 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     expect(users.length).toBeGreaterThanOrEqual(1);
     expect(users.some((u) => u.username === "AchievementHolder")).toBe(true);
   });
+
+  // ── nukeUser (GDPR) ─────────────────────────────────────────────────
+
+  it("should atomically delete all data related to a user", async () => {
+    const ts = Date.now();
+
+    // Create the target user and another user
+    const target = await service.addUser({
+      id: `twitch_nuke_${ts}`,
+      username: `nuke_target_${ts}`,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const other = await service.addUser({
+      id: `twitch_other_${ts}`,
+      username: `other_user_${ts}`,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+
+    // Target's channel
+    const targetChannel = await db.addChannel({
+      id: target.id,
+      name: `nukeCh_${ts}`,
+    });
+
+    // Other user's channel
+    const otherChannel = await db.addChannel({
+      id: other.id,
+      name: `otherCh_${ts}`,
+    });
+
+    // Achievements on target's channel
+    const ach1 = (await db.addAchievement({
+      title: `NukeAch1_${ts}`,
+      description: "d",
+      goal: 1,
+      reward: 1,
+      label: "l",
+      public: false,
+      active: true,
+      secret: false,
+      image: "",
+      channelId: targetChannel.id,
+      typeId: type1.id,
+    }))!;
+    const ach2 = (await db.addAchievement({
+      title: `NukeAch2_${ts}`,
+      description: "d",
+      goal: 2,
+      reward: 2,
+      label: "l2",
+      public: false,
+      active: true,
+      secret: false,
+      image: "",
+      channelId: targetChannel.id,
+      typeId: type2.id,
+    }))!;
+
+    // Achievement on other channel (should survive)
+    const otherAch = (await db.addAchievement({
+      title: `OtherAch_${ts}`,
+      description: "d",
+      goal: 1,
+      reward: 1,
+      label: "l",
+      public: false,
+      active: true,
+      secret: false,
+      image: "",
+      channelId: otherChannel.id,
+      typeId: type3.id,
+    }))!;
+
+    // Badge on target's channel
+    const targetBadge = await db.addBadge({
+      title: `NukeBadge_${ts}`,
+      img: "nb.png",
+      channelId: targetChannel.id,
+    });
+
+    // Badge on other channel (should survive)
+    const otherBadge = await db.addBadge({
+      title: `OtherBadge_${ts}`,
+      img: "ob.png",
+      channelId: otherChannel.id,
+    });
+
+    // Target's own achieved, possesses, are
+    await db.addAchieved({
+      achievementId: ach1.id,
+      userId: target.id,
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: new Date().toISOString(),
+    });
+    await db.addPossesses({
+      userId: target.id,
+      badgeId: targetBadge.id,
+      acquiredDate: new Date().toISOString(),
+    });
+    await db.addAre({
+      userId: target.id,
+      channelId: targetChannel.id,
+      userType: "admin",
+    });
+    // Target also a member of other channel
+    await db.addAre({
+      userId: target.id,
+      channelId: otherChannel.id,
+      userType: "viewer",
+    });
+    // Target achieved on other channel
+    await db.addAchieved({
+      achievementId: otherAch.id,
+      userId: target.id,
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: new Date().toISOString(),
+    });
+    // Target possesses other badge
+    await db.addPossesses({
+      userId: target.id,
+      badgeId: otherBadge.id,
+      acquiredDate: new Date().toISOString(),
+    });
+
+    // Other user linked to target's channel
+    await db.addAchieved({
+      achievementId: ach1.id,
+      userId: other.id,
+      count: 2,
+      finished: true,
+      labelActive: false,
+      acquiredDate: new Date().toISOString(),
+    });
+    await db.addAchieved({
+      achievementId: ach2.id,
+      userId: other.id,
+      count: 3,
+      finished: true,
+      labelActive: true,
+      acquiredDate: new Date().toISOString(),
+    });
+    await db.addPossesses({
+      userId: other.id,
+      badgeId: targetBadge.id,
+      acquiredDate: new Date().toISOString(),
+    });
+    await db.addAre({
+      userId: other.id,
+      channelId: targetChannel.id,
+      userType: "viewer",
+    });
+
+    // Other user also has records on their own channel (should survive)
+    await db.addAchieved({
+      achievementId: otherAch.id,
+      userId: other.id,
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: new Date().toISOString(),
+    });
+    await db.addPossesses({
+      userId: other.id,
+      badgeId: otherBadge.id,
+      acquiredDate: new Date().toISOString(),
+    });
+    await db.addAre({
+      userId: other.id,
+      channelId: otherChannel.id,
+      userType: "admin",
+    });
+
+    // ── Nuke! ──
+    const result = await service.nukeUser(target.id);
+    expect(result).toBe(true);
+
+    // Target user gone
+    expect(await db.getUserById(target.id)).toBeNull();
+
+    // Target channel gone
+    expect(await db.getChannelById(target.id)).toBeNull();
+
+    // Target's achievements gone
+    expect(await db.getAchievementById(ach1.id)).toBeNull();
+    expect(await db.getAchievementById(ach2.id)).toBeNull();
+
+    // Target's badge gone
+    expect(await db.getBadgeById(targetBadge.id)).toBeNull();
+
+    // Other user's achieved on target's achievements gone
+    expect(await db.getAchieved(ach1.id, other.id)).toBeNull();
+    expect(await db.getAchieved(ach2.id, other.id)).toBeNull();
+
+    // Other user's possesses for target's badge gone
+    expect(await db.getPossesses(other.id, targetBadge.id)).toBeNull();
+
+    // Other user's are on target's channel gone
+    expect(await db.getAre(other.id, targetChannel.id)).toBeNull();
+
+    // Target's are on other channel gone
+    expect(await db.getAre(target.id, otherChannel.id)).toBeNull();
+
+    // Target's achieved on other achievements gone
+    expect(await db.getAchieved(otherAch.id, target.id)).toBeNull();
+
+    // Target's possesses for other badge gone
+    expect(await db.getPossesses(target.id, otherBadge.id)).toBeNull();
+
+    // ── Other user's own data SURVIVES ──
+    expect(await db.getUserById(other.id)).not.toBeNull();
+    expect(await db.getChannelById(other.id)).not.toBeNull();
+    expect(await db.getAchievementById(otherAch.id)).not.toBeNull();
+    expect(await db.getBadgeById(otherBadge.id)).not.toBeNull();
+    expect(await db.getAchieved(otherAch.id, other.id)).not.toBeNull();
+    expect(await db.getPossesses(other.id, otherBadge.id)).not.toBeNull();
+    expect(await db.getAre(other.id, otherChannel.id)).not.toBeNull();
+
+    // Type achievements survive
+    expect(await db.getTypeAchievementById(type1.id)).not.toBeNull();
+    expect(await db.getTypeAchievementById(type2.id)).not.toBeNull();
+    expect(await db.getTypeAchievementById(type3.id)).not.toBeNull();
+  });
+
+  it("nukeUser returns false for non-existent user", async () => {
+    expect(await service.nukeUser("nonexistent_user_xyz")).toBe(false);
+  });
+
+  it("second nukeUser on the same user returns false (idempotent)", async () => {
+    const ts = Date.now();
+    await service.addUser({
+      id: `twitch_double_${ts}`,
+      username: `double_${ts}`,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    expect(await service.nukeUser(`twitch_double_${ts}`)).toBe(true);
+    expect(await service.nukeUser(`twitch_double_${ts}`)).toBe(false);
+  });
+
+  it("cleans linked data for multiple other users on the target's channel", async () => {
+    const ts = Date.now();
+
+    const target = await service.addUser({
+      id: `twitch_mt_${ts}`,
+      username: `mt_target_${ts}`,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const other1 = await service.addUser({
+      id: `twitch_mt_o1_${ts}`,
+      username: `mt_o1_${ts}`,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const other2 = await service.addUser({
+      id: `twitch_mt_o2_${ts}`,
+      username: `mt_o2_${ts}`,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+
+    await db.addChannel({ id: target.id, name: `mtCh_${ts}` });
+    const ach = (await db.addAchievement({
+      title: `MtAch_${ts}`,
+      description: "d",
+      goal: 1,
+      reward: 1,
+      label: "l",
+      public: false,
+      active: true,
+      secret: false,
+      image: "",
+      channelId: target.id,
+      typeId: type1.id,
+    }))!;
+    const badge = await db.addBadge({
+      title: `MtBadge_${ts}`,
+      img: "b.png",
+      channelId: target.id,
+    });
+
+    // Both other users participate in target's channel
+    for (const u of [other1, other2]) {
+      await db.addAchieved({
+        achievementId: ach.id,
+        userId: u.id,
+        count: 1,
+        finished: false,
+        labelActive: true,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addPossesses({
+        userId: u.id,
+        badgeId: badge.id,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addAre({
+        userId: u.id,
+        channelId: target.id,
+        userType: "viewer",
+      });
+    }
+
+    expect(await service.nukeUser(target.id)).toBe(true);
+
+    // Both other users' linked data must be cleaned
+    for (const u of [other1, other2]) {
+      expect(await db.getAchieved(ach.id, u.id)).toBeNull();
+      expect(await db.getPossesses(u.id, badge.id)).toBeNull();
+      expect(await db.getAre(u.id, target.id)).toBeNull();
+    }
+
+    // Both other users themselves survive
+    expect(await db.getUserById(other1.id)).not.toBeNull();
+    expect(await db.getUserById(other2.id)).not.toBeNull();
+  });
 });

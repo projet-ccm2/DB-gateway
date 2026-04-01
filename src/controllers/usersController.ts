@@ -147,5 +147,18 @@ export function createUsersController(repo: UserRepository) {
         sendInternalError(res, "GET /users/:id/achievements error", err);
       }
     },
+
+    nukeUser: async (req: Request, res: Response): Promise<void> => {
+      try {
+        const deleted = await repo.nukeUser(paramId(req, "id"));
+        if (!deleted) {
+          res.status(NOT_FOUND).json({ error: "not found" });
+          return;
+        }
+        res.status(204).send();
+      } catch (err: unknown) {
+        sendInternalError(res, "DELETE /users/:id/all-data error", err);
+      }
+    },
   };
 }

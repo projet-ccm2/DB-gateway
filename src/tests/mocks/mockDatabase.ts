@@ -560,4 +560,60 @@ export class MockDatabase implements Database {
   async disconnect(): Promise<void> {
     return;
   }
+
+  async nukeUser(userId: string): Promise<boolean> {
+    const userIdx = this.users.findIndex((u) => u.id === userId);
+    if (userIdx === -1) return false;
+
+    // 1. Delete user's own achieved records
+    this.spliceAll(this.achieved, (r) => r.userId === userId);
+
+    // 2. Delete user's own possesses records
+    this.spliceAll(this.possesses, (r) => r.userId === userId);
+
+    // 3. Delete user's own are records
+    this.spliceAll(this.are, (r) => r.userId === userId);
+
+    // 4. Delete other users' achieved on achievements linked to user's channel
+    const channelAchievementIds = new Set(
+      this.achievements.filter((a) => a.channelId === userId).map((a) => a.id),
+    );
+    if (channelAchievementIds.size > 0) {
+      this.spliceAll(this.achieved, (r) =>
+        channelAchievementIds.has(r.achievementId),
+      );
+    }
+
+    // 5. Delete other users' possesses for the badge linked to user's channel
+    const channelBadge = this.badges.find((b) => b.channelId === userId);
+    if (channelBadge) {
+      this.spliceAll(this.possesses, (r) => r.badgeId === channelBadge.id);
+    }
+
+    // 6. Delete other users' are records for user's channel
+    this.spliceAll(this.are, (r) => r.channelId === userId);
+
+    // 7. Delete achievements linked to user's channel
+    this.spliceAll(this.achievements, (a) => a.channelId === userId);
+
+    // 8. Delete badge linked to user's channel
+    if (channelBadge) {
+      this.spliceAll(this.badges, (b) => b.id === channelBadge.id);
+    }
+
+    // 9. Delete user's channel
+    this.spliceAll(this.channels, (c) => c.id === userId);
+
+    // 10. Delete the user
+    this.users.splice(userIdx, 1);
+
+    return true;
+  }
+
+  /** Remove all items matching predicate from an array (mutates in-place). */
+  private spliceAll<T>(arr: T[], predicate: (item: T) => boolean): void {
+    for (let i = arr.length - 1; i >= 0; i--) {
+      if (predicate(arr[i])) arr.splice(i, 1);
+    }
+  }
 }

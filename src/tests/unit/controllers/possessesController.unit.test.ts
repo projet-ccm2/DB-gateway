@@ -143,4 +143,26 @@ describe("possessesController (unit)", () => {
     await c.get(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
   });
+
+  it("create returns 409 on P2002 race condition", async () => {
+    const p2002 = Object.assign(new Error("Unique constraint"), {
+      code: "P2002",
+    });
+    const racyRepo = {
+      add: jest.fn().mockRejectedValue(p2002),
+      get: jest.fn().mockResolvedValue(null),
+    } as unknown as InstanceType<typeof PossessesRepository>;
+    const c = createPossessesController(racyRepo);
+    const req = {
+      body: {
+        userId: "u",
+        badgeId: "b",
+        acquiredDate: "2024-01-01T00:00:00Z",
+      },
+    } as Request;
+    const res = mockRes();
+    await c.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith({ error: "already exists" });
+  });
 });

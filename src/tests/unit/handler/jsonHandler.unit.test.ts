@@ -109,6 +109,12 @@ function makeRepoMock(): GatewayRepo {
             (a) => a.achievementId === achievementId && a.userId === u.id,
           ),
         ),
+      nukeUser: async (userId: string) => {
+        const idx = users.findIndex((u) => u.id === userId);
+        if (idx === -1) return false;
+        users.splice(idx, 1);
+        return true;
+      },
     },
     channel: {
       addChannel: async (
@@ -1230,6 +1236,31 @@ describe("jsonHandler full coverage", () => {
     if (!dup.ok) expect(dup.error).toBe("already exists");
   });
 
+  test("possesses create returns already exists on P2002 race condition", async () => {
+    const p2002 = Object.assign(new Error("Unique constraint"), {
+      code: "P2002",
+    });
+    const racyRepo: GatewayRepo = {
+      ...repo,
+      possesses: {
+        getPossesses: async () => null,
+        addPossesses: async () => {
+          throw p2002;
+        },
+      },
+    };
+    const res = await handleJsonMessage(racyRepo, {
+      action: "createPossesses",
+      payload: {
+        userId: "u_race",
+        badgeId: "b_race",
+        acquiredDate: "2024-01-01T00:00:00Z",
+      },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("already exists");
+  });
+
   test("unknown action", async () => {
     const res = await handleJsonMessage(repo, {
       action: "nope",
@@ -1454,6 +1485,24 @@ describe("jsonHandler full coverage", () => {
     if (!res.ok) expect(res.error).toBe("xp must be a non-negative number");
   });
 
+  test("updateUser updates xp with a valid positive value", async () => {
+    const repo = makeRepoMock();
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_xp_ok",
+        username: "xpok",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    });
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { userId: "twitch_xp_ok", xp: 42 },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.user?.xp).toBe(42);
+  });
+
   test("updateUser returns error when xp is negative", async () => {
     const repo = makeRepoMock();
     await handleJsonMessage(repo, {
@@ -1470,5 +1519,52 @@ describe("jsonHandler full coverage", () => {
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toBe("xp must be a non-negative number");
+  });
+
+  // ── nukeUser ──────────────────────────────────────────────────────────
+
+  test("nukeUser deletes the user and returns ok", async () => {
+    const repo = makeRepoMock();
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_nuke",
+        username: "nukeMe",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    });
+    const res = await handleJsonMessage(repo, {
+      action: "nukeUser",
+      payload: { userId: "twitch_nuke" },
+    });
+    expect(res.ok).toBe(true);
+
+    // user should no longer exist
+    const get = await handleJsonMessage(repo, {
+      action: "getUser",
+      payload: { userId: "twitch_nuke" },
+    });
+    expect(get.ok).toBe(true);
+    if (get.ok) expect(get.user).toBeNull();
+  });
+
+  test("nukeUser returns error when user does not exist", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "nukeUser",
+      payload: { userId: "nonexistent" },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toContain("not found");
+  });
+
+  test("nukeUser returns error when userId is missing", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "nukeUser",
+      payload: {},
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toContain("missing");
   });
 });

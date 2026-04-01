@@ -47,6 +47,27 @@ describe("achievementsController (unit)", () => {
     );
   });
 
+  it("create returns 404 when typeId not found", async () => {
+    const req = {
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: "nonexistent-type",
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: "typeId not found" });
+  });
+
   it("getById returns 404 when not found", async () => {
     const req = { params: { id: "unknown" } } as unknown as Request;
     const res = mockRes();
@@ -320,6 +341,32 @@ describe("achievementsController (unit)", () => {
     expect(res.status).toHaveBeenCalledWith(500);
   });
 
+  it("getByChannelId returns 500 when repo throws", async () => {
+    const throwingAchievementRepo = {
+      getByChannelId: jest.fn().mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof AchievementRepository>;
+    const c = createAchievementsController(throwingAchievementRepo, userRepo);
+    const req = { params: { channelId: "x" } } as unknown as Request;
+    const res = mockRes();
+    await c.getByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("getAchievementsByUserAndChannel returns 500 when repo throws", async () => {
+    const throwingUserRepo = {
+      getAchievementsByUserAndChannel: jest
+        .fn()
+        .mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof UserRepository>;
+    const c = createAchievementsController(achievementRepo, throwingUserRepo);
+    const req = {
+      params: { userId: "u", channelId: "c" },
+    } as unknown as Request;
+    const res = mockRes();
+    await c.getAchievementsByUserAndChannel(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
   it("getByUserId returns 200 with achievements + achieved", async () => {
     const freshDb = new MockDatabase();
     const freshAchievementRepo = new AchievementRepository(freshDb);
@@ -461,6 +508,38 @@ describe("achievementsController (unit)", () => {
     const res = mockRes();
     await c.getUsersByAchievementId(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("activate returns 400 when achievementId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.activate(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "achievementId required" });
+  });
+
+  it("deactivate returns 400 when achievementId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.deactivate(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "achievementId required" });
+  });
+
+  it("makePublic returns 400 when achievementId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.makePublic(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "achievementId required" });
+  });
+
+  it("makePrivate returns 400 when achievementId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.makePrivate(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "achievementId required" });
   });
 
   it("activate returns 200 and sets active to true", async () => {

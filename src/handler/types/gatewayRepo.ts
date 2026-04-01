@@ -46,6 +46,7 @@ export type GatewayRepo = {
     getUsersByChannelId(channelId: string): Promise<channelUserDTO[]>;
     getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;
     getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
+    nukeUser(userId: string): Promise<boolean>;
   };
   channel: {
     addChannel(

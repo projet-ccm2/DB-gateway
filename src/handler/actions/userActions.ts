@@ -113,4 +113,12 @@ export const userHandlers: Record<string, HandlerFn> = {
     const users = await repo.user.getUsersByAchievementId(achievementId);
     return { ok: true, users };
   },
+
+  nukeUser: async (repo, payload) => {
+    const id = str(payload, "userId", "id");
+    if (!id) return missing("userId");
+    const deleted = await repo.user.nukeUser(id);
+    if (!deleted) return { ok: false, error: "user not found" };
+    return { ok: true };
+  },
 };

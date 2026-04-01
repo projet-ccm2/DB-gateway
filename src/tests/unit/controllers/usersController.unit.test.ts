@@ -223,6 +223,39 @@ describe("usersController (unit)", () => {
     );
   });
 
+  it("update returns 400 when username is empty string", async () => {
+    const user = await repo.addUser({
+      id: "twitch_empty_un",
+      username: "orig",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const req = {
+      params: { id: user.id },
+      body: { username: "" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "username must be non-empty when provided",
+    });
+  });
+
+  it("update returns 200 with valid xp", async () => {
+    const user = await repo.addUser({
+      id: "twitch_xp_ok",
+      username: "xpok",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const req = {
+      params: { id: user.id },
+      body: { xp: 100 },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ xp: 100 }));
+  });
+
   it("update returns 404 when user not found", async () => {
     const req = {
       params: { id: "nonexistent" },

@@ -220,4 +220,22 @@ export interface Database {
   getUsersByChannelId(channelId: string): Promise<channelUserDTO[]>;
   getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;
   getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
+
+  /**
+   * GDPR "nuke" – atomically deletes **all** data related to a user:
+   *
+   * 1. User's own achieved records
+   * 2. User's own possesses records
+   * 3. User's own are (channel-membership) records
+   * 4. Other users' achieved records that reference achievements on the user's channel
+   * 5. Other users' possesses records that reference the badge on the user's channel
+   * 6. Other users' are records that reference the user's channel
+   * 7. Achievements linked to the user's channel
+   * 8. Badge linked to the user's channel
+   * 9. The user's channel
+   * 10. The user record itself
+   *
+   * Returns `true` when the user existed and was deleted, `false` otherwise.
+   */
+  nukeUser(userId: string): Promise<boolean>;
 }

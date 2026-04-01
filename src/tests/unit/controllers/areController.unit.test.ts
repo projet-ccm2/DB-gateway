@@ -119,6 +119,16 @@ describe("areController (unit)", () => {
     expect(res.status).toHaveBeenCalledWith(500);
   });
 
+  it("getByUserId returns 400 when userId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getByUserId(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "userId required" }),
+    );
+  });
+
   it("getByUserId returns 200 with records", async () => {
     const user = await db.addUser({
       id: "t3",
@@ -147,6 +157,16 @@ describe("areController (unit)", () => {
     const res = mockRes();
     await c.getByUserId(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("getByChannelId returns 400 when channelId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "channelId required" }),
+    );
   });
 
   it("getByChannelId returns 200 with records", async () => {
