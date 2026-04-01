@@ -296,7 +296,7 @@ rolled back.
 
 - Other users' records, channels, badges, or achievements
 - Type achievements
-- Data belonging to other channels the user was merely a member of
+- Resources of other channels where the user was only a member (those channels, their achievements, and badges remain, but the user's membership/achievement/badge records in them are deleted)
 
 ### Responses
 

@@ -71,11 +71,11 @@ async function seedFullUser(
   });
 
   // Create badge on user's channel
-  const badge = await db.addBadge({
+  const badge = (await db.addBadge({
     title: "UserBadge",
     img: "badge.png",
     channelId: userId,
-  });
+  }))!;
 
   // User's own achieved records (on some achievement)
   const achieved = await db.addAchieved({
@@ -259,11 +259,11 @@ describe("nukeUser – MockDatabase (unit)", () => {
     await seedFullUser(db, "target", "other");
     // Other user possesses a badge from a different channel
     await db.addChannel({ id: "other-ch", name: "OtherCh" });
-    const otherBadge = await db.addBadge({
+    const otherBadge = (await db.addBadge({
       title: "OtherBadge",
       img: "other.png",
       channelId: "other-ch",
-    });
+    }))!;
     await db.addPossesses({
       userId: "other",
       badgeId: otherBadge.id,
@@ -442,11 +442,11 @@ describe("nukeUser – MockDatabase (unit)", () => {
       channelId: "owner",
       typeId: type.id,
     });
-    const badge = await db.addBadge({
+    const badge = (await db.addBadge({
       title: "OwnerBadge",
       img: "b.png",
       channelId: "owner",
-    });
+    }))!;
 
     // nomad participates in owner's channel
     await db.addAre({
@@ -539,11 +539,11 @@ describe("nukeUser – MockDatabase (unit)", () => {
         channelId: ch,
         typeId: type.id,
       });
-      const badge = await db.addBadge({
+      const badge = (await db.addBadge({
         title: `Badge-${ch}`,
         img: "b.png",
         channelId: ch,
-      });
+      }))!;
       achIds.push(ach!.id);
       badges.push(badge.id);
 

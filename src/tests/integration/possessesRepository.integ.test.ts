@@ -17,11 +17,11 @@ describe("PossessesRepository (integration)", () => {
     });
     const chIdPoss = "ch_poss_integ_" + Date.now();
     await db.addChannel({ id: chIdPoss, name: "PossCh" });
-    const badge = await db.addBadge({
+    const badge = (await db.addBadge({
       title: "PossessesBadge_" + Date.now(),
       img: "img.png",
       channelId: chIdPoss,
-    });
+    }))!;
     const acquiredDate = new Date().toISOString();
     const created = await repo.add(user.id, badge.id, acquiredDate);
     expect(created.userId).toBe(user.id);
@@ -38,11 +38,11 @@ describe("PossessesRepository (integration)", () => {
   it("get with unknown userId returns null", async () => {
     const chIdNoPoss = "ch_noposs_" + Date.now();
     await db.addChannel({ id: chIdNoPoss, name: "NoPossCh" });
-    const badge = await db.addBadge({
+    const badge = (await db.addBadge({
       title: "BadgeNoPoss_" + Date.now(),
       img: "x.png",
       channelId: chIdNoPoss,
-    });
+    }))!;
     const found = await repo.get("unknown-user-id", badge.id);
     expect(found).toBeNull();
   });

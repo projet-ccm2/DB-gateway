@@ -9,6 +9,7 @@ export const badgeHandlers: Record<string, HandlerFn> = {
     if (!title || !img || !channelId)
       return missing("title", "img", "channelId");
     const badge = await repo.badge.addBadge(title, img, channelId);
+    if (!badge) return { ok: false, error: "channelId not found" };
     return { ok: true, badge };
   },
 

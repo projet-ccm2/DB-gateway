@@ -308,7 +308,9 @@ export class MockDatabase implements Database {
     title: string;
     img: string;
     channelId: string;
-  }): Promise<badgeDTO> {
+  }): Promise<badgeDTO | null> {
+    const channelExists = this.channels.find((c) => c.id === b.channelId);
+    if (!channelExists) return null;
     const nb = {
       id: randomUUID(),
       title: b.title,

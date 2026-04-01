@@ -22,6 +22,10 @@ export function createBadgesController(
           return;
         }
         const badge = await badgeRepo.add(title, img, channelId);
+        if (!badge) {
+          res.status(NOT_FOUND).json({ error: "channelId not found" });
+          return;
+        }
         res.status(201).json(badge);
       } catch (err: unknown) {
         sendInternalError(res, "POST /badges error", err);

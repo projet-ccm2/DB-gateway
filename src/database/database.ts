@@ -179,7 +179,7 @@ export interface Database {
     title: string;
     img: string;
     channelId: string;
-  }): Promise<badgeDTO>;
+  }): Promise<badgeDTO | null>;
 
   getAchieved(
     achievementId: string,

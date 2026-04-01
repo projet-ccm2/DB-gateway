@@ -492,7 +492,11 @@ export class PrismaDatabase implements Database {
     title: string;
     img: string;
     channelId: string;
-  }): Promise<badgeDTO> {
+  }): Promise<badgeDTO | null> {
+    const channelExists = await this.prisma.channel.findUnique({
+      where: { id: b.channelId },
+    });
+    if (!channelExists) return null;
     const nb = await this.prisma.badge.create({
       data: {
         title: b.title,

@@ -211,16 +211,18 @@ describe("userRepository (unit, mock db)", () => {
       username: "BadgeUser",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge1 = await mockDb.addBadge({
+    await mockDb.addChannel({ id: "ch-gold", name: "gold" });
+    const badge1 = (await mockDb.addBadge({
       title: "Gold Badge",
       img: "gold.png",
       channelId: "ch-gold",
-    });
-    const badge2 = await mockDb.addBadge({
+    }))!;
+    await mockDb.addChannel({ id: "ch-silver", name: "silver" });
+    const badge2 = (await mockDb.addBadge({
       title: "Silver Badge",
       img: "silver.png",
       channelId: "ch-silver",
-    });
+    }))!;
 
     await mockDb.addPossesses({
       userId: user.id,
@@ -401,11 +403,12 @@ describe("userRepository (unit, mock db)", () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
 
-    const badge = await mockDb.addBadge({
+    await mockDb.addChannel({ id: "ch-rare", name: "rare" });
+    const badge = (await mockDb.addBadge({
       title: "Rare Badge",
       img: "rare.png",
       channelId: "ch-rare",
-    });
+    }))!;
 
     const users = await service.getUsersByBadgeId(badge.id);
     expect(users).toEqual([]);
@@ -425,11 +428,12 @@ describe("userRepository (unit, mock db)", () => {
       username: "BadgeOwner2",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await mockDb.addBadge({
+    await mockDb.addChannel({ id: "ch-common", name: "common" });
+    const badge = (await mockDb.addBadge({
       title: "Common Badge",
       img: "common.png",
       channelId: "ch-common",
-    });
+    }))!;
 
     await mockDb.addPossesses({
       userId: user1.id,

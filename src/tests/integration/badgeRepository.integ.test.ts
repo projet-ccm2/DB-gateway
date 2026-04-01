@@ -14,7 +14,7 @@ describe("BadgeRepository (integration)", () => {
     const img = "https://example.com/badge.png";
     const chId = "ch_badge_" + Date.now();
     await db.addChannel({ id: chId, name: "BadgeCh" });
-    const created = await repo.add(title, img, chId);
+    const created = (await repo.add(title, img, chId))!;
     expect(created.id).toBeDefined();
     expect(created.title).toBe(title);
     expect(created.img).toBe(img);

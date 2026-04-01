@@ -328,11 +328,11 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     });
     const chId004 = "ch_badge_integ_004_" + Date.now();
     await db.addChannel({ id: chId004, name: "BadgeIntegCh" });
-    const badge = await db.addBadge({
+    const badge = (await db.addBadge({
       title: "IntegBadge",
       img: "badge.png",
       channelId: chId004,
-    });
+    }))!;
     await db.addPossesses({
       userId: user.id,
       badgeId: badge.id,
@@ -452,11 +452,11 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     });
     const chId007 = "ch_badge_integ_007_" + Date.now();
     await db.addChannel({ id: chId007, name: "HolderCh" });
-    const badge = await db.addBadge({
+    const badge = (await db.addBadge({
       title: "HolderBadge",
       img: "holder.png",
       channelId: chId007,
-    });
+    }))!;
     await db.addPossesses({
       userId: user.id,
       badgeId: badge.id,
@@ -578,18 +578,18 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
     }))!;
 
     // Badge on target's channel
-    const targetBadge = await db.addBadge({
+    const targetBadge = (await db.addBadge({
       title: `NukeBadge_${ts}`,
       img: "nb.png",
       channelId: targetChannel.id,
-    });
+    }))!;
 
     // Badge on other channel (should survive)
-    const otherBadge = await db.addBadge({
+    const otherBadge = (await db.addBadge({
       title: `OtherBadge_${ts}`,
       img: "ob.png",
       channelId: otherChannel.id,
-    });
+    }))!;
 
     // Target's own achieved, possesses, are
     await db.addAchieved({
@@ -779,11 +779,11 @@ describe("UserRepository (integration: Prisma + MySQL)", () => {
       channelId: target.id,
       typeId: type1.id,
     }))!;
-    const badge = await db.addBadge({
+    const badge = (await db.addBadge({
       title: `MtBadge_${ts}`,
       img: "b.png",
       channelId: target.id,
-    });
+    }))!;
 
     // Both other users participate in target's channel
     for (const u of [other1, other2]) {

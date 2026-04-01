@@ -10,6 +10,12 @@ describe("badgesController (unit)", () => {
   const userRepo = new UserRepository(db);
   const ctrl = createBadgesController(badgeRepo, userRepo);
 
+  beforeAll(async () => {
+    await db.addChannel({ id: "ch-ctrl-1", name: "ctrl1" });
+    await db.addChannel({ id: "ch-ctrl-found", name: "ctrlfound" });
+    await db.addChannel({ id: "ch-ctrl-users", name: "ctrlusers" });
+  });
+
   const mockRes = (): Response => {
     const res = {} as Response;
     res.status = jest.fn().mockReturnThis();
@@ -29,6 +35,16 @@ describe("badgesController (unit)", () => {
     );
   });
 
+  it("create returns 404 when channelId not found", async () => {
+    const req = {
+      body: { title: "Badge", img: "img.png", channelId: "nonexistent" },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: "channelId not found" });
+  });
+
   it("getById returns 404 when not found", async () => {
     const req = { params: { id: "unknown" } } as unknown as Request;
     const res = mockRes();
@@ -44,11 +60,11 @@ describe("badgesController (unit)", () => {
   });
 
   it("getById returns 200 when found", async () => {
-    const badge = await db.addBadge({
+    const badge = (await db.addBadge({
       title: "Found",
       img: "f.png",
       channelId: "ch-ctrl-found",
-    });
+    }))!;
     const req = { params: { id: badge.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getById(req, res);
@@ -58,11 +74,11 @@ describe("badgesController (unit)", () => {
   });
 
   it("getUsersByBadgeId returns 200 and array", async () => {
-    const badge = await db.addBadge({
+    const badge = (await db.addBadge({
       title: "B",
       img: "i.png",
       channelId: "ch-ctrl-users",
-    });
+    }))!;
     const req = { params: { id: badge.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getUsersByBadgeId(req, res);

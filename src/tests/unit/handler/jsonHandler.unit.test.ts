@@ -247,6 +247,8 @@ function makeRepoMock(): GatewayRepo {
     },
     badge: {
       addBadge: async (title: string, img: string, channelId: string) => {
+        const ch = channels.find((c) => c.id === channelId);
+        if (!ch) return null;
         const b = {
           id: "b_" + title,
           title,
@@ -413,6 +415,10 @@ describe("jsonHandler full coverage", () => {
       },
     });
     await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_testbadge", name: "testbadge" },
+    });
+    await handleJsonMessage(repo, {
       action: "createBadge",
       payload: {
         title: "testbadge",
@@ -513,6 +519,10 @@ describe("jsonHandler full coverage", () => {
         username: "badgeholder",
         lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
       },
+    });
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_rarebadge", name: "rarebadge" },
     });
     await handleJsonMessage(repo, {
       action: "createBadge",
@@ -1034,6 +1044,10 @@ describe("jsonHandler full coverage", () => {
   });
 
   test("badge create/get", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch-badge-cg", name: "badgecg" },
+    });
     const create = await handleJsonMessage(repo, {
       action: "createBadge",
       payload: { title: "B", img: "i", channelId: "ch-badge-cg" },
@@ -1045,6 +1059,17 @@ describe("jsonHandler full coverage", () => {
       payload: { badgeId: "b_B" },
     });
     expect(get.ok).toBe(true);
+  });
+
+  test("createBadge returns error when channelId not found", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "createBadge",
+      payload: { title: "Orphan", img: "o.png", channelId: "nonexistent" },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("channelId not found");
+    }
   });
 
   test("achieved create/get", async () => {

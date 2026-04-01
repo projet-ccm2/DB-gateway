@@ -27,7 +27,7 @@ model User {
 model Channel {
   id                String  @id @map("Channel_ID") @db.VarChar(50)
   name              String  @map("Channel_Name") @db.VarChar(50)
-  discordWebhookUrl String? @map("Discord_Webhook_Url") @db.VarChar(500)
+  discordWebhookUrl String? @map("Discord_Webhook_Url") @db.VarChar(1024)
 
   achievements Achievement[]
   badges       Badge[]

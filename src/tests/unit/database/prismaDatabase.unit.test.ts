@@ -757,11 +757,12 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       const pubList = await db.getPublicAchievements();
       expect(Array.isArray(pubList)).toBe(true);
 
-      const b = await db.addBadge({
+      await db.addChannel({ id: "ch-prisma", name: "prisma" });
+      const b = (await db.addBadge({
         title: "B",
         img: "i",
         channelId: "ch-prisma",
-      });
+      }))!;
       expect(b.title).toBe("B");
 
       const achv = await db.addAchieved({
@@ -902,11 +903,11 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       });
       expect(nukeAchUpdated).not.toBeNull();
 
-      const nukeBadge = await db.addBadge({
+      const nukeBadge = (await db.addBadge({
         title: "NukeBadge",
         img: "nb.png",
         channelId: nukeCh.id,
-      });
+      }))!;
 
       // Target user's own records
       await db.addAchieved({

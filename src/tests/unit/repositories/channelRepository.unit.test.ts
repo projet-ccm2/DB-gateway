@@ -91,11 +91,11 @@ describe("channelRepository (unit)", () => {
     const db = new MockDatabase();
     const repo = new ChannelRepository(db);
     const ch = await db.addChannel({ id: "ch-badge", name: "C" });
-    const badge = await db.addBadge({
+    const badge = (await db.addBadge({
       title: "B1",
       img: "i.png",
       channelId: ch.id,
-    });
+    }))!;
     const found = await repo.getBadgeByChannelId(ch.id);
     expect(found).not.toBeNull();
     expect(found?.id).toBe(badge.id);

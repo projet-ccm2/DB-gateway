@@ -7,7 +7,11 @@ export class BadgeRepository {
     return this.db.getBadgeById(id);
   }
 
-  async add(title: string, img: string, channelId: string): Promise<badgeDTO> {
+  async add(
+    title: string,
+    img: string,
+    channelId: string,
+  ): Promise<badgeDTO | null> {
     return this.db.addBadge({ title, img, channelId });
   }
 }
