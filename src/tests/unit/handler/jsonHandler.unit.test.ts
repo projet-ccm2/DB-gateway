@@ -1485,6 +1485,21 @@ describe("jsonHandler full coverage", () => {
     if (!res.ok) expect(res.error).toBe("xp must be a non-negative number");
   });
 
+  test("createUser returns error when xp is non-numeric string", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_bad_xp",
+        username: "badxp",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+        xp: "abc",
+      },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("xp must be a number");
+  });
+
   test("updateUser updates xp with a valid positive value", async () => {
     const repo = makeRepoMock();
     await handleJsonMessage(repo, {

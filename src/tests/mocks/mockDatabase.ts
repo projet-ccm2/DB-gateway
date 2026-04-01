@@ -237,9 +237,8 @@ export class MockDatabase implements Database {
     if (data.image !== undefined) achievement.image = data.image;
     if (data.typeId !== undefined) {
       const typeRecord = this.types.find((t) => t.id === data.typeId);
-      if (typeRecord) {
-        achievement.typeAchievement = { ...typeRecord };
-      }
+      if (!typeRecord) return null;
+      achievement.typeAchievement = { ...typeRecord };
     }
     return { ...achievement };
   }

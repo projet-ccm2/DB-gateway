@@ -6,7 +6,7 @@ function parseXpField(
 ): { error: string } | { xp?: number } {
   if (!("xp" in payload)) return {};
   const xpVal = num(payload, "xp");
-  if (xpVal === undefined) return {};
+  if (xpVal === undefined) return { error: "xp must be a number" };
   if (xpVal < 0) return { error: "xp must be a non-negative number" };
   return { xp: xpVal };
 }
@@ -18,8 +18,9 @@ export const userHandlers: Record<string, HandlerFn> = {
     const lastUpdateTimestamp = str(payload, "lastUpdateTimestamp");
     if (!username || !id || !lastUpdateTimestamp)
       return missing("username", "id", "lastUpdateTimestamp");
-    const xp = num(payload, "xp") ?? 0;
-    if (xp < 0) return { ok: false, error: "xp must be a non-negative number" };
+    const xpResult = parseXpField(payload);
+    if ("error" in xpResult) return { ok: false, error: xpResult.error };
+    const xp = xpResult.xp ?? 0;
     const user = await repo.user.addUser({
       id,
       username,

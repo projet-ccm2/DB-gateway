@@ -414,6 +414,12 @@ export class PrismaDatabase implements Database {
     data: AchievementUpdateData,
   ): Promise<achievementDTO | null> {
     const { typeId, ...achievementData } = data;
+    if (typeId !== undefined) {
+      const typeExists = await this.prisma.typeAchievement.findUnique({
+        where: { id: typeId },
+      });
+      if (!typeExists) return null;
+    }
     return handleP2025(async () => {
       const updated = await this.prisma.achievement.update({
         where: { id },
