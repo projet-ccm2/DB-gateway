@@ -9,6 +9,7 @@ interface MockUserData {
 interface MockChannelData {
   id: string;
   name: string;
+  discordWebhookUrl?: string | null;
 }
 interface MockTypeData {
   label: string;
@@ -156,7 +157,11 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
               findUnique: async ({ where }: { where: { id: string } }) =>
                 this._channels.get(where.id) ?? null,
               create: async ({ data }: { data: MockChannelData }) => {
-                const row = { id: data.id, name: data.name };
+                const row = {
+                  id: data.id,
+                  name: data.name,
+                  discordWebhookUrl: data.discordWebhookUrl ?? null,
+                };
                 this._channels.set(data.id, row);
                 return row;
               },
@@ -572,6 +577,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
 
       const ch = await db.addChannel({ id: "ch-test-1", name: "ch1" });
       expect(ch.name).toBe("ch1");
+      expect(ch.discordWebhookUrl).toBeNull();
       expect((await db.getChannelById(ch.id))?.id).toBe(ch.id);
 
       const t = await db.addTypeAchievement({ label: "L", data: "D" });
@@ -747,6 +753,34 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         name: "UpdatedChannelName",
       });
       expect(updatedChannel?.name).toBe("UpdatedChannelName");
+
+      // Test addChannel with discordWebhookUrl
+      const chWithUrl = await db.addChannel({
+        id: "ch-wh-1",
+        name: "wh1",
+        discordWebhookUrl: "https://discord.com/api/webhooks/test",
+      });
+      expect(chWithUrl.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/test",
+      );
+      const fetchedChWithUrl = await db.getChannelById("ch-wh-1");
+      expect(fetchedChWithUrl?.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/test",
+      );
+
+      // Test updateChannel discordWebhookUrl
+      const updatedChUrl = await db.updateChannel(ch.id, {
+        discordWebhookUrl: "https://discord.com/api/webhooks/updated",
+      });
+      expect(updatedChUrl?.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/updated",
+      );
+
+      // Test updateChannel clear discordWebhookUrl
+      const clearedChUrl = await db.updateChannel(ch.id, {
+        discordWebhookUrl: null,
+      });
+      expect(clearedChUrl?.discordWebhookUrl).toBeNull();
 
       // Test updateChannel for non-existent channel
       const nonExistentChannelUpdate = await db.updateChannel("nonexistent", {

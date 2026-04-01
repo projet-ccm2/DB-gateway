@@ -10,7 +10,11 @@ export function createChannelsController(
   return {
     create: async (req: Request, res: Response): Promise<void> => {
       try {
-        const { id, name } = req.body as { id?: string; name?: string };
+        const { id, name, discordWebhookUrl } = req.body as {
+          id?: string;
+          name?: string;
+          discordWebhookUrl?: string | null;
+        };
         if (!id) {
           res.status(BAD_REQUEST).json({ error: "id required" });
           return;
@@ -19,7 +23,11 @@ export function createChannelsController(
           res.status(BAD_REQUEST).json({ error: "name required" });
           return;
         }
-        const channel = await channelRepo.addChannel(id, name);
+        const channel = await channelRepo.addChannel(
+          id,
+          name,
+          discordWebhookUrl,
+        );
         res.status(201).json(channel);
       } catch (err: unknown) {
         sendInternalError(res, "POST /channels error", err);
@@ -41,9 +49,16 @@ export function createChannelsController(
 
     update: async (req: Request, res: Response): Promise<void> => {
       try {
-        const { name } = req.body as { name?: string };
+        const { name, discordWebhookUrl } = req.body as {
+          name?: string;
+          discordWebhookUrl?: string | null;
+        };
         const channel = await channelRepo.updateChannel(paramId(req, "id"), {
           name,
+          discordWebhookUrl:
+            req.body.discordWebhookUrl !== undefined
+              ? (discordWebhookUrl ?? null)
+              : undefined,
         });
         if (!channel) {
           res.status(NOT_FOUND).json({ error: "not found" });

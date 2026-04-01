@@ -48,11 +48,15 @@ export type GatewayRepo = {
     getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
   };
   channel: {
-    addChannel(id: string, name: string): Promise<channelDTO>;
+    addChannel(
+      id: string,
+      name: string,
+      discordWebhookUrl?: string | null,
+    ): Promise<channelDTO>;
     getChannelById(id: string): Promise<channelDTO | null>;
     updateChannel(
       id: string,
-      data: { name?: string },
+      data: { name?: string; discordWebhookUrl?: string | null },
     ): Promise<channelDTO | null>;
     getBadgeByChannelId(channelId: string): Promise<badgeDTO | null>;
   };

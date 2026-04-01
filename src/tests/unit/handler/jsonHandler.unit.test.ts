@@ -111,17 +111,30 @@ function makeRepoMock(): GatewayRepo {
         ),
     },
     channel: {
-      addChannel: async (id: string, name: string) => {
-        const c = { id, name };
+      addChannel: async (
+        id: string,
+        name: string,
+        discordWebhookUrl?: string | null,
+      ) => {
+        const c = {
+          id,
+          name,
+          discordWebhookUrl: discordWebhookUrl ?? null,
+        };
         channels.push(c);
         return c;
       },
       getChannelById: async (id: string) =>
         channels.find((c) => c.id === id) ?? null,
-      updateChannel: async (id: string, data: { name?: string }) => {
+      updateChannel: async (
+        id: string,
+        data: { name?: string; discordWebhookUrl?: string | null },
+      ) => {
         const channel = channels.find((c) => c.id === id);
         if (!channel) return null;
         if (data.name !== undefined) channel.name = data.name;
+        if (data.discordWebhookUrl !== undefined)
+          channel.discordWebhookUrl = data.discordWebhookUrl ?? null;
         return channel;
       },
       getBadgeByChannelId: async (channelId: string) => {
@@ -579,6 +592,43 @@ describe("jsonHandler full coverage", () => {
     expect(update.ok).toBe(true);
     if (update.ok) {
       expect(update.channel?.name).toBe("NewName");
+    }
+  });
+
+  test("channel create with discordWebhookUrl", async () => {
+    const create = await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: {
+        id: "c_wh",
+        name: "whchan",
+        discordWebhookUrl: "https://discord.com/api/webhooks/handler",
+      },
+    });
+    expect(create.ok).toBe(true);
+    if (create.ok) {
+      expect(create.channel?.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/handler",
+      );
+    }
+  });
+
+  test("channel update discordWebhookUrl", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "c_upd_wh", name: "UW" },
+    });
+    const update = await handleJsonMessage(repo, {
+      action: "updateChannel",
+      payload: {
+        channelId: "c_upd_wh",
+        discordWebhookUrl: "https://discord.com/api/webhooks/updated",
+      },
+    });
+    expect(update.ok).toBe(true);
+    if (update.ok) {
+      expect(update.channel?.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/updated",
+      );
     }
   });
 

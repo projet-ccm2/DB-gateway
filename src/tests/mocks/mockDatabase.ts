@@ -139,19 +139,29 @@ export class MockDatabase implements Database {
     return this.channels.find((channel) => channel.id === id) ?? null;
   }
 
-  async addChannel(channel: { id: string; name: string }): Promise<channelDTO> {
-    const newC: channelDTO = { id: channel.id, name: channel.name };
+  async addChannel(channel: {
+    id: string;
+    name: string;
+    discordWebhookUrl?: string | null;
+  }): Promise<channelDTO> {
+    const newC: channelDTO = {
+      id: channel.id,
+      name: channel.name,
+      discordWebhookUrl: channel.discordWebhookUrl ?? null,
+    };
     this.channels.push(newC);
     return newC;
   }
 
   async updateChannel(
     id: string,
-    data: { name?: string },
+    data: { name?: string; discordWebhookUrl?: string | null },
   ): Promise<channelDTO | null> {
     const channel = this.channels.find((c) => c.id === id);
     if (!channel) return null;
     if (data.name !== undefined) channel.name = data.name;
+    if (data.discordWebhookUrl !== undefined)
+      channel.discordWebhookUrl = data.discordWebhookUrl ?? null;
     return channel;
   }
 

@@ -18,6 +18,7 @@ import {
   AchievementUpdateData,
   AchievedPayload,
 } from "./database";
+import { encrypt, decrypt } from "../utils/encryption";
 
 type PrismaTransactionClient = Omit<
   PrismaClient,
@@ -297,29 +298,61 @@ export class PrismaDatabase implements Database {
   async getChannelById(id: string): Promise<channelDTO | null> {
     const c = await this.prisma.channel.findUnique({ where: { id } });
     if (!c) return null;
-    return { id: c.id, name: c.name };
+    return {
+      id: c.id,
+      name: c.name,
+      discordWebhookUrl: c.discordWebhookUrl
+        ? decrypt(c.discordWebhookUrl)
+        : null,
+    };
   }
 
-  async addChannel(channel: { id: string; name: string }): Promise<channelDTO> {
+  async addChannel(channel: {
+    id: string;
+    name: string;
+    discordWebhookUrl?: string | null;
+  }): Promise<channelDTO> {
     const c = await this.prisma.channel.create({
-      data: { id: channel.id, name: channel.name },
+      data: {
+        id: channel.id,
+        name: channel.name,
+        discordWebhookUrl: channel.discordWebhookUrl
+          ? encrypt(channel.discordWebhookUrl)
+          : null,
+      },
     });
-    return { id: c.id, name: c.name };
+    return {
+      id: c.id,
+      name: c.name,
+      discordWebhookUrl: c.discordWebhookUrl
+        ? decrypt(c.discordWebhookUrl)
+        : null,
+    };
   }
 
   async updateChannel(
     id: string,
-    data: { name?: string },
+    data: { name?: string; discordWebhookUrl?: string | null },
   ): Promise<channelDTO | null> {
-    const updateData: { name?: string } = {};
+    const updateData: { name?: string; discordWebhookUrl?: string | null } = {};
     if (data.name !== undefined) updateData.name = data.name;
+    if (data.discordWebhookUrl !== undefined)
+      updateData.discordWebhookUrl = data.discordWebhookUrl
+        ? encrypt(data.discordWebhookUrl)
+        : null;
 
     return handleP2025(async () => {
       const c = await this.prisma.channel.update({
         where: { id },
         data: updateData,
       });
-      return { id: c.id, name: c.name };
+      return {
+        id: c.id,
+        name: c.name,
+        discordWebhookUrl: c.discordWebhookUrl
+          ? decrypt(c.discordWebhookUrl)
+          : null,
+      };
     });
   }
 

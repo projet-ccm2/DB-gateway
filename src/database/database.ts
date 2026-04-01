@@ -7,7 +7,11 @@ export type userDTO = {
   xp: number;
   lastUpdateTimestamp: string;
 };
-export type channelDTO = { id: string; name: string };
+export type channelDTO = {
+  id: string;
+  name: string;
+  discordWebhookUrl: string | null;
+};
 export type userChannelDTO = { id: string; name: string; userType: string };
 export type channelUserDTO = {
   id: string;
@@ -137,10 +141,14 @@ export interface Database {
   ): Promise<userDTO | null>;
 
   getChannelById(id: string): Promise<channelDTO | null>;
-  addChannel(channel: { id: string; name: string }): Promise<channelDTO>;
+  addChannel(channel: {
+    id: string;
+    name: string;
+    discordWebhookUrl?: string | null;
+  }): Promise<channelDTO>;
   updateChannel(
     id: string,
-    data: { name?: string },
+    data: { name?: string; discordWebhookUrl?: string | null },
   ): Promise<channelDTO | null>;
 
   getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
