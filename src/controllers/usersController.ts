@@ -32,6 +32,15 @@ export function createUsersController(repo: UserRepository) {
         }
         let parsedXp = 0;
         if (xp !== undefined) {
+          if (
+            xp === null ||
+            (typeof xp !== "number" && typeof xp !== "string")
+          ) {
+            res
+              .status(BAD_REQUEST)
+              .json({ error: "xp must be a non-negative number" });
+            return;
+          }
           parsedXp = Number(xp);
           if (!Number.isFinite(parsedXp) || parsedXp < 0) {
             res
@@ -96,6 +105,16 @@ export function createUsersController(repo: UserRepository) {
           return;
         }
         if ("xp" in body) {
+          if (
+            body.xp === null ||
+            body.xp === undefined ||
+            (typeof body.xp !== "number" && typeof body.xp !== "string")
+          ) {
+            res
+              .status(BAD_REQUEST)
+              .json({ error: "xp must be a non-negative number" });
+            return;
+          }
           const parsedXp = Number(body.xp);
           if (!Number.isFinite(parsedXp) || parsedXp < 0) {
             res

@@ -789,71 +789,84 @@ export class PrismaDatabase implements Database {
   }
 
   async nukeUser(userId: string): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return false;
+    try {
+      await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+        // Verify user exists inside the transaction
+        const user = await tx.user.findUnique({ where: { id: userId } });
+        if (!user) {
+          throw Object.assign(new Error("User not found"), {
+            code: "USER_NOT_FOUND",
+          });
+        }
 
-    await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
-      // 1. Delete user's own achieved records
-      await tx.achieved.deleteMany({ where: { userId } });
+        // 1. Delete user's own achieved records
+        await tx.achieved.deleteMany({ where: { userId } });
 
-      // 2. Delete user's own possesses records
-      await tx.possesses.deleteMany({ where: { userId } });
+        // 2. Delete user's own possesses records
+        await tx.possesses.deleteMany({ where: { userId } });
 
-      // 3. Delete user's own are (channel-membership) records
-      await tx.are.deleteMany({ where: { userId } });
+        // 3. Delete user's own are (channel-membership) records
+        await tx.are.deleteMany({ where: { userId } });
 
-      // 4. Delete other users' achieved on achievements linked to user's channel
-      const channelAchievements = await tx.achievement.findMany({
-        where: { channelId: userId },
-        select: { id: true },
-      });
-      const achievementIds = channelAchievements.map(
-        (a: { id: string }) => a.id,
-      );
-      if (achievementIds.length > 0) {
-        await tx.achieved.deleteMany({
-          where: { achievementId: { in: achievementIds } },
-        });
-      }
-
-      // 5. Delete other users' possesses for the badge linked to user's channel
-      const channelBadge = await tx.badge.findUnique({
-        where: { channelId: userId },
-        select: { id: true },
-      });
-      if (channelBadge) {
-        await tx.possesses.deleteMany({
-          where: { badgeId: channelBadge.id },
-        });
-      }
-
-      // 6. Delete other users' are records for user's channel
-      await tx.are.deleteMany({ where: { channelId: userId } });
-
-      // 7. Delete achievements linked to user's channel
-      if (achievementIds.length > 0) {
-        await tx.achievement.deleteMany({
+        // 4. Delete other users' achieved on achievements linked to user's channel
+        const channelAchievements = await tx.achievement.findMany({
           where: { channelId: userId },
+          select: { id: true },
         });
-      }
+        const achievementIds = channelAchievements.map(
+          (a: { id: string }) => a.id,
+        );
+        if (achievementIds.length > 0) {
+          await tx.achieved.deleteMany({
+            where: { achievementId: { in: achievementIds } },
+          });
+        }
 
-      // 8. Delete badge linked to user's channel
-      if (channelBadge) {
-        await tx.badge.delete({ where: { id: channelBadge.id } });
-      }
+        // 5. Delete other users' possesses for the badge linked to user's channel
+        const channelBadge = await tx.badge.findUnique({
+          where: { channelId: userId },
+          select: { id: true },
+        });
+        if (channelBadge) {
+          await tx.possesses.deleteMany({
+            where: { badgeId: channelBadge.id },
+          });
+        }
 
-      // 9. Delete user's channel
-      const channel = await tx.channel.findUnique({
-        where: { id: userId },
+        // 6. Delete other users' are records for user's channel
+        await tx.are.deleteMany({ where: { channelId: userId } });
+
+        // 7. Delete achievements linked to user's channel
+        if (achievementIds.length > 0) {
+          await tx.achievement.deleteMany({
+            where: { channelId: userId },
+          });
+        }
+
+        // 8. Delete badge linked to user's channel
+        if (channelBadge) {
+          await tx.badge.delete({ where: { id: channelBadge.id } });
+        }
+
+        // 9. Delete user's channel
+        const channel = await tx.channel.findUnique({
+          where: { id: userId },
+        });
+        if (channel) {
+          await tx.channel.delete({ where: { id: userId } });
+        }
+
+        // 10. Delete the user
+        await tx.user.delete({ where: { id: userId } });
       });
-      if (channel) {
-        await tx.channel.delete({ where: { id: userId } });
+
+      return true;
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code;
+      if (code === "USER_NOT_FOUND" || code === "P2025") {
+        return false;
       }
-
-      // 10. Delete the user
-      await tx.user.delete({ where: { id: userId } });
-    });
-
-    return true;
+      throw err;
+    }
   }
 }
