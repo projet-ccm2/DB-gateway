@@ -12,7 +12,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
-          xp?: number;
+          xp?: unknown;
           lastUpdateTimestamp?: string;
         };
         const {
@@ -34,7 +34,8 @@ export function createUsersController(repo: UserRepository) {
         if (xp !== undefined) {
           if (
             xp === null ||
-            (typeof xp !== "number" && typeof xp !== "string")
+            (typeof xp !== "number" && typeof xp !== "string") ||
+            (typeof xp === "string" && xp.trim() === "")
           ) {
             res
               .status(BAD_REQUEST)
@@ -94,7 +95,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
-          xp?: number;
+          xp?: unknown;
           lastUpdateTimestamp?: string;
         };
         // If username is provided in the update payload, enforce that it is non-empty
@@ -108,7 +109,8 @@ export function createUsersController(repo: UserRepository) {
           if (
             body.xp === null ||
             body.xp === undefined ||
-            (typeof body.xp !== "number" && typeof body.xp !== "string")
+            (typeof body.xp !== "number" && typeof body.xp !== "string") ||
+            (typeof body.xp === "string" && body.xp.trim() === "")
           ) {
             res
               .status(BAD_REQUEST)
@@ -122,9 +124,19 @@ export function createUsersController(repo: UserRepository) {
               .json({ error: "xp must be a non-negative number" });
             return;
           }
-          body.xp = parsedXp;
+          (body as Record<string, unknown>).xp = parsedXp;
         }
-        const user = await repo.updateUser(id, body);
+        const user = await repo.updateUser(
+          id,
+          body as {
+            username?: string;
+            profileImageUrl?: string | null;
+            channelDescription?: string | null;
+            scope?: string | null;
+            xp?: number;
+            lastUpdateTimestamp?: string;
+          },
+        );
         if (!user) {
           res.status(NOT_FOUND).json({ error: "not found" });
           return;

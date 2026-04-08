@@ -7,6 +7,14 @@ export const channelHandlers: Record<string, HandlerFn> = {
     if (!id) return missing("channelId");
     const name = str(payload, "name");
     if (!name) return missing("name");
+    if (
+      "discordWebhookUrl" in payload &&
+      payload.discordWebhookUrl !== null &&
+      payload.discordWebhookUrl !== undefined &&
+      typeof payload.discordWebhookUrl !== "string"
+    ) {
+      return { ok: false, error: "invalid discordWebhookUrl" };
+    }
     const discordWebhookUrl = strOrNull(payload, "discordWebhookUrl");
     const channel = await repo.channel.addChannel(id, name, discordWebhookUrl);
     return { ok: true, channel };
@@ -23,6 +31,14 @@ export const channelHandlers: Record<string, HandlerFn> = {
     const id = str(payload, "channelId", "id");
     if (!id) return missing("channelId");
     const name = str(payload, "name");
+    if (
+      "discordWebhookUrl" in payload &&
+      payload.discordWebhookUrl !== null &&
+      payload.discordWebhookUrl !== undefined &&
+      typeof payload.discordWebhookUrl !== "string"
+    ) {
+      return { ok: false, error: "invalid discordWebhookUrl" };
+    }
     const discordWebhookUrl = strOrNull(payload, "discordWebhookUrl");
     const channel = await repo.channel.updateChannel(id, {
       name,

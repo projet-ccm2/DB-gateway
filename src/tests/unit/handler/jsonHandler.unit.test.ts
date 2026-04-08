@@ -648,6 +648,32 @@ describe("jsonHandler full coverage", () => {
     }
   });
 
+  test("createChannel returns error when discordWebhookUrl is invalid type", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_bad_wh", name: "badwh", discordWebhookUrl: 12345 },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("invalid discordWebhookUrl");
+    }
+  });
+
+  test("updateChannel returns error when discordWebhookUrl is invalid type", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_upd_bad_wh", name: "updbadwh" },
+    });
+    const result = await handleJsonMessage(repo, {
+      action: "updateChannel",
+      payload: { channelId: "ch_upd_bad_wh", discordWebhookUrl: { url: "x" } },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("invalid discordWebhookUrl");
+    }
+  });
+
   test("getBadgeByChannelId returns null for unknown channel", async () => {
     const res = await handleJsonMessage(repo, {
       action: "getBadgeByChannelId",
