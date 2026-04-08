@@ -10,11 +10,20 @@ export function createChannelsController(
   return {
     create: async (req: Request, res: Response): Promise<void> => {
       try {
-        const { id, name, discordWebhookUrl } = req.body as {
+        const { id, name } = req.body as {
           id?: string;
           name?: string;
-          discordWebhookUrl?: string | null;
         };
+        const rawWebhook = (req.body as { discordWebhookUrl?: unknown })
+          .discordWebhookUrl;
+        if (
+          rawWebhook !== undefined &&
+          rawWebhook !== null &&
+          typeof rawWebhook !== "string"
+        ) {
+          res.status(BAD_REQUEST).json({ error: "invalid discordWebhookUrl" });
+          return;
+        }
         if (!id) {
           res.status(BAD_REQUEST).json({ error: "id required" });
           return;
@@ -26,7 +35,7 @@ export function createChannelsController(
         const channel = await channelRepo.addChannel(
           id,
           name,
-          discordWebhookUrl,
+          rawWebhook ?? undefined,
         );
         res.status(201).json(channel);
       } catch (err: unknown) {
@@ -49,16 +58,23 @@ export function createChannelsController(
 
     update: async (req: Request, res: Response): Promise<void> => {
       try {
-        const { name, discordWebhookUrl } = req.body as {
+        const { name } = req.body as {
           name?: string;
-          discordWebhookUrl?: string | null;
         };
+        const rawWebhook = (req.body as { discordWebhookUrl?: unknown })
+          .discordWebhookUrl;
+        if (
+          rawWebhook !== undefined &&
+          rawWebhook !== null &&
+          typeof rawWebhook !== "string"
+        ) {
+          res.status(BAD_REQUEST).json({ error: "invalid discordWebhookUrl" });
+          return;
+        }
         const channel = await channelRepo.updateChannel(paramId(req, "id"), {
           name,
           discordWebhookUrl:
-            req.body.discordWebhookUrl === undefined
-              ? undefined
-              : (discordWebhookUrl ?? null),
+            rawWebhook === undefined ? undefined : (rawWebhook ?? null),
         });
         if (!channel) {
           res.status(NOT_FOUND).json({ error: "not found" });

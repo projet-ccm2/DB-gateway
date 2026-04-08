@@ -153,6 +153,32 @@ describe("channelsController (unit)", () => {
     );
   });
 
+  it("create returns 400 when discordWebhookUrl is not a string", async () => {
+    const req = {
+      body: { id: "ch-bad-wh", name: "BadWH", discordWebhookUrl: 12345 },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "invalid discordWebhookUrl",
+    });
+  });
+
+  it("update returns 400 when discordWebhookUrl is not a string", async () => {
+    await channelRepo.addChannel("ch-upd-bad-wh", "C");
+    const req = {
+      params: { id: "ch-upd-bad-wh" },
+      body: { discordWebhookUrl: { url: "x" } },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "invalid discordWebhookUrl",
+    });
+  });
+
   it("getUsersByChannelId returns 200 and array", async () => {
     const ch = await db.addChannel({ id: "ch-users", name: "C" });
     const req = { params: { id: ch.id } } as unknown as Request;
