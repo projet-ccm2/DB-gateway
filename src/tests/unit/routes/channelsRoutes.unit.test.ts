@@ -14,6 +14,22 @@ describe("channelsRoutes (unit)", () => {
     expect(res.status).toBe(201);
     expect(res.body.id).toBe("ch-route-1");
     expect(res.body.name).toBe("MyChannel");
+    expect(res.body.discordWebhookUrl).toBeNull();
+  });
+
+  it("POST / creates channel with discordWebhookUrl", async () => {
+    const app = express();
+    app.use(express.json());
+    app.use("/", createChannelsRoutes(new MockDatabase()));
+    const res = await request(app).post("/").send({
+      id: "ch-wh-route",
+      name: "WH",
+      discordWebhookUrl: "https://discord.com/api/webhooks/route",
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.discordWebhookUrl).toBe(
+      "https://discord.com/api/webhooks/route",
+    );
   });
 
   it("POST / returns 400 when id missing", async () => {

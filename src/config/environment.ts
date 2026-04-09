@@ -3,6 +3,7 @@ export interface Config {
   nodeEnv: string;
   databaseUrl: string;
   jwtSecret: string;
+  encryptionKey: string;
   cors: {
     allowedOrigins: string[];
   };
@@ -14,11 +15,25 @@ function getEnv(key: string, defaultValue: string): string {
 }
 
 function validateConfig(): Config {
+  const nodeEnv = getEnv("NODE_ENV", "development");
+  const encryptionKey = getEnv(
+    "ENCRYPTION_KEY",
+    "dev-encryption-key-change-in-production",
+  );
+  if (
+    nodeEnv === "production" &&
+    encryptionKey === "dev-encryption-key-change-in-production"
+  ) {
+    throw new Error(
+      "ENCRYPTION_KEY must be set to a secure value in production",
+    );
+  }
   return {
     port: Number.parseInt(getEnv("PORT", "3000"), 10),
-    nodeEnv: getEnv("NODE_ENV", "development"),
+    nodeEnv,
     databaseUrl: getEnv("DATABASE_URL", ""),
     jwtSecret: getEnv("JWT_SECRET", "dev-secret-change-in-production"),
+    encryptionKey,
     cors: {
       allowedOrigins: getEnv("ALLOWED_ORIGINS", "").length
         ? getEnv("ALLOWED_ORIGINS", "")

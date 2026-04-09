@@ -5,6 +5,11 @@ describe("AchievedRepository (integration)", () => {
   const db = new PrismaDatabase();
   const repo = new AchievedRepository(db);
 
+  let type: { id: string; label: string; data: string };
+  beforeAll(async () => {
+    type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+  });
+
   afterAll(async () => {
     await db.disconnect();
   });
@@ -19,7 +24,7 @@ describe("AchievedRepository (integration)", () => {
       id: "ch-achieved-integ-" + Date.now(),
       name: "AchievedCh_" + Date.now(),
     });
-    const achievement = await db.addAchievement({
+    const achievement = (await db.addAchievement({
       title: "AchForAchieved",
       description: "desc",
       goal: 1,
@@ -30,9 +35,8 @@ describe("AchievedRepository (integration)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const acquiredDate = new Date().toISOString();
     const created = await repo.add({
       achievementId: achievement.id,
@@ -71,7 +75,7 @@ describe("AchievedRepository (integration)", () => {
       id: "ch-achd-nouser-" + Date.now(),
       name: "ChNoUser_" + Date.now(),
     });
-    const achievement = await db.addAchievement({
+    const achievement = (await db.addAchievement({
       title: "AchNoUser",
       description: "d",
       goal: 1,
@@ -82,9 +86,8 @@ describe("AchievedRepository (integration)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const found = await repo.get(achievement.id, "unknown-user-id");
     expect(found).toBeNull();
   });
@@ -99,7 +102,7 @@ describe("AchievedRepository (integration)", () => {
       id: "ch-upsert-" + Date.now(),
       name: "UpsertCh_" + Date.now(),
     });
-    const achievement = await db.addAchievement({
+    const achievement = (await db.addAchievement({
       title: "UpsertAch",
       description: "d",
       goal: 1,
@@ -110,9 +113,8 @@ describe("AchievedRepository (integration)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const firstDate = new Date().toISOString();
     const created = await repo.add({
       achievementId: achievement.id,
@@ -149,7 +151,7 @@ describe("AchievedRepository (integration)", () => {
       id: "ch-update-" + Date.now(),
       name: "UpdateCh_" + Date.now(),
     });
-    const achievement = await db.addAchievement({
+    const achievement = (await db.addAchievement({
       title: "UpdateAch",
       description: "d",
       goal: 1,
@@ -160,9 +162,8 @@ describe("AchievedRepository (integration)", () => {
       secret: false,
       image: "img.png",
       channelId: channel.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     await repo.add({
       achievementId: achievement.id,
       userId: user.id,

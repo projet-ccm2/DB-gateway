@@ -21,7 +21,12 @@ describe("possessesController (unit)", () => {
       username: "u",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await db.addBadge({ title: "B", img: "i.png" });
+    await db.addChannel({ id: "ch-poss-ctrl-1", name: "pc1" });
+    const badge = (await db.addBadge({
+      title: "B",
+      img: "i.png",
+      channelId: "ch-poss-ctrl-1",
+    }))!;
     const req = {
       body: {
         userId: user.id,
@@ -50,7 +55,12 @@ describe("possessesController (unit)", () => {
       username: "dup",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await db.addBadge({ title: "Bdup", img: "d.png" });
+    await db.addChannel({ id: "ch-poss-ctrl-dup", name: "pcdup" });
+    const badge = (await db.addBadge({
+      title: "Bdup",
+      img: "d.png",
+      channelId: "ch-poss-ctrl-dup",
+    }))!;
     const date = new Date().toISOString();
     await repo.add(user.id, badge.id, date);
     const req = {
@@ -93,7 +103,12 @@ describe("possessesController (unit)", () => {
       username: "u2",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await db.addBadge({ title: "B2", img: "i2.png" });
+    await db.addChannel({ id: "ch-poss-ctrl-2", name: "pc2" });
+    const badge = (await db.addBadge({
+      title: "B2",
+      img: "i2.png",
+      channelId: "ch-poss-ctrl-2",
+    }))!;
     await db.addPossesses({
       userId: user.id,
       badgeId: badge.id,
@@ -130,5 +145,27 @@ describe("possessesController (unit)", () => {
     const res = mockRes();
     await c.get(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("create returns 409 on P2002 race condition", async () => {
+    const p2002 = Object.assign(new Error("Unique constraint"), {
+      code: "P2002",
+    });
+    const racyRepo = {
+      add: jest.fn().mockRejectedValue(p2002),
+      get: jest.fn().mockResolvedValue(null),
+    } as unknown as InstanceType<typeof PossessesRepository>;
+    const c = createPossessesController(racyRepo);
+    const req = {
+      body: {
+        userId: "u",
+        badgeId: "b",
+        acquiredDate: "2024-01-01T00:00:00Z",
+      },
+    } as Request;
+    const res = mockRes();
+    await c.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith({ error: "already exists" });
   });
 });

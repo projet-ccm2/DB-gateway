@@ -88,4 +88,8 @@ export class UserRepository {
   async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
     return this.db.getUsersByAchievementId(achievementId);
   }
+
+  async nukeUser(userId: string): Promise<boolean> {
+    return this.db.nukeUser(userId);
+  }
 }

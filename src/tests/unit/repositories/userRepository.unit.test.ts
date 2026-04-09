@@ -211,14 +211,18 @@ describe("userRepository (unit, mock db)", () => {
       username: "BadgeUser",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge1 = await mockDb.addBadge({
+    await mockDb.addChannel({ id: "ch-gold", name: "gold" });
+    const badge1 = (await mockDb.addBadge({
       title: "Gold Badge",
       img: "gold.png",
-    });
-    const badge2 = await mockDb.addBadge({
+      channelId: "ch-gold",
+    }))!;
+    await mockDb.addChannel({ id: "ch-silver", name: "silver" });
+    const badge2 = (await mockDb.addBadge({
       title: "Silver Badge",
       img: "silver.png",
-    });
+      channelId: "ch-silver",
+    }))!;
 
     await mockDb.addPossesses({
       userId: user.id,
@@ -260,7 +264,8 @@ describe("userRepository (unit, mock db)", () => {
       username: "AchievementUser",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const achievement1 = await mockDb.addAchievement({
+    const type = await mockDb.addTypeAchievement({ label: "TL", data: "TD" });
+    const achievement1 = (await mockDb.addAchievement({
       title: "First Steps",
       description: "Complete tutorial",
       goal: 1,
@@ -270,9 +275,8 @@ describe("userRepository (unit, mock db)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
 
     await mockDb.addAchieved({
       achievementId: achievement1.id,
@@ -399,10 +403,12 @@ describe("userRepository (unit, mock db)", () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
 
-    const badge = await mockDb.addBadge({
+    await mockDb.addChannel({ id: "ch-rare", name: "rare" });
+    const badge = (await mockDb.addBadge({
       title: "Rare Badge",
       img: "rare.png",
-    });
+      channelId: "ch-rare",
+    }))!;
 
     const users = await service.getUsersByBadgeId(badge.id);
     expect(users).toEqual([]);
@@ -422,10 +428,12 @@ describe("userRepository (unit, mock db)", () => {
       username: "BadgeOwner2",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await mockDb.addBadge({
+    await mockDb.addChannel({ id: "ch-common", name: "common" });
+    const badge = (await mockDb.addBadge({
       title: "Common Badge",
       img: "common.png",
-    });
+      channelId: "ch-common",
+    }))!;
 
     await mockDb.addPossesses({
       userId: user1.id,
@@ -448,7 +456,8 @@ describe("userRepository (unit, mock db)", () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
 
-    const achievement = await mockDb.addAchievement({
+    const type = await mockDb.addTypeAchievement({ label: "TL", data: "TD" });
+    const achievement = (await mockDb.addAchievement({
       title: "Hard Achievement",
       description: "Very difficult",
       goal: 100,
@@ -458,9 +467,8 @@ describe("userRepository (unit, mock db)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
 
     const users = await service.getUsersByAchievementId(achievement.id);
     expect(users).toEqual([]);
@@ -470,6 +478,7 @@ describe("userRepository (unit, mock db)", () => {
     const mockDb = new MockDatabase();
     const service = new UserRepository(mockDb);
     const ch = await mockDb.addChannel({ id: "ch-a", name: "AChannel" });
+    const type = await mockDb.addTypeAchievement({ label: "TL", data: "TD" });
     await mockDb.addAchievement({
       title: "A1",
       description: "D1",
@@ -481,8 +490,7 @@ describe("userRepository (unit, mock db)", () => {
       secret: false,
       image: "img.png",
       channelId: ch.id,
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     const list = await service.getAchievementsByChannelId(ch.id);
     expect(list).toHaveLength(1);
@@ -500,7 +508,8 @@ describe("userRepository (unit, mock db)", () => {
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const ch = await mockDb.addChannel({ id: "ch-user-ch", name: "Ch" });
-    const ach = await mockDb.addAchievement({
+    const type = await mockDb.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await mockDb.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -511,9 +520,8 @@ describe("userRepository (unit, mock db)", () => {
       secret: false,
       image: "img.png",
       channelId: ch.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     await mockDb.addAchieved({
       achievementId: ach.id,
       userId: user.id,
@@ -541,7 +549,8 @@ describe("userRepository (unit, mock db)", () => {
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
     const ch1 = await mockDb.addChannel({ id: "ch-c1", name: "C1" });
-    const ach = await mockDb.addAchievement({
+    const type = await mockDb.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await mockDb.addAchievement({
       title: "Ach",
       description: "D",
       goal: 1,
@@ -551,9 +560,8 @@ describe("userRepository (unit, mock db)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     await mockDb.addAchieved({
       achievementId: ach.id,
       userId: user.id,
@@ -580,7 +588,8 @@ describe("userRepository (unit, mock db)", () => {
       username: "Achiever2",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const achievement = await mockDb.addAchievement({
+    const type = await mockDb.addTypeAchievement({ label: "TL", data: "TD" });
+    const achievement = (await mockDb.addAchievement({
       title: "Easy Achievement",
       description: "Simple task",
       goal: 1,
@@ -590,9 +599,8 @@ describe("userRepository (unit, mock db)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
 
     await mockDb.addAchieved({
       achievementId: achievement.id,

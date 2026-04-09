@@ -16,6 +16,7 @@ describe("logger branches", () => {
 
   test("info level when NODE_ENV=production", () => {
     process.env.NODE_ENV = "production";
+    process.env.ENCRYPTION_KEY = "test-secure-key";
     const { logger } = require("../../../utils/logger");
     expect(logger).toBeDefined();
   });

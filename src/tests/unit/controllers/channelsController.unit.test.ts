@@ -85,6 +85,100 @@ describe("channelsController (unit)", () => {
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
+  it("create returns discordWebhookUrl when provided", async () => {
+    const req = {
+      body: {
+        id: "ch-webhook",
+        name: "Webhook",
+        discordWebhookUrl: "https://discord.com/api/webhooks/123",
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "ch-webhook",
+        discordWebhookUrl: "https://discord.com/api/webhooks/123",
+      }),
+    );
+  });
+
+  it("create returns discordWebhookUrl null when not provided", async () => {
+    const req = {
+      body: { id: "ch-no-webhook", name: "NoWebhook" },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "ch-no-webhook",
+        discordWebhookUrl: null,
+      }),
+    );
+  });
+
+  it("update sets discordWebhookUrl", async () => {
+    await channelRepo.addChannel("ch-upd-wh", "C");
+    const req = {
+      params: { id: "ch-upd-wh" },
+      body: { discordWebhookUrl: "https://discord.com/api/webhooks/456" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        discordWebhookUrl: "https://discord.com/api/webhooks/456",
+      }),
+    );
+  });
+
+  it("update clears discordWebhookUrl when set to null", async () => {
+    await channelRepo.addChannel(
+      "ch-clr-wh",
+      "C",
+      "https://discord.com/api/webhooks/789",
+    );
+    const req = {
+      params: { id: "ch-clr-wh" },
+      body: { discordWebhookUrl: null },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        discordWebhookUrl: null,
+      }),
+    );
+  });
+
+  it("create returns 400 when discordWebhookUrl is not a string", async () => {
+    const req = {
+      body: { id: "ch-bad-wh", name: "BadWH", discordWebhookUrl: 12345 },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "invalid discordWebhookUrl",
+    });
+  });
+
+  it("update returns 400 when discordWebhookUrl is not a string", async () => {
+    await channelRepo.addChannel("ch-upd-bad-wh", "C");
+    const req = {
+      params: { id: "ch-upd-bad-wh" },
+      body: { discordWebhookUrl: { url: "x" } },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "invalid discordWebhookUrl",
+    });
+  });
+
   it("getUsersByChannelId returns 200 and array", async () => {
     const ch = await db.addChannel({ id: "ch-users", name: "C" });
     const req = { params: { id: ch.id } } as unknown as Request;

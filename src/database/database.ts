@@ -7,7 +7,11 @@ export type userDTO = {
   xp: number;
   lastUpdateTimestamp: string;
 };
-export type channelDTO = { id: string; name: string };
+export type channelDTO = {
+  id: string;
+  name: string;
+  discordWebhookUrl: string | null;
+};
 export type userChannelDTO = { id: string; name: string; userType: string };
 export type channelUserDTO = {
   id: string;
@@ -74,8 +78,7 @@ export type AchievementInput = {
   secret: boolean;
   image: string;
   channelId?: string | null;
-  typeLabel: string;
-  typeData: string;
+  typeId: string;
 };
 
 export type AchievementUpdateData = {
@@ -88,8 +91,7 @@ export type AchievementUpdateData = {
   active?: boolean;
   secret?: boolean;
   image?: string;
-  typeLabel?: string;
-  typeData?: string;
+  typeId?: string;
 };
 
 export type AchievedPayload = {
@@ -139,10 +141,14 @@ export interface Database {
   ): Promise<userDTO | null>;
 
   getChannelById(id: string): Promise<channelDTO | null>;
-  addChannel(channel: { id: string; name: string }): Promise<channelDTO>;
+  addChannel(channel: {
+    id: string;
+    name: string;
+    discordWebhookUrl?: string | null;
+  }): Promise<channelDTO>;
   updateChannel(
     id: string,
-    data: { name?: string },
+    data: { name?: string; discordWebhookUrl?: string | null },
   ): Promise<channelDTO | null>;
 
   getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
@@ -164,7 +170,7 @@ export interface Database {
     id: string,
     data: AchievementUpdateData,
   ): Promise<achievementDTO | null>;
-  addAchievement(achievement: AchievementInput): Promise<achievementDTO>;
+  addAchievement(achievement: AchievementInput): Promise<achievementDTO | null>;
   deleteAchievement(id: string): Promise<achievementDTO | null>;
 
   getBadgeById(id: string): Promise<badgeDTO | null>;
@@ -172,8 +178,8 @@ export interface Database {
   addBadge(badge: {
     title: string;
     img: string;
-    channelId?: string | null;
-  }): Promise<badgeDTO>;
+    channelId: string;
+  }): Promise<badgeDTO | null>;
 
   getAchieved(
     achievementId: string,
@@ -214,4 +220,22 @@ export interface Database {
   getUsersByChannelId(channelId: string): Promise<channelUserDTO[]>;
   getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;
   getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
+
+  /**
+   * GDPR "nuke" – atomically deletes **all** data related to a user:
+   *
+   * 1. User's own achieved records
+   * 2. User's own possesses records
+   * 3. User's own are (channel-membership) records
+   * 4. Other users' achieved records that reference achievements on the user's channel
+   * 5. Other users' possesses records that reference the badge on the user's channel
+   * 6. Other users' are records that reference the user's channel
+   * 7. Achievements linked to the user's channel
+   * 8. Badge linked to the user's channel
+   * 9. The user's channel
+   * 10. The user record itself
+   *
+   * Returns `true` when the user existed and was deleted, `false` otherwise.
+   */
+  nukeUser(userId: string): Promise<boolean>;
 }

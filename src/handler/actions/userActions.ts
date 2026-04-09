@@ -1,6 +1,16 @@
 import type { HandlerFn } from "../types";
 import { missing, num, str, strOrNull } from "../payload";
 
+function parseXpField(
+  payload: Record<string, unknown>,
+): { error: string } | { xp?: number } {
+  if (!("xp" in payload)) return {};
+  const xpVal = num(payload, "xp");
+  if (xpVal === undefined) return { error: "xp must be a number" };
+  if (xpVal < 0) return { error: "xp must be a non-negative number" };
+  return { xp: xpVal };
+}
+
 export const userHandlers: Record<string, HandlerFn> = {
   createUser: async (repo, payload) => {
     const username = str(payload, "username");
@@ -8,13 +18,16 @@ export const userHandlers: Record<string, HandlerFn> = {
     const lastUpdateTimestamp = str(payload, "lastUpdateTimestamp");
     if (!username || !id || !lastUpdateTimestamp)
       return missing("username", "id", "lastUpdateTimestamp");
+    const xpResult = parseXpField(payload);
+    if ("error" in xpResult) return { ok: false, error: xpResult.error };
+    const xp = xpResult.xp ?? 0;
     const user = await repo.user.addUser({
       id,
       username,
       profileImageUrl: strOrNull(payload, "profileImageUrl"),
       channelDescription: strOrNull(payload, "channelDescription"),
       scope: strOrNull(payload, "scope"),
-      xp: num(payload, "xp") ?? 0,
+      xp,
       lastUpdateTimestamp,
     });
     return { ok: true, user };
@@ -53,10 +66,9 @@ export const userHandlers: Record<string, HandlerFn> = {
     if ("channelDescription" in payload)
       data.channelDescription = strOrNull(payload, "channelDescription");
     if ("scope" in payload) data.scope = strOrNull(payload, "scope");
-    if ("xp" in payload) {
-      const xpVal = num(payload, "xp");
-      if (xpVal !== undefined) data.xp = xpVal;
-    }
+    const xpResult = parseXpField(payload);
+    if ("error" in xpResult) return { ok: false, error: xpResult.error };
+    if (xpResult.xp !== undefined) data.xp = xpResult.xp;
     if ("lastUpdateTimestamp" in payload) {
       const ts = str(payload, "lastUpdateTimestamp");
       if (ts) data.lastUpdateTimestamp = ts;
@@ -106,5 +118,13 @@ export const userHandlers: Record<string, HandlerFn> = {
     if (!achievementId) return missing("achievementId");
     const users = await repo.user.getUsersByAchievementId(achievementId);
     return { ok: true, users };
+  },
+
+  nukeUser: async (repo, payload) => {
+    const id = str(payload, "userId", "id");
+    if (!id) return missing("userId");
+    const deleted = await repo.user.nukeUser(id);
+    if (!deleted) return { ok: false, error: "user not found" };
+    return { ok: true };
   },
 };

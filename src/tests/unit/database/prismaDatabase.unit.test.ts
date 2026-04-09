@@ -9,6 +9,7 @@ interface MockUserData {
 interface MockChannelData {
   id: string;
   name: string;
+  discordWebhookUrl?: string | null;
 }
 interface MockTypeData {
   label: string;
@@ -32,6 +33,7 @@ interface MockAchievementData {
 interface MockBadgeData {
   title: string;
   img: string;
+  channelId: string;
 }
 interface MockAchievedData {
   achievementId: string;
@@ -88,6 +90,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
               where: { id: string };
               data: Partial<MockUserData>;
             }) => Promise<unknown>;
+            delete: (arg: { where: { id: string } }) => Promise<unknown>;
           };
           channel!: unknown;
           typeAchievement!: unknown;
@@ -149,13 +152,23 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._users.set(where.id, updated);
                 return updated;
               },
+              delete: async ({ where }: { where: { id: string } }) => {
+                const row = this._users.get(where.id);
+                if (!row) throw Object.assign(new Error(), { code: "P2025" });
+                this._users.delete(where.id);
+                return row;
+              },
             };
 
             this.channel = {
               findUnique: async ({ where }: { where: { id: string } }) =>
                 this._channels.get(where.id) ?? null,
               create: async ({ data }: { data: MockChannelData }) => {
-                const row = { id: data.id, name: data.name };
+                const row = {
+                  id: data.id,
+                  name: data.name,
+                  discordWebhookUrl: data.discordWebhookUrl ?? null,
+                };
                 this._channels.set(data.id, row);
                 return row;
               },
@@ -177,6 +190,12 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 const updated = { ...existing, ...data };
                 this._channels.set(where.id, updated);
                 return updated;
+              },
+              delete: async ({ where }: { where: { id: string } }) => {
+                const row = this._channels.get(where.id);
+                if (!row) throw Object.assign(new Error(), { code: "P2025" });
+                this._channels.delete(where.id);
+                return row;
               },
             };
 
@@ -325,15 +344,51 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 this._achievements.delete(where.id);
                 return row;
               },
+              deleteMany: async ({
+                where,
+              }: {
+                where: { channelId?: string };
+              }) => {
+                let count = 0;
+                for (const [key, v] of this._achievements) {
+                  if (where?.channelId && v.channelId !== where.channelId)
+                    continue;
+                  this._achievements.delete(key);
+                  count++;
+                }
+                return { count };
+              },
             };
 
             this.badge = {
-              findUnique: async ({ where }: { where: { id: string } }) =>
-                this._badges.get(where.id) ?? null,
+              findUnique: async ({
+                where,
+              }: {
+                where: { id?: string; channelId?: string };
+              }) => {
+                if (where.id) return this._badges.get(where.id) ?? null;
+                if (where.channelId) {
+                  for (const [, b] of this._badges) {
+                    if (b.channelId === where.channelId) return b;
+                  }
+                }
+                return null;
+              },
               create: async ({ data }: { data: MockBadgeData }) => {
                 const id = "b_" + Math.random().toString(36).slice(2, 8);
-                const row = { id, title: data.title, img: data.img };
+                const row = {
+                  id,
+                  title: data.title,
+                  img: data.img,
+                  channelId: data.channelId,
+                };
                 this._badges.set(id, row);
+                return row;
+              },
+              delete: async ({ where }: { where: { id: string } }) => {
+                const row = this._badges.get(where.id);
+                if (!row) throw Object.assign(new Error(), { code: "P2025" });
+                this._badges.delete(where.id);
                 return row;
               },
             };
@@ -371,14 +426,25 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
               deleteMany: async ({
                 where,
               }: {
-                where: { achievementId?: string };
+                where: {
+                  achievementId?: string | { in: string[] };
+                  userId?: string;
+                };
               }) => {
                 let count = 0;
                 for (const [key, v] of this._achieved) {
-                  if (
-                    where?.achievementId &&
-                    v.achievementId === where.achievementId
-                  ) {
+                  let match = true;
+                  if (where?.userId && v.userId !== where.userId) match = false;
+                  if (where?.achievementId) {
+                    if (typeof where.achievementId === "string") {
+                      if (v.achievementId !== where.achievementId)
+                        match = false;
+                    } else if (
+                      !where.achievementId.in.includes(v.achievementId)
+                    )
+                      match = false;
+                  }
+                  if (match) {
                     this._achieved.delete(key);
                     count++;
                   }
@@ -488,6 +554,24 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 }
                 return results;
               },
+              deleteMany: async ({
+                where,
+              }: {
+                where: { userId?: string; channelId?: string };
+              }) => {
+                let count = 0;
+                for (const [key, v] of this._are) {
+                  let match = true;
+                  if (where?.userId && v.userId !== where.userId) match = false;
+                  if (where?.channelId && v.channelId !== where.channelId)
+                    match = false;
+                  if (match) {
+                    this._are.delete(key);
+                    count++;
+                  }
+                }
+                return { count };
+              },
             };
 
             this.possesses = {
@@ -528,6 +612,24 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 }
                 return results;
               },
+              deleteMany: async ({
+                where,
+              }: {
+                where: { userId?: string; badgeId?: string };
+              }) => {
+                let count = 0;
+                for (const [key, v] of this._possesses) {
+                  let match = true;
+                  if (where?.userId && v.userId !== where.userId) match = false;
+                  if (where?.badgeId && v.badgeId !== where.badgeId)
+                    match = false;
+                  if (match) {
+                    this._possesses.delete(key);
+                    count++;
+                  }
+                }
+                return { count };
+              },
             };
 
             this.$disconnect = async () => {};
@@ -555,6 +657,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
 
       const ch = await db.addChannel({ id: "ch-test-1", name: "ch1" });
       expect(ch.name).toBe("ch1");
+      expect(ch.discordWebhookUrl).toBeNull();
       expect((await db.getChannelById(ch.id))?.id).toBe(ch.id);
 
       const t = await db.addTypeAchievement({ label: "L", data: "D" });
@@ -570,27 +673,27 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "L",
-        typeData: "D",
+        typeId: t.id,
       });
-      expect(a.title).toBe("T");
+      expect(a).not.toBeNull();
+      expect(a!.title).toBe("T");
 
-      const activated = await db.updateAchievementActive(a.id, false);
+      const activated = await db.updateAchievementActive(a!.id, false);
       expect(activated).not.toBeNull();
       expect(activated?.active).toBe(false);
 
-      const reactivated = await db.updateAchievementActive(a.id, true);
+      const reactivated = await db.updateAchievementActive(a!.id, true);
       expect(reactivated).not.toBeNull();
       expect(reactivated?.active).toBe(true);
 
       const notFound = await db.updateAchievementActive("unknown", true);
       expect(notFound).toBeNull();
 
-      const madePublic = await db.updateAchievementPublic(a.id, true);
+      const madePublic = await db.updateAchievementPublic(a!.id, true);
       expect(madePublic).not.toBeNull();
       expect(madePublic?.public).toBe(true);
 
-      const madePrivate = await db.updateAchievementPublic(a.id, false);
+      const madePrivate = await db.updateAchievementPublic(a!.id, false);
       expect(madePrivate).not.toBeNull();
       expect(madePrivate?.public).toBe(false);
 
@@ -598,7 +701,8 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       expect(publicNotFound).toBeNull();
 
       // Test updateAchievement
-      const fullUpdated = await db.updateAchievement(a.id, {
+      const t2 = await db.addTypeAchievement({ label: "newTL", data: "newTD" });
+      const fullUpdated = await db.updateAchievement(a!.id, {
         title: "Updated",
         description: "New D",
         goal: 99,
@@ -608,8 +712,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         active: false,
         secret: true,
         image: "new.png",
-        typeLabel: "newTL",
-        typeData: "newTD",
+        typeId: t2.id,
       });
       expect(fullUpdated).not.toBeNull();
       expect(fullUpdated?.title).toBe("Updated");
@@ -640,12 +743,12 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: t.id,
       });
-      const deleted = await db.deleteAchievement(toDelete.id);
+      expect(toDelete).not.toBeNull();
+      const deleted = await db.deleteAchievement(toDelete!.id);
       expect(deleted).not.toBeNull();
-      expect(deleted?.id).toBe(toDelete.id);
+      expect(deleted?.id).toBe(toDelete!.id);
       expect(deleted?.title).toBe("DelMe");
 
       const deleteNotFound = await db.deleteAchievement("unknown");
@@ -654,7 +757,12 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       const pubList = await db.getPublicAchievements();
       expect(Array.isArray(pubList)).toBe(true);
 
-      const b = await db.addBadge({ title: "B", img: "i" });
+      await db.addChannel({ id: "ch-prisma", name: "prisma" });
+      const b = (await db.addBadge({
+        title: "B",
+        img: "i",
+        channelId: "ch-prisma",
+      }))!;
       expect(b.title).toBe("B");
 
       const achv = await db.addAchieved({
@@ -727,6 +835,34 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       });
       expect(updatedChannel?.name).toBe("UpdatedChannelName");
 
+      // Test addChannel with discordWebhookUrl
+      const chWithUrl = await db.addChannel({
+        id: "ch-wh-1",
+        name: "wh1",
+        discordWebhookUrl: "https://discord.com/api/webhooks/test",
+      });
+      expect(chWithUrl.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/test",
+      );
+      const fetchedChWithUrl = await db.getChannelById("ch-wh-1");
+      expect(fetchedChWithUrl?.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/test",
+      );
+
+      // Test updateChannel discordWebhookUrl
+      const updatedChUrl = await db.updateChannel(ch.id, {
+        discordWebhookUrl: "https://discord.com/api/webhooks/updated",
+      });
+      expect(updatedChUrl?.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/updated",
+      );
+
+      // Test updateChannel clear discordWebhookUrl
+      const clearedChUrl = await db.updateChannel(ch.id, {
+        discordWebhookUrl: null,
+      });
+      expect(clearedChUrl?.discordWebhookUrl).toBeNull();
+
       // Test updateChannel for non-existent channel
       const nonExistentChannelUpdate = await db.updateChannel("nonexistent", {
         name: "test",
@@ -738,6 +874,98 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         username: "test",
       });
       expect(nonExistentUpdate).toBeNull();
+
+      // ── nukeUser ────────────────────────────────────────────────────
+      // Create a second user with a full channel ecosystem
+      const nukeTarget = await db.addUser({
+        id: "twitch_nuke",
+        username: "nuke_me",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      });
+      const nukeCh = await db.addChannel({ id: nukeTarget.id, name: "nukeCh" });
+      const nukeType = await db.addTypeAchievement({ label: "NL", data: "ND" });
+      const nukeAch = await db.addAchievement({
+        title: "NukeAch",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        typeId: nukeType.id,
+        public: false,
+        active: true,
+        secret: false,
+        image: "",
+      });
+      // Manually set channelId since addAchievement may not wire it
+      // The mock stores the row, so we update it directly via the adapter
+      const nukeAchUpdated = await db.updateAchievement(nukeAch!.id, {
+        channelId: nukeCh.id,
+      });
+      expect(nukeAchUpdated).not.toBeNull();
+
+      const nukeBadge = (await db.addBadge({
+        title: "NukeBadge",
+        img: "nb.png",
+        channelId: nukeCh.id,
+      }))!;
+
+      // Target user's own records
+      await db.addAchieved({
+        achievementId: nukeAch!.id,
+        userId: nukeTarget.id,
+        count: 1,
+        finished: false,
+        labelActive: true,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addPossesses({
+        userId: nukeTarget.id,
+        badgeId: nukeBadge.id,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addAre({
+        userId: nukeTarget.id,
+        channelId: nukeCh.id,
+        userType: "admin",
+      });
+
+      // Another user (alice) linked to nuke target's channel
+      await db.addAchieved({
+        achievementId: nukeAch!.id,
+        userId: "twitch_alice",
+        count: 2,
+        finished: true,
+        labelActive: false,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addPossesses({
+        userId: "twitch_alice",
+        badgeId: nukeBadge.id,
+        acquiredDate: new Date().toISOString(),
+      });
+      await db.addAre({
+        userId: "twitch_alice",
+        channelId: nukeCh.id,
+        userType: "viewer",
+      });
+
+      // nukeUser returns false for nonexistent
+      expect(await db.nukeUser("nonexistent")).toBe(false);
+
+      // nukeUser succeeds
+      expect(await db.nukeUser(nukeTarget.id)).toBe(true);
+
+      // The nuked user should be gone
+      expect(await db.getUserById(nukeTarget.id)).toBeNull();
+
+      // Channel should be gone
+      expect(await db.getChannelById(nukeCh.id)).toBeNull();
+
+      // alice should still exist (she wasn't the target)
+      expect(await db.getUserById("twitch_alice")).not.toBeNull();
+
+      // Type achievement should still exist (nukeUser does not delete types)
+      expect(await db.getTypeAchievementById(nukeType.id)).not.toBeNull();
 
       await db.disconnect();
     });
@@ -755,7 +983,6 @@ describe("prismaDatabase not-found branches", () => {
           achievement!: { findUnique: () => Promise<null> };
           badge!: {
             findUnique: () => Promise<null>;
-            findFirst: () => Promise<null>;
           };
           achieved!: { findUnique: () => Promise<null> };
           are!: { findUnique: () => Promise<null> };
@@ -768,7 +995,6 @@ describe("prismaDatabase not-found branches", () => {
             this.achievement = { findUnique: async () => null };
             this.badge = {
               findUnique: async () => null,
-              findFirst: async () => null,
             };
             this.achieved = { findUnique: async () => null };
             this.are = { findUnique: async () => null };

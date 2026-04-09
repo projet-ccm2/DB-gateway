@@ -72,7 +72,12 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const badge = await db.addBadge({ title: "b1", img: "i1" });
+    await db.addChannel({ id: "ch-svc", name: "svc" });
+    const badge = (await db.addBadge({
+      title: "b1",
+      img: "i1",
+      channelId: "ch-svc",
+    }))!;
     const users = await service.getUsersByBadgeId(badge.id);
     expect(users).toEqual([]);
   });
@@ -81,7 +86,8 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const ach = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await db.addAchievement({
       title: "a1",
       description: "d",
       goal: 1,
@@ -91,9 +97,8 @@ describe("UserService (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const users = await service.getUsersByAchievementId(ach.id);
     expect(users).toEqual([]);
   });

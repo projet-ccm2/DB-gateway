@@ -10,6 +10,13 @@ describe("achievementsController (unit)", () => {
   const userRepo = new UserRepository(db);
   const ctrl = createAchievementsController(achievementRepo, userRepo);
 
+  let type: { id: string; label: string; data: string };
+  let type2: { id: string; label: string; data: string };
+  beforeAll(async () => {
+    type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    type2 = await db.addTypeAchievement({ label: "NewTL", data: "NewTD" });
+  });
+
   const mockRes = (): Response => {
     const res = {} as Response;
     res.status = jest.fn().mockReturnThis();
@@ -29,8 +36,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as Request;
     const res = mockRes();
@@ -39,6 +45,27 @@ describe("achievementsController (unit)", () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ title: "T", label: "L" }),
     );
+  });
+
+  it("create returns 404 when typeId not found", async () => {
+    const req = {
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: "nonexistent-type",
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: "typeId not found" });
   });
 
   it("getById returns 404 when not found", async () => {
@@ -62,8 +89,7 @@ describe("achievementsController (unit)", () => {
         secret: false,
         image: "img.png",
         channelId: ch.id,
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as Request;
     const res = mockRes();
@@ -72,7 +98,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("update returns 200 with updated achievement", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "OldCtrl",
       description: "D",
       goal: 1,
@@ -82,9 +108,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = {
       params: { achievementId: a.id },
       body: {
@@ -97,8 +122,7 @@ describe("achievementsController (unit)", () => {
         active: false,
         secret: true,
         image: "new.png",
-        typeLabel: "NewTL",
-        typeData: "NewTD",
+        typeId: type2.id,
       },
     } as unknown as Request;
     const res = mockRes();
@@ -121,8 +145,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as unknown as Request;
     const res = mockRes();
@@ -153,8 +176,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as unknown as Request;
     const res = mockRes();
@@ -179,8 +201,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as unknown as Request;
     const res = mockRes();
@@ -189,7 +210,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("getById returns 200 when found", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Found",
       description: "D",
       goal: 1,
@@ -199,9 +220,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { id: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getById(req, res);
@@ -211,7 +231,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("getUsersByAchievementId returns 200 and array", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
@@ -221,9 +241,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { id: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getUsersByAchievementId(req, res);
@@ -253,8 +272,7 @@ describe("achievementsController (unit)", () => {
       secret: false,
       image: "img.png",
       channelId: ch.id,
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     const req = { params: { channelId: ch.id } } as unknown as Request;
     const res = mockRes();
@@ -272,6 +290,10 @@ describe("achievementsController (unit)", () => {
       freshAchievementRepo,
       freshUserRepo,
     );
+    const freshType = await freshDb.addTypeAchievement({
+      label: "TL",
+      data: "TD",
+    });
     await freshDb.addAchievement({
       title: "PubCtrl",
       description: "D",
@@ -282,8 +304,7 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: freshType.id,
     });
     await freshDb.addAchievement({
       title: "PrivCtrl",
@@ -295,8 +316,7 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: freshType.id,
     });
     const req = {} as unknown as Request;
     const res = mockRes();
@@ -321,6 +341,32 @@ describe("achievementsController (unit)", () => {
     expect(res.status).toHaveBeenCalledWith(500);
   });
 
+  it("getByChannelId returns 500 when repo throws", async () => {
+    const throwingAchievementRepo = {
+      getByChannelId: jest.fn().mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof AchievementRepository>;
+    const c = createAchievementsController(throwingAchievementRepo, userRepo);
+    const req = { params: { channelId: "x" } } as unknown as Request;
+    const res = mockRes();
+    await c.getByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("getAchievementsByUserAndChannel returns 500 when repo throws", async () => {
+    const throwingUserRepo = {
+      getAchievementsByUserAndChannel: jest
+        .fn()
+        .mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof UserRepository>;
+    const c = createAchievementsController(achievementRepo, throwingUserRepo);
+    const req = {
+      params: { userId: "u", channelId: "c" },
+    } as unknown as Request;
+    const res = mockRes();
+    await c.getAchievementsByUserAndChannel(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
   it("getByUserId returns 200 with achievements + achieved", async () => {
     const freshDb = new MockDatabase();
     const freshAchievementRepo = new AchievementRepository(freshDb);
@@ -329,7 +375,11 @@ describe("achievementsController (unit)", () => {
       freshAchievementRepo,
       freshUserRepo,
     );
-    const ach = await freshDb.addAchievement({
+    const freshType = await freshDb.addTypeAchievement({
+      label: "TL",
+      data: "TD",
+    });
+    const ach = (await freshDb.addAchievement({
       title: "CtrlDefAch",
       description: "D",
       goal: 5,
@@ -339,9 +389,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: freshType.id,
+    }))!;
     await freshDb.addAchieved({
       achievementId: ach.id,
       userId: "ctrl-def-user",
@@ -430,8 +479,7 @@ describe("achievementsController (unit)", () => {
         active: true,
         secret: false,
         image: "img.png",
-        typeLabel: "TL",
-        typeData: "TD",
+        typeId: type.id,
       },
     } as Request;
     const res = mockRes();
@@ -462,8 +510,40 @@ describe("achievementsController (unit)", () => {
     expect(res.status).toHaveBeenCalledWith(500);
   });
 
+  it("activate returns 400 when achievementId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.activate(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "achievementId required" });
+  });
+
+  it("deactivate returns 400 when achievementId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.deactivate(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "achievementId required" });
+  });
+
+  it("makePublic returns 400 when achievementId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.makePublic(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "achievementId required" });
+  });
+
+  it("makePrivate returns 400 when achievementId missing", async () => {
+    const req = { params: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.makePrivate(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "achievementId required" });
+  });
+
   it("activate returns 200 and sets active to true", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Inactive",
       description: "D",
       goal: 1,
@@ -473,9 +553,8 @@ describe("achievementsController (unit)", () => {
       active: false,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.activate(req, res);
@@ -503,7 +582,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("deactivate returns 200 and sets active to false", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Active",
       description: "D",
       goal: 1,
@@ -513,9 +592,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.deactivate(req, res);
@@ -543,7 +621,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("makePublic returns 200 and sets public to true", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Private",
       description: "D",
       goal: 1,
@@ -553,9 +631,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.makePublic(req, res);
@@ -583,7 +660,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("makePrivate returns 200 and sets public to false", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "Public",
       description: "D",
       goal: 1,
@@ -593,9 +670,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.makePrivate(req, res);
@@ -623,7 +699,7 @@ describe("achievementsController (unit)", () => {
   });
 
   it("remove returns 200 with deleted achievement", async () => {
-    const a = await db.addAchievement({
+    const a = (await db.addAchievement({
       title: "ToRemove",
       description: "D",
       goal: 1,
@@ -633,9 +709,8 @@ describe("achievementsController (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const req = { params: { achievementId: a.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.remove(req, res);
@@ -667,5 +742,86 @@ describe("achievementsController (unit)", () => {
     const res = mockRes();
     await c.remove(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it("create returns 400 when public is a string instead of boolean", async () => {
+    const req = {
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: "false",
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: type.id,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("create returns 400 when active is a string instead of boolean", async () => {
+    const req = {
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: false,
+        active: "true",
+        secret: false,
+        image: "img.png",
+        typeId: type.id,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("create returns 400 when secret is a string instead of boolean", async () => {
+    const req = {
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: false,
+        active: true,
+        secret: "false",
+        image: "img.png",
+        typeId: type.id,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("update returns 400 when boolean fields are strings", async () => {
+    const req = {
+      params: { achievementId: "some-id" },
+      body: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 10,
+        label: "L",
+        public: "true",
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: type.id,
+      },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
   });
 });

@@ -18,6 +18,7 @@ import {
   AchievementUpdateData,
   AchievedPayload,
 } from "./database";
+import { encrypt, decrypt } from "../utils/encryption";
 
 type PrismaTransactionClient = Omit<
   PrismaClient,
@@ -297,29 +298,58 @@ export class PrismaDatabase implements Database {
   async getChannelById(id: string): Promise<channelDTO | null> {
     const c = await this.prisma.channel.findUnique({ where: { id } });
     if (!c) return null;
-    return { id: c.id, name: c.name };
+    return {
+      id: c.id,
+      name: c.name,
+      discordWebhookUrl:
+        c.discordWebhookUrl == null ? null : decrypt(c.discordWebhookUrl),
+    };
   }
 
-  async addChannel(channel: { id: string; name: string }): Promise<channelDTO> {
+  async addChannel(channel: {
+    id: string;
+    name: string;
+    discordWebhookUrl?: string | null;
+  }): Promise<channelDTO> {
     const c = await this.prisma.channel.create({
-      data: { id: channel.id, name: channel.name },
+      data: {
+        id: channel.id,
+        name: channel.name,
+        discordWebhookUrl:
+          channel.discordWebhookUrl == null
+            ? null
+            : encrypt(channel.discordWebhookUrl),
+      },
     });
-    return { id: c.id, name: c.name };
+    return {
+      id: c.id,
+      name: c.name,
+      discordWebhookUrl:
+        c.discordWebhookUrl == null ? null : decrypt(c.discordWebhookUrl),
+    };
   }
 
   async updateChannel(
     id: string,
-    data: { name?: string },
+    data: { name?: string; discordWebhookUrl?: string | null },
   ): Promise<channelDTO | null> {
-    const updateData: { name?: string } = {};
+    const updateData: { name?: string; discordWebhookUrl?: string | null } = {};
     if (data.name !== undefined) updateData.name = data.name;
+    if (data.discordWebhookUrl !== undefined)
+      updateData.discordWebhookUrl =
+        data.discordWebhookUrl == null ? null : encrypt(data.discordWebhookUrl);
 
     return handleP2025(async () => {
       const c = await this.prisma.channel.update({
         where: { id },
         data: updateData,
       });
-      return { id: c.id, name: c.name };
+      return {
+        id: c.id,
+        name: c.name,
+        discordWebhookUrl:
+          c.discordWebhookUrl == null ? null : decrypt(c.discordWebhookUrl),
+      };
     });
   }
 
@@ -380,24 +410,19 @@ export class PrismaDatabase implements Database {
     id: string,
     data: AchievementUpdateData,
   ): Promise<achievementDTO | null> {
-    const { typeLabel, typeData: typeDataVal, ...achievementData } = data;
-    const typeUpdate =
-      typeLabel !== undefined || typeDataVal !== undefined
-        ? {
-            type: {
-              update: {
-                ...(typeLabel === undefined ? {} : { label: typeLabel }),
-                ...(typeDataVal === undefined ? {} : { data: typeDataVal }),
-              },
-            },
-          }
-        : {};
+    const { typeId, ...achievementData } = data;
+    if (typeId !== undefined) {
+      const typeExists = await this.prisma.typeAchievement.findUnique({
+        where: { id: typeId },
+      });
+      if (!typeExists) return null;
+    }
     return handleP2025(async () => {
       const updated = await this.prisma.achievement.update({
         where: { id },
         data: {
           ...achievementData,
-          ...typeUpdate,
+          ...(typeId === undefined ? {} : { typeId }),
         },
         include: { type: true },
       });
@@ -420,35 +445,31 @@ export class PrismaDatabase implements Database {
     });
   }
 
-  async addAchievement(achievement: AchievementInput): Promise<achievementDTO> {
-    const created = await this.prisma.$transaction(
-      async (tx: PrismaTransactionClient) => {
-        const t = await tx.typeAchievement.create({
-          data: {
-            label: achievement.typeLabel,
-            data: achievement.typeData,
-          },
-        });
-        return tx.achievement.create({
-          data: {
-            title: achievement.title,
-            description: achievement.description,
-            goal: achievement.goal,
-            reward: achievement.reward,
-            label: achievement.label,
-            public: achievement.public,
-            downloads: 0,
-            visits: 0,
-            active: achievement.active,
-            secret: achievement.secret,
-            image: achievement.image,
-            channelId: achievement.channelId ?? undefined,
-            typeId: t.id,
-          },
-          include: { type: true },
-        });
+  async addAchievement(
+    achievement: AchievementInput,
+  ): Promise<achievementDTO | null> {
+    const typeExists = await this.prisma.typeAchievement.findUnique({
+      where: { id: achievement.typeId },
+    });
+    if (!typeExists) return null;
+    const created = await this.prisma.achievement.create({
+      data: {
+        title: achievement.title,
+        description: achievement.description,
+        goal: achievement.goal,
+        reward: achievement.reward,
+        label: achievement.label,
+        public: achievement.public,
+        downloads: 0,
+        visits: 0,
+        active: achievement.active,
+        secret: achievement.secret,
+        image: achievement.image,
+        channelId: achievement.channelId ?? undefined,
+        typeId: achievement.typeId,
       },
-    );
+      include: { type: true },
+    });
     return toAchievementDTO(created);
   }
 
@@ -459,7 +480,7 @@ export class PrismaDatabase implements Database {
   }
 
   async getBadgeByChannelId(channelId: string): Promise<badgeDTO | null> {
-    const b = await this.prisma.badge.findFirst({ where: { channelId } });
+    const b = await this.prisma.badge.findUnique({ where: { channelId } });
     if (!b) return null;
     return { id: b.id, title: b.title, img: b.img };
   }
@@ -467,13 +488,17 @@ export class PrismaDatabase implements Database {
   async addBadge(b: {
     title: string;
     img: string;
-    channelId?: string | null;
-  }): Promise<badgeDTO> {
+    channelId: string;
+  }): Promise<badgeDTO | null> {
+    const channelExists = await this.prisma.channel.findUnique({
+      where: { id: b.channelId },
+    });
+    if (!channelExists) return null;
     const nb = await this.prisma.badge.create({
       data: {
         title: b.title,
         img: b.img,
-        ...(b.channelId ? { channelId: b.channelId } : {}),
+        channelId: b.channelId,
       },
     });
     return { id: nb.id, title: nb.title, img: nb.img };
@@ -758,5 +783,87 @@ export class PrismaDatabase implements Database {
 
   async disconnect(): Promise<void> {
     if (this.prisma?.$disconnect) await this.prisma.$disconnect();
+  }
+
+  async nukeUser(userId: string): Promise<boolean> {
+    try {
+      await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+        // Verify user exists inside the transaction
+        const user = await tx.user.findUnique({ where: { id: userId } });
+        if (!user) {
+          throw Object.assign(new Error("User not found"), {
+            code: "USER_NOT_FOUND",
+          });
+        }
+
+        // 1. Delete user's own achieved records
+        await tx.achieved.deleteMany({ where: { userId } });
+
+        // 2. Delete user's own possesses records
+        await tx.possesses.deleteMany({ where: { userId } });
+
+        // 3. Delete user's own are (channel-membership) records
+        await tx.are.deleteMany({ where: { userId } });
+
+        // 4. Delete other users' achieved on achievements linked to user's channel
+        const channelAchievements = await tx.achievement.findMany({
+          where: { channelId: userId },
+          select: { id: true },
+        });
+        const achievementIds = channelAchievements.map(
+          (a: { id: string }) => a.id,
+        );
+        if (achievementIds.length > 0) {
+          await tx.achieved.deleteMany({
+            where: { achievementId: { in: achievementIds } },
+          });
+        }
+
+        // 5. Delete other users' possesses for the badge linked to user's channel
+        const channelBadge = await tx.badge.findUnique({
+          where: { channelId: userId },
+          select: { id: true },
+        });
+        if (channelBadge) {
+          await tx.possesses.deleteMany({
+            where: { badgeId: channelBadge.id },
+          });
+        }
+
+        // 6. Delete other users' are records for user's channel
+        await tx.are.deleteMany({ where: { channelId: userId } });
+
+        // 7. Delete achievements linked to user's channel
+        if (achievementIds.length > 0) {
+          await tx.achievement.deleteMany({
+            where: { channelId: userId },
+          });
+        }
+
+        // 8. Delete badge linked to user's channel
+        if (channelBadge) {
+          await tx.badge.delete({ where: { id: channelBadge.id } });
+        }
+
+        // 9. Delete user's channel
+        const channel = await tx.channel.findUnique({
+          where: { id: userId },
+        });
+        if (channel) {
+          await tx.channel.delete({ where: { id: userId } });
+        }
+
+        // 10. Delete the user
+        await tx.user.delete({ where: { id: userId } });
+      });
+
+      return true;
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code;
+      if (code === "USER_NOT_FOUND" || code === "P2025") {
+        return false;
+      }
+      throw err;
+    }
   }
 }

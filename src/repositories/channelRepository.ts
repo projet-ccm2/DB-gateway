@@ -11,13 +11,17 @@ export class ChannelRepository {
     return this.db.getBadgeByChannelId(channelId);
   }
 
-  async addChannel(id: string, name: string): Promise<channelDTO> {
-    return this.db.addChannel({ id, name });
+  async addChannel(
+    id: string,
+    name: string,
+    discordWebhookUrl?: string | null,
+  ): Promise<channelDTO> {
+    return this.db.addChannel({ id, name, discordWebhookUrl });
   }
 
   async updateChannel(
     id: string,
-    data: { name?: string },
+    data: { name?: string; discordWebhookUrl?: string | null },
   ): Promise<channelDTO | null> {
     return this.db.updateChannel(id, data);
   }

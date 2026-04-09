@@ -1,7 +1,13 @@
 import { Request, Response } from "express";
 import type { BadgeRepository } from "../repositories/badgeRepository";
 import type { UserRepository } from "../repositories/userRepository";
-import { BAD_REQUEST, NOT_FOUND, paramId, sendInternalError } from "./helpers";
+import {
+  BAD_REQUEST,
+  CONFLICT,
+  NOT_FOUND,
+  paramId,
+  sendInternalError,
+} from "./helpers";
 
 export function createBadgesController(
   badgeRepo: BadgeRepository,
@@ -10,14 +16,34 @@ export function createBadgesController(
   return {
     create: async (req: Request, res: Response): Promise<void> => {
       try {
-        const { title, img } = req.body as { title?: string; img?: string };
-        if (!title || !img) {
-          res.status(BAD_REQUEST).json({ error: "title and img required" });
+        const { title, img, channelId } = req.body as {
+          title?: string;
+          img?: string;
+          channelId?: string;
+        };
+        if (!title || !img || !channelId) {
+          res
+            .status(BAD_REQUEST)
+            .json({ error: "title, img and channelId required" });
           return;
         }
-        const badge = await badgeRepo.add(title, img);
+        const badge = await badgeRepo.add(title, img, channelId);
+        if (!badge) {
+          res.status(NOT_FOUND).json({ error: "channelId not found" });
+          return;
+        }
         res.status(201).json(badge);
       } catch (err: unknown) {
+        if (
+          err instanceof Error &&
+          "code" in err &&
+          (err as { code: string }).code === "P2002"
+        ) {
+          res
+            .status(CONFLICT)
+            .json({ error: "badge already exists for channel" });
+          return;
+        }
         sendInternalError(res, "POST /badges error", err);
       }
     },

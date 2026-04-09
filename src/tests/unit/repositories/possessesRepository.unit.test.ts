@@ -9,7 +9,12 @@ describe("possessesRepository (unit)", () => {
       username: "u",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await db.addBadge({ title: "B", img: "i.png" });
+    await db.addChannel({ id: "ch-poss-repo", name: "possrepo" });
+    const badge = (await db.addBadge({
+      title: "B",
+      img: "i.png",
+      channelId: "ch-poss-repo",
+    }))!;
     const repo = new PossessesRepository(db);
     const acquiredDate = new Date().toISOString();
     const created = await repo.add(user.id, badge.id, acquiredDate);

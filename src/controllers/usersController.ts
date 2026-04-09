@@ -12,7 +12,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
-          xp?: number;
+          xp?: unknown;
           lastUpdateTimestamp?: string;
         };
         const {
@@ -30,13 +30,33 @@ export function createUsersController(repo: UserRepository) {
           });
           return;
         }
+        let parsedXp = 0;
+        if (xp !== undefined) {
+          if (
+            xp === null ||
+            (typeof xp !== "number" && typeof xp !== "string") ||
+            (typeof xp === "string" && xp.trim() === "")
+          ) {
+            res
+              .status(BAD_REQUEST)
+              .json({ error: "xp must be a non-negative number" });
+            return;
+          }
+          parsedXp = Number(xp);
+          if (!Number.isFinite(parsedXp) || parsedXp < 0) {
+            res
+              .status(BAD_REQUEST)
+              .json({ error: "xp must be a non-negative number" });
+            return;
+          }
+        }
         const user = await repo.addUser({
           id,
           username,
           profileImageUrl: profileImageUrl ?? null,
           channelDescription: channelDescription ?? null,
           scope: scope ?? null,
-          xp: xp ?? 0,
+          xp: parsedXp,
           lastUpdateTimestamp,
         });
         res.status(201).json(user);
@@ -75,7 +95,7 @@ export function createUsersController(repo: UserRepository) {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
-          xp?: number;
+          xp?: unknown;
           lastUpdateTimestamp?: string;
         };
         // If username is provided in the update payload, enforce that it is non-empty
@@ -85,7 +105,38 @@ export function createUsersController(repo: UserRepository) {
           });
           return;
         }
-        const user = await repo.updateUser(id, body);
+        if ("xp" in body) {
+          if (
+            body.xp === null ||
+            body.xp === undefined ||
+            (typeof body.xp !== "number" && typeof body.xp !== "string") ||
+            (typeof body.xp === "string" && body.xp.trim() === "")
+          ) {
+            res
+              .status(BAD_REQUEST)
+              .json({ error: "xp must be a non-negative number" });
+            return;
+          }
+          const parsedXp = Number(body.xp);
+          if (!Number.isFinite(parsedXp) || parsedXp < 0) {
+            res
+              .status(BAD_REQUEST)
+              .json({ error: "xp must be a non-negative number" });
+            return;
+          }
+          (body as Record<string, unknown>).xp = parsedXp;
+        }
+        const user = await repo.updateUser(
+          id,
+          body as {
+            username?: string;
+            profileImageUrl?: string | null;
+            channelDescription?: string | null;
+            scope?: string | null;
+            xp?: number;
+            lastUpdateTimestamp?: string;
+          },
+        );
         if (!user) {
           res.status(NOT_FOUND).json({ error: "not found" });
           return;
@@ -125,6 +176,19 @@ export function createUsersController(repo: UserRepository) {
         res.json(achievements);
       } catch (err: unknown) {
         sendInternalError(res, "GET /users/:id/achievements error", err);
+      }
+    },
+
+    nukeUser: async (req: Request, res: Response): Promise<void> => {
+      try {
+        const deleted = await repo.nukeUser(paramId(req, "id"));
+        if (!deleted) {
+          res.status(NOT_FOUND).json({ error: "not found" });
+          return;
+        }
+        res.status(204).send();
+      } catch (err: unknown) {
+        sendInternalError(res, "DELETE /users/:id/all-data error", err);
       }
     },
   };

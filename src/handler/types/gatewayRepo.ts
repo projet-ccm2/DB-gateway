@@ -46,13 +46,18 @@ export type GatewayRepo = {
     getUsersByChannelId(channelId: string): Promise<channelUserDTO[]>;
     getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;
     getUsersByAchievementId(achievementId: string): Promise<userDTO[]>;
+    nukeUser(userId: string): Promise<boolean>;
   };
   channel: {
-    addChannel(id: string, name: string): Promise<channelDTO>;
+    addChannel(
+      id: string,
+      name: string,
+      discordWebhookUrl?: string | null,
+    ): Promise<channelDTO>;
     getChannelById(id: string): Promise<channelDTO | null>;
     updateChannel(
       id: string,
-      data: { name?: string },
+      data: { name?: string; discordWebhookUrl?: string | null },
     ): Promise<channelDTO | null>;
     getBadgeByChannelId(channelId: string): Promise<badgeDTO | null>;
   };
@@ -64,7 +69,9 @@ export type GatewayRepo = {
     getTypeAchievementById(id: string): Promise<typeAchievementDTO | null>;
   };
   achievement: {
-    addAchievement(achievement: AchievementInput): Promise<achievementDTO>;
+    addAchievement(
+      achievement: AchievementInput,
+    ): Promise<achievementDTO | null>;
     getAchievementById(id: string): Promise<achievementDTO | null>;
     updateAchievementActive(
       id: string,
@@ -85,7 +92,11 @@ export type GatewayRepo = {
     ): Promise<achievementWithTypeAndAchievedDTO[]>;
   };
   badge: {
-    addBadge(title: string, img: string): Promise<badgeDTO>;
+    addBadge(
+      title: string,
+      img: string,
+      channelId: string,
+    ): Promise<badgeDTO | null>;
     getBadgeById(id: string): Promise<badgeDTO | null>;
   };
   achieved: {

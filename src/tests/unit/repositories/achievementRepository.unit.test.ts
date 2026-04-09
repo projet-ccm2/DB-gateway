@@ -6,7 +6,8 @@ describe("achievementRepository (unit)", () => {
     const db = new MockDatabase();
     const ch = await db.addChannel({ id: "ch-ach-repo-1", name: "Ch" });
     const repo = new AchievementRepository(db);
-    const created = await repo.add({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const created = (await repo.add({
       title: "T",
       description: "D",
       goal: 1,
@@ -17,9 +18,8 @@ describe("achievementRepository (unit)", () => {
       secret: false,
       image: "img.png",
       channelId: ch.id,
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     expect(created.id).toBeDefined();
     expect(created.title).toBe("T");
     const found = await repo.getById(created.id);
@@ -38,6 +38,7 @@ describe("achievementRepository (unit)", () => {
     const db = new MockDatabase();
     const ch = await db.addChannel({ id: "ch-ach-repo-2", name: "Ch" });
     const repo = new AchievementRepository(db);
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     await repo.add({
       title: "T1",
       description: "D1",
@@ -49,8 +50,7 @@ describe("achievementRepository (unit)", () => {
       secret: false,
       image: "img.png",
       channelId: ch.id,
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     const list = await repo.getByChannelId(ch.id);
     expect(list).toHaveLength(1);
@@ -62,6 +62,7 @@ describe("achievementRepository (unit)", () => {
   it("getPublic returns only public achievements", async () => {
     const db = new MockDatabase();
     const repo = new AchievementRepository(db);
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     await repo.add({
       title: "Pub",
       description: "D",
@@ -72,8 +73,7 @@ describe("achievementRepository (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     await repo.add({
       title: "Priv",
@@ -85,8 +85,7 @@ describe("achievementRepository (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     const list = await repo.getPublic();
     expect(list).toHaveLength(1);
@@ -98,6 +97,7 @@ describe("achievementRepository (unit)", () => {
   it("getPublic returns empty array when no public achievements", async () => {
     const db = new MockDatabase();
     const repo = new AchievementRepository(db);
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
     await repo.add({
       title: "Priv",
       description: "D",
@@ -108,8 +108,7 @@ describe("achievementRepository (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
+      typeId: type.id,
     });
     const list = await repo.getPublic();
     expect(list).toHaveLength(0);
@@ -118,7 +117,8 @@ describe("achievementRepository (unit)", () => {
   it("getDefinitionsByUserId returns achievements with achieved data", async () => {
     const db = new MockDatabase();
     const repo = new AchievementRepository(db);
-    const ach = await repo.add({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await repo.add({
       title: "DefRepo",
       description: "D",
       goal: 5,
@@ -128,9 +128,8 @@ describe("achievementRepository (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     await db.addAchieved({
       achievementId: ach.id,
       userId: "user-def-repo",
@@ -157,7 +156,8 @@ describe("achievementRepository (unit)", () => {
   it("activate sets active to true and returns achievement", async () => {
     const db = new MockDatabase();
     const repo = new AchievementRepository(db);
-    const created = await repo.add({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const created = (await repo.add({
       title: "Inactive",
       description: "D",
       goal: 1,
@@ -167,9 +167,8 @@ describe("achievementRepository (unit)", () => {
       active: false,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const result = await repo.activate(created.id);
     expect(result).not.toBeNull();
     expect(result?.active).toBe(true);
@@ -185,7 +184,8 @@ describe("achievementRepository (unit)", () => {
   it("deactivate sets active to false and returns achievement", async () => {
     const db = new MockDatabase();
     const repo = new AchievementRepository(db);
-    const created = await repo.add({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const created = (await repo.add({
       title: "Active",
       description: "D",
       goal: 1,
@@ -195,9 +195,8 @@ describe("achievementRepository (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const result = await repo.deactivate(created.id);
     expect(result).not.toBeNull();
     expect(result?.active).toBe(false);
@@ -213,7 +212,8 @@ describe("achievementRepository (unit)", () => {
   it("makePublic sets public to true and returns achievement", async () => {
     const db = new MockDatabase();
     const repo = new AchievementRepository(db);
-    const created = await repo.add({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const created = (await repo.add({
       title: "Private",
       description: "D",
       goal: 1,
@@ -223,9 +223,8 @@ describe("achievementRepository (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const result = await repo.makePublic(created.id);
     expect(result).not.toBeNull();
     expect(result?.public).toBe(true);
@@ -241,7 +240,8 @@ describe("achievementRepository (unit)", () => {
   it("makePrivate sets public to false and returns achievement", async () => {
     const db = new MockDatabase();
     const repo = new AchievementRepository(db);
-    const created = await repo.add({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const created = (await repo.add({
       title: "Public",
       description: "D",
       goal: 1,
@@ -251,9 +251,8 @@ describe("achievementRepository (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const result = await repo.makePrivate(created.id);
     expect(result).not.toBeNull();
     expect(result?.public).toBe(false);
@@ -269,7 +268,12 @@ describe("achievementRepository (unit)", () => {
   it("update updates all fields and returns achievement", async () => {
     const db = new MockDatabase();
     const repo = new AchievementRepository(db);
-    const created = await repo.add({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const type2 = await db.addTypeAchievement({
+      label: "NewTL",
+      data: "NewTD",
+    });
+    const created = (await repo.add({
       title: "Old",
       description: "OldD",
       goal: 1,
@@ -279,9 +283,8 @@ describe("achievementRepository (unit)", () => {
       active: true,
       secret: false,
       image: "old.png",
-      typeLabel: "OldTL",
-      typeData: "OldTD",
-    });
+      typeId: type.id,
+    }))!;
     const result = await repo.update(created.id, {
       title: "New",
       description: "NewD",
@@ -292,8 +295,7 @@ describe("achievementRepository (unit)", () => {
       active: false,
       secret: true,
       image: "new.png",
-      typeLabel: "NewTL",
-      typeData: "NewTD",
+      typeId: type2.id,
     });
     expect(result).not.toBeNull();
     expect(result?.title).toBe("New");
@@ -319,7 +321,8 @@ describe("achievementRepository (unit)", () => {
   it("delete removes achievement and returns it", async () => {
     const db = new MockDatabase();
     const repo = new AchievementRepository(db);
-    const created = await repo.add({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const created = (await repo.add({
       title: "ToDelete",
       description: "D",
       goal: 1,
@@ -329,9 +332,8 @@ describe("achievementRepository (unit)", () => {
       active: true,
       secret: false,
       image: "img.png",
-      typeLabel: "TL",
-      typeData: "TD",
-    });
+      typeId: type.id,
+    }))!;
     const result = await repo.delete(created.id);
     expect(result).not.toBeNull();
     expect(result?.id).toBe(created.id);

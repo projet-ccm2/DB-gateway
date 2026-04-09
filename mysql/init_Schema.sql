@@ -14,8 +14,9 @@ CREATE TABLE IF NOT EXISTS Users(
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Channels(
-    Channel_ID   VARCHAR(50) NOT NULL,
-    Channel_Name VARCHAR(50) NOT NULL,
+    Channel_ID          VARCHAR(50)  NOT NULL,
+    Channel_Name        VARCHAR(50)  NOT NULL,
+    Discord_Webhook_Url VARCHAR(1024) DEFAULT NULL,
     CONSTRAINT Channels_PK PRIMARY KEY (Channel_ID)
 ) ENGINE=InnoDB;
 
@@ -50,8 +51,9 @@ CREATE TABLE IF NOT EXISTS Badges(
     Badge_ID    VARCHAR(36) NOT NULL,
     Badge_Title VARCHAR(50) NOT NULL,
     Badge_img   VARCHAR(50) NOT NULL,
-    Channel_ID  VARCHAR(50),
+    Channel_ID  VARCHAR(50) NOT NULL,
     CONSTRAINT Badges_PK PRIMARY KEY (Badge_ID),
+    CONSTRAINT Badges_Channel_UQ UNIQUE (Channel_ID),
     CONSTRAINT Badges_Channels_FK FOREIGN KEY (Channel_ID) REFERENCES Channels(Channel_ID)
 ) ENGINE=InnoDB;
 
