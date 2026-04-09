@@ -8,9 +8,20 @@ export const badgeHandlers: Record<string, HandlerFn> = {
     const channelId = str(payload, "channelId");
     if (!title || !img || !channelId)
       return missing("title", "img", "channelId");
-    const badge = await repo.badge.addBadge(title, img, channelId);
-    if (!badge) return { ok: false, error: "channelId not found" };
-    return { ok: true, badge };
+    try {
+      const badge = await repo.badge.addBadge(title, img, channelId);
+      if (!badge) return { ok: false, error: "channelId not found" };
+      return { ok: true, badge };
+    } catch (err: unknown) {
+      if (
+        err instanceof Error &&
+        "code" in err &&
+        (err as { code: string }).code === "P2002"
+      ) {
+        return { ok: false, error: "badge already exists for channel" };
+      }
+      throw err;
+    }
   },
 
   getBadge: async (repo, payload) => {

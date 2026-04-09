@@ -301,9 +301,8 @@ export class PrismaDatabase implements Database {
     return {
       id: c.id,
       name: c.name,
-      discordWebhookUrl: c.discordWebhookUrl
-        ? decrypt(c.discordWebhookUrl)
-        : null,
+      discordWebhookUrl:
+        c.discordWebhookUrl != null ? decrypt(c.discordWebhookUrl) : null,
     };
   }
 
@@ -316,17 +315,17 @@ export class PrismaDatabase implements Database {
       data: {
         id: channel.id,
         name: channel.name,
-        discordWebhookUrl: channel.discordWebhookUrl
-          ? encrypt(channel.discordWebhookUrl)
-          : null,
+        discordWebhookUrl:
+          channel.discordWebhookUrl != null
+            ? encrypt(channel.discordWebhookUrl)
+            : null,
       },
     });
     return {
       id: c.id,
       name: c.name,
-      discordWebhookUrl: c.discordWebhookUrl
-        ? decrypt(c.discordWebhookUrl)
-        : null,
+      discordWebhookUrl:
+        c.discordWebhookUrl != null ? decrypt(c.discordWebhookUrl) : null,
     };
   }
 
@@ -337,9 +336,8 @@ export class PrismaDatabase implements Database {
     const updateData: { name?: string; discordWebhookUrl?: string | null } = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.discordWebhookUrl !== undefined)
-      updateData.discordWebhookUrl = data.discordWebhookUrl
-        ? encrypt(data.discordWebhookUrl)
-        : null;
+      updateData.discordWebhookUrl =
+        data.discordWebhookUrl != null ? encrypt(data.discordWebhookUrl) : null;
 
     return handleP2025(async () => {
       const c = await this.prisma.channel.update({
@@ -349,9 +347,8 @@ export class PrismaDatabase implements Database {
       return {
         id: c.id,
         name: c.name,
-        discordWebhookUrl: c.discordWebhookUrl
-          ? decrypt(c.discordWebhookUrl)
-          : null,
+        discordWebhookUrl:
+          c.discordWebhookUrl != null ? decrypt(c.discordWebhookUrl) : null,
       };
     });
   }

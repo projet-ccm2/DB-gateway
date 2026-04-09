@@ -1098,6 +1098,29 @@ describe("jsonHandler full coverage", () => {
     }
   });
 
+  test("createBadge returns error on P2002 duplicate channelId", async () => {
+    const p2002 = Object.assign(new Error("Unique constraint"), {
+      code: "P2002",
+    });
+    const racyRepo: GatewayRepo = {
+      ...repo,
+      badge: {
+        addBadge: async () => {
+          throw p2002;
+        },
+        getBadgeById: async () => null,
+      },
+    };
+    const res = await handleJsonMessage(racyRepo, {
+      action: "createBadge",
+      payload: { title: "Dup", img: "d.png", channelId: "ch_A" },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.error).toBe("badge already exists for channel");
+    }
+  });
+
   test("achieved create/get", async () => {
     const payload = {
       achievementId: "a1",

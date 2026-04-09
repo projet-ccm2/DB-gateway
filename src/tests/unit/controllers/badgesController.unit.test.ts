@@ -85,6 +85,26 @@ describe("badgesController (unit)", () => {
     expect(res.json).toHaveBeenCalledWith([]);
   });
 
+  it("create returns 409 on P2002 duplicate channelId", async () => {
+    const p2002 = Object.assign(new Error("Unique constraint"), {
+      code: "P2002",
+    });
+    const throwingBadgeRepo = {
+      add: jest.fn().mockRejectedValue(p2002),
+      getById: jest.fn(),
+    } as unknown as InstanceType<typeof BadgeRepository>;
+    const c = createBadgesController(throwingBadgeRepo, userRepo);
+    const req = {
+      body: { title: "Dup", img: "d.png", channelId: "ch-ctrl-1" },
+    } as Request;
+    const res = mockRes();
+    await c.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "badge already exists for channel",
+    });
+  });
+
   it("create returns 500 when repo.add throws", async () => {
     const throwingBadgeRepo = {
       add: jest.fn().mockRejectedValue(new Error("db")),

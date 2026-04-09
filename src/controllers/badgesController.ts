@@ -1,7 +1,13 @@
 import { Request, Response } from "express";
 import type { BadgeRepository } from "../repositories/badgeRepository";
 import type { UserRepository } from "../repositories/userRepository";
-import { BAD_REQUEST, NOT_FOUND, paramId, sendInternalError } from "./helpers";
+import {
+  BAD_REQUEST,
+  CONFLICT,
+  NOT_FOUND,
+  paramId,
+  sendInternalError,
+} from "./helpers";
 
 export function createBadgesController(
   badgeRepo: BadgeRepository,
@@ -28,6 +34,16 @@ export function createBadgesController(
         }
         res.status(201).json(badge);
       } catch (err: unknown) {
+        if (
+          err instanceof Error &&
+          "code" in err &&
+          (err as { code: string }).code === "P2002"
+        ) {
+          res
+            .status(CONFLICT)
+            .json({ error: "badge already exists for channel" });
+          return;
+        }
         sendInternalError(res, "POST /badges error", err);
       }
     },

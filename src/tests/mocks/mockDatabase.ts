@@ -311,6 +311,10 @@ export class MockDatabase implements Database {
   }): Promise<badgeDTO | null> {
     const channelExists = this.channels.find((c) => c.id === b.channelId);
     if (!channelExists) return null;
+    const duplicate = this.badges.find((x) => x.channelId === b.channelId);
+    if (duplicate) {
+      throw Object.assign(new Error("Unique constraint"), { code: "P2002" });
+    }
     const nb = {
       id: randomUUID(),
       title: b.title,
