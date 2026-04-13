@@ -9,13 +9,19 @@ describe("achievedRepository (unit)", () => {
       username: "u",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ach = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
       reward: 1,
       label: "L",
-    });
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeId: type.id,
+    }))!;
     const repo = new AchievedRepository(db);
     const created = await repo.add({
       achievementId: ach.id,
@@ -46,13 +52,19 @@ describe("achievedRepository (unit)", () => {
       username: "u",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ach = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
       reward: 1,
       label: "L",
-    });
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeId: type.id,
+    }))!;
     const repo = new AchievedRepository(db);
     await repo.add({
       achievementId: ach.id,

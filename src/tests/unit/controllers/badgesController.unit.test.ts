@@ -10,6 +10,12 @@ describe("badgesController (unit)", () => {
   const userRepo = new UserRepository(db);
   const ctrl = createBadgesController(badgeRepo, userRepo);
 
+  beforeAll(async () => {
+    await db.addChannel({ id: "ch-ctrl-1", name: "ctrl1" });
+    await db.addChannel({ id: "ch-ctrl-found", name: "ctrlfound" });
+    await db.addChannel({ id: "ch-ctrl-users", name: "ctrlusers" });
+  });
+
   const mockRes = (): Response => {
     const res = {} as Response;
     res.status = jest.fn().mockReturnThis();
@@ -18,13 +24,25 @@ describe("badgesController (unit)", () => {
   };
 
   it("create returns 201 when title and img provided", async () => {
-    const req = { body: { title: "Badge", img: "img.png" } } as Request;
+    const req = {
+      body: { title: "Badge", img: "img.png", channelId: "ch-ctrl-1" },
+    } as Request;
     const res = mockRes();
     await ctrl.create(req, res);
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Badge", img: "img.png" }),
     );
+  });
+
+  it("create returns 404 when channelId not found", async () => {
+    const req = {
+      body: { title: "Badge", img: "img.png", channelId: "nonexistent" },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: "channelId not found" });
   });
 
   it("getById returns 404 when not found", async () => {
@@ -42,7 +60,11 @@ describe("badgesController (unit)", () => {
   });
 
   it("getById returns 200 when found", async () => {
-    const badge = await db.addBadge({ title: "Found", img: "f.png" });
+    const badge = (await db.addBadge({
+      title: "Found",
+      img: "f.png",
+      channelId: "ch-ctrl-found",
+    }))!;
     const req = { params: { id: badge.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getById(req, res);
@@ -52,11 +74,35 @@ describe("badgesController (unit)", () => {
   });
 
   it("getUsersByBadgeId returns 200 and array", async () => {
-    const badge = await db.addBadge({ title: "B", img: "i.png" });
+    const badge = (await db.addBadge({
+      title: "B",
+      img: "i.png",
+      channelId: "ch-ctrl-users",
+    }))!;
     const req = { params: { id: badge.id } } as unknown as Request;
     const res = mockRes();
     await ctrl.getUsersByBadgeId(req, res);
     expect(res.json).toHaveBeenCalledWith([]);
+  });
+
+  it("create returns 409 on P2002 duplicate channelId", async () => {
+    const p2002 = Object.assign(new Error("Unique constraint"), {
+      code: "P2002",
+    });
+    const throwingBadgeRepo = {
+      add: jest.fn().mockRejectedValue(p2002),
+      getById: jest.fn(),
+    } as unknown as InstanceType<typeof BadgeRepository>;
+    const c = createBadgesController(throwingBadgeRepo, userRepo);
+    const req = {
+      body: { title: "Dup", img: "d.png", channelId: "ch-ctrl-1" },
+    } as Request;
+    const res = mockRes();
+    await c.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "badge already exists for channel",
+    });
   });
 
   it("create returns 500 when repo.add throws", async () => {
@@ -65,7 +111,9 @@ describe("badgesController (unit)", () => {
       getById: jest.fn(),
     } as unknown as InstanceType<typeof BadgeRepository>;
     const c = createBadgesController(throwingBadgeRepo, userRepo);
-    const req = { body: { title: "T", img: "i" } } as Request;
+    const req = {
+      body: { title: "T", img: "i", channelId: "ch-err" },
+    } as Request;
     const res = mockRes();
     await c.create(req, res);
     expect(res.status).toHaveBeenCalledWith(500);

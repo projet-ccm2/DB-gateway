@@ -45,6 +45,7 @@ export class UserRepository {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    xp?: number;
     lastUpdateTimestamp: string;
   }): Promise<userDTO> {
     return this.db.addUser(user);
@@ -57,6 +58,7 @@ export class UserRepository {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp?: string;
     },
   ): Promise<userDTO | null> {
@@ -85,5 +87,9 @@ export class UserRepository {
 
   async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
     return this.db.getUsersByAchievementId(achievementId);
+  }
+
+  async nukeUser(userId: string): Promise<boolean> {
+    return this.db.nukeUser(userId);
   }
 }

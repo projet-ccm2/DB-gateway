@@ -9,12 +9,27 @@ export const possessesHandlers: Record<string, HandlerFn> = {
     if (!userId || !badgeId || !acquiredDate) {
       return missing("userId", "badgeId", "acquiredDate");
     }
-    const possesses = await repo.possesses.addPossesses(
-      userId,
-      badgeId,
-      acquiredDate,
-    );
-    return { ok: true, possesses };
+    const existing = await repo.possesses.getPossesses(userId, badgeId);
+    if (existing) {
+      return { ok: false, error: "already exists" };
+    }
+    try {
+      const possesses = await repo.possesses.addPossesses(
+        userId,
+        badgeId,
+        acquiredDate,
+      );
+      return { ok: true, possesses };
+    } catch (err: unknown) {
+      if (
+        err instanceof Error &&
+        "code" in err &&
+        (err as { code: string }).code === "P2002"
+      ) {
+        return { ok: false, error: "already exists" };
+      }
+      throw err;
+    }
   },
 
   getPossesses: async (repo, payload) => {

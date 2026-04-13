@@ -13,6 +13,7 @@ model User {
   profileImageUrl     String?  @map("Profile_Image_Url") @db.VarChar(255)
   channelDescription  String?  @map("Channel_Description") @db.VarChar(500)
   scope               String?  @map("Scope") @db.VarChar(500)
+  xp                  Int      @default(0) @map("Xp")
   lastUpdateTimestamp DateTime @map("Last_Update_Timestamp") @db.DateTime(0)
 
   // relations
@@ -24,8 +25,9 @@ model User {
 }
 
 model Channel {
-  id   String @id @map("Channel_ID") @db.VarChar(50)
-  name String @map("Channel_Name") @db.VarChar(50)
+  id                String  @id @map("Channel_ID") @db.VarChar(50)
+  name              String  @map("Channel_Name") @db.VarChar(50)
+  discordWebhookUrl String? @map("Discord_Webhook_Url") @db.VarChar(1024)
 
   achievements Achievement[]
   badges       Badge[]
@@ -59,10 +61,10 @@ model Achievement {
   image       String  @map("Achievement_Image") @db.VarChar(55)
 
   channelId String? @map("Channel_ID") @db.VarChar(50)
-  typeId   String? @map("Type_ID")   @db.Char(36)
+  typeId   String  @map("Type_ID")   @db.Char(36)
 
-  channel Channel? @relation(fields: [channelId], references: [id])
-  type   TypeAchievement? @relation(fields: [typeId], references: [id])
+  channel Channel?        @relation(fields: [channelId], references: [id])
+  type    TypeAchievement @relation(fields: [typeId], references: [id])
 
   achieved Achieved[]
 
@@ -76,8 +78,8 @@ model Badge {
   title   String @map("Badge_Title") @db.VarChar(50)
   img     String @map("Badge_img") @db.VarChar(50)
 
-  channelId String? @map("Channel_ID") @db.VarChar(50)
-  channel   Channel? @relation(fields: [channelId], references: [id])
+  channelId String @unique @map("Channel_ID") @db.VarChar(50)
+  channel   Channel @relation(fields: [channelId], references: [id])
 
   possesses Possesses[]
 

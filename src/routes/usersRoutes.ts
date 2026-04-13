@@ -14,5 +14,6 @@ export function createUsersRoutes(db: Database): express.Router {
   router.get("/:id/channels", c.getChannelsByUserId);
   router.get("/:id/badges", c.getBadgesByUserId);
   router.get("/:id/achievements", c.getAchievementsByUserId);
+  router.delete("/:id/all-data", c.nukeUser);
   return router;
 }

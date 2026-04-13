@@ -11,13 +11,19 @@ describe("achievedRoutes (unit)", () => {
       username: "u",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ach = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
       reward: 1,
       label: "L",
-    });
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeId: type.id,
+    }))!;
     const app = express();
     app.use(express.json());
     app.use("/", createAchievedRoutes(db));
@@ -40,13 +46,19 @@ describe("achievedRoutes (unit)", () => {
       username: "u",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const ach = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await db.addAchievement({
       title: "A",
       description: "D",
       goal: 1,
       reward: 1,
       label: "L",
-    });
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeId: type.id,
+    }))!;
     await db.addAchieved({
       achievementId: ach.id,
       userId: user.id,

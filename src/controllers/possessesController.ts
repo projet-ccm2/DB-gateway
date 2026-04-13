@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import type { PossessesRepository } from "../repositories/possessesRepository";
 import {
   BAD_REQUEST,
+  CONFLICT,
   NOT_FOUND,
   queryString,
   sendInternalError,
@@ -22,9 +23,22 @@ export function createPossessesController(repo: PossessesRepository) {
           });
           return;
         }
+        const existing = await repo.get(userId, badgeId);
+        if (existing) {
+          res.status(CONFLICT).json({ error: "already exists" });
+          return;
+        }
         const possesses = await repo.add(userId, badgeId, acquiredDate);
         res.status(201).json(possesses);
       } catch (err: unknown) {
+        if (
+          err instanceof Error &&
+          "code" in err &&
+          (err as { code: string }).code === "P2002"
+        ) {
+          res.status(CONFLICT).json({ error: "already exists" });
+          return;
+        }
         sendInternalError(res, "POST /possesses error", err);
       }
     },

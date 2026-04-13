@@ -6,10 +6,11 @@ Creates a channel.
 
 ### Body (JSON)
 
-| Field | Type   | Required | Description  |
-| ----- | ------ | -------- | ------------ |
-| id    | string | yes      | Channel ID   |
-| name  | string | yes      | Channel name |
+| Field             | Type         | Required | Description                                    |
+| ----------------- | ------------ | -------- | ---------------------------------------------- |
+| id                | string       | yes      | Channel ID                                     |
+| name              | string       | yes      | Channel name                                   |
+| discordWebhookUrl | string\|null | no       | Discord webhook URL (encrypted at rest)        |
 
 ### Responses
 
@@ -18,7 +19,8 @@ Creates a channel.
 ```json
 {
   "id": "channel-id",
-  "name": "ChannelName"
+  "name": "ChannelName",
+  "discordWebhookUrl": null
 }
 ```
 
@@ -63,7 +65,8 @@ Returns a channel by ID.
 ```json
 {
   "id": "channel-id",
-  "name": "ChannelName"
+  "name": "ChannelName",
+  "discordWebhookUrl": "https://discord.com/api/webhooks/..."
 }
 ```
 
@@ -97,9 +100,10 @@ Updates a channel by ID.
 
 ### Body (JSON)
 
-| Field | Type   | Required | Description      |
-| ----- | ------ | -------- | ---------------- |
-| name  | string | no       | New channel name |
+| Field             | Type         | Required | Description                                    |
+| ----------------- | ------------ | -------- | ---------------------------------------------- |
+| name              | string       | no       | New channel name                               |
+| discordWebhookUrl | string\|null | no       | Discord webhook URL (encrypted at rest)        |
 
 ### Responses
 
@@ -108,7 +112,8 @@ Updates a channel by ID.
 ```json
 {
   "id": "channel-id",
-  "name": "NewChannelName"
+  "name": "NewChannelName",
+  "discordWebhookUrl": "https://discord.com/api/webhooks/..."
 }
 ```
 
@@ -155,6 +160,46 @@ Lists users linked to the channel with their role.
     "userType": "subscriber"
   }
 ]
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```
+
+---
+
+## GET /channels/:id/badge
+
+Returns the badge associated with a channel.
+
+### Path parameters
+
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | Channel ID  |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "badge-uuid",
+  "title": "string",
+  "img": "string"
+}
+```
+
+**404 Not Found**
+
+```json
+{
+  "error": "not found"
+}
 ```
 
 **500 Internal Server Error**

@@ -15,6 +15,7 @@ describe("UserService (unit)", () => {
     });
     expect(u.id).toBe("twitch_svc");
     expect(u.username).toBe("svc");
+    expect(u.xp).toBe(0);
     const got = await service.getUserById(u.id);
     expect(got?.id).toBe(u.id);
   });
@@ -71,7 +72,12 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const badge = await db.addBadge({ title: "b1", img: "i1" });
+    await db.addChannel({ id: "ch-svc", name: "svc" });
+    const badge = (await db.addBadge({
+      title: "b1",
+      img: "i1",
+      channelId: "ch-svc",
+    }))!;
     const users = await service.getUsersByBadgeId(badge.id);
     expect(users).toEqual([]);
   });
@@ -80,13 +86,19 @@ describe("UserService (unit)", () => {
     const db = new MockDatabase();
     const repo = new UserRepository(db);
     const service = new UserService(repo);
-    const ach = await db.addAchievement({
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await db.addAchievement({
       title: "a1",
       description: "d",
       goal: 1,
       reward: 1,
       label: "l",
-    });
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeId: type.id,
+    }))!;
     const users = await service.getUsersByAchievementId(ach.id);
     expect(users).toEqual([]);
   });

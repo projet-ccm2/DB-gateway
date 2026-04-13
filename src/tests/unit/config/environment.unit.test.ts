@@ -27,10 +27,19 @@ describe("config environment", () => {
     process.env.NODE_ENV = "production";
     process.env.ALLOWED_ORIGINS = "https://a,https://b";
     process.env.DATABASE_URL = "mysql://localhost:3306/mydb";
+    process.env.ENCRYPTION_KEY = "secure-prod-key";
     const { config } = require("../../../config/environment");
     expect(config.port).toBe(4000);
     expect(config.nodeEnv).toBe("production");
     expect(config.databaseUrl).toBe("mysql://localhost:3306/mydb");
     expect(config.cors.allowedOrigins).toEqual(["https://a", "https://b"]);
+  });
+
+  test("throws when production uses default encryption key", () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.ENCRYPTION_KEY;
+    expect(() => require("../../../config/environment")).toThrow(
+      "ENCRYPTION_KEY must be set to a secure value in production",
+    );
   });
 });

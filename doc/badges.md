@@ -6,10 +6,11 @@ Creates a badge.
 
 ### Body (JSON)
 
-| Field | Type   | Required | Description       |
-| ----- | ------ | -------- | ----------------- |
-| title | string | yes      | Badge title       |
-| img   | string | yes      | Image name or URL |
+| Field     | Type   | Required | Description       |
+| --------- | ------ | -------- | ----------------- |
+| title     | string | yes      | Badge title       |
+| img       | string | yes      | Image name or URL |
+| channelId | string | yes      | Channel ID        |
 
 ### Responses
 
@@ -27,7 +28,7 @@ Creates a badge.
 
 ```json
 {
-  "error": "title and img required"
+  "error": "title, img and channelId required"
 }
 ```
 

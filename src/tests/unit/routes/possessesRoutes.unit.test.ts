@@ -11,7 +11,12 @@ describe("possessesRoutes (unit)", () => {
       username: "u",
       lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
     });
-    const badge = await db.addBadge({ title: "B", img: "i.png" });
+    await db.addChannel({ id: "ch-poss1", name: "poss1" });
+    const badge = (await db.addBadge({
+      title: "B",
+      img: "i.png",
+      channelId: "ch-poss1",
+    }))!;
     const app = express();
     app.use(express.json());
     app.use("/", createPossessesRoutes(db));
@@ -22,5 +27,36 @@ describe("possessesRoutes (unit)", () => {
     });
     expect(res.status).toBe(201);
     expect(res.body.badgeId).toBe(badge.id);
+  });
+
+  it("POST / returns 409 when possesses already exists", async () => {
+    const db = new MockDatabase();
+    const user = await db.addUser({
+      id: "t-dup",
+      username: "dup",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await db.addChannel({ id: "ch-poss2", name: "poss2" });
+    const badge = (await db.addBadge({
+      title: "B",
+      img: "i.png",
+      channelId: "ch-poss2",
+    }))!;
+    const date = new Date().toISOString();
+    await db.addPossesses({
+      userId: user.id,
+      badgeId: badge.id,
+      acquiredDate: date,
+    });
+    const app = express();
+    app.use(express.json());
+    app.use("/", createPossessesRoutes(db));
+    const res = await request(app).post("/").send({
+      userId: user.id,
+      badgeId: badge.id,
+      acquiredDate: date,
+    });
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe("already exists");
   });
 });

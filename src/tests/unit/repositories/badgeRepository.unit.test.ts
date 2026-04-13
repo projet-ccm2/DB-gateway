@@ -5,7 +5,8 @@ describe("badgeRepository (unit)", () => {
   it("add then getById returns the badge", async () => {
     const db = new MockDatabase();
     const repo = new BadgeRepository(db);
-    const created = await repo.add("BadgeTitle", "img.png");
+    await db.addChannel({ id: "ch-badge-test", name: "badgetest" });
+    const created = (await repo.add("BadgeTitle", "img.png", "ch-badge-test"))!;
     expect(created.id).toBeDefined();
     expect(created.title).toBe("BadgeTitle");
     expect(created.img).toBe("img.png");

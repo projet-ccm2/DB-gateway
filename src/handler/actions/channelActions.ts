@@ -1,5 +1,5 @@
 import type { HandlerFn } from "../types";
-import { missing, str } from "../payload";
+import { missing, str, strOrNull } from "../payload";
 
 export const channelHandlers: Record<string, HandlerFn> = {
   createChannel: async (repo, payload) => {
@@ -7,7 +7,16 @@ export const channelHandlers: Record<string, HandlerFn> = {
     if (!id) return missing("channelId");
     const name = str(payload, "name");
     if (!name) return missing("name");
-    const channel = await repo.channel.addChannel(id, name);
+    if (
+      "discordWebhookUrl" in payload &&
+      payload.discordWebhookUrl !== null &&
+      payload.discordWebhookUrl !== undefined &&
+      typeof payload.discordWebhookUrl !== "string"
+    ) {
+      return { ok: false, error: "invalid discordWebhookUrl" };
+    }
+    const discordWebhookUrl = strOrNull(payload, "discordWebhookUrl");
+    const channel = await repo.channel.addChannel(id, name, discordWebhookUrl);
     return { ok: true, channel };
   },
 
@@ -22,7 +31,27 @@ export const channelHandlers: Record<string, HandlerFn> = {
     const id = str(payload, "channelId", "id");
     if (!id) return missing("channelId");
     const name = str(payload, "name");
-    const channel = await repo.channel.updateChannel(id, { name });
+    if (
+      "discordWebhookUrl" in payload &&
+      payload.discordWebhookUrl !== null &&
+      payload.discordWebhookUrl !== undefined &&
+      typeof payload.discordWebhookUrl !== "string"
+    ) {
+      return { ok: false, error: "invalid discordWebhookUrl" };
+    }
+    const discordWebhookUrl = strOrNull(payload, "discordWebhookUrl");
+    const channel = await repo.channel.updateChannel(id, {
+      name,
+      discordWebhookUrl:
+        payload.discordWebhookUrl === undefined ? undefined : discordWebhookUrl,
+    });
     return { ok: true, channel };
+  },
+
+  getBadgeByChannelId: async (repo, payload) => {
+    const id = str(payload, "channelId", "id");
+    if (!id) return missing("channelId");
+    const badge = await repo.channel.getBadgeByChannelId(id);
+    return { ok: true, badge };
   },
 };

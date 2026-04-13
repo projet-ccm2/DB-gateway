@@ -14,6 +14,22 @@ describe("channelsRoutes (unit)", () => {
     expect(res.status).toBe(201);
     expect(res.body.id).toBe("ch-route-1");
     expect(res.body.name).toBe("MyChannel");
+    expect(res.body.discordWebhookUrl).toBeNull();
+  });
+
+  it("POST / creates channel with discordWebhookUrl", async () => {
+    const app = express();
+    app.use(express.json());
+    app.use("/", createChannelsRoutes(new MockDatabase()));
+    const res = await request(app).post("/").send({
+      id: "ch-wh-route",
+      name: "WH",
+      discordWebhookUrl: "https://discord.com/api/webhooks/route",
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.discordWebhookUrl).toBe(
+      "https://discord.com/api/webhooks/route",
+    );
   });
 
   it("POST / returns 400 when id missing", async () => {
@@ -48,6 +64,25 @@ describe("channelsRoutes (unit)", () => {
     app.use(express.json());
     app.use("/", createChannelsRoutes(new MockDatabase()));
     const res = await request(app).put("/unknown").send({ name: "N" });
+    expect(res.status).toBe(404);
+  });
+
+  it("GET /:id/badge returns badge when found", async () => {
+    const db = new MockDatabase();
+    const ch = await db.addChannel({ id: "ch-badge", name: "C" });
+    await db.addBadge({ title: "MyBadge", img: "badge.png", channelId: ch.id });
+    const app = express();
+    app.use("/", createChannelsRoutes(db));
+    const res = await request(app).get("/ch-badge/badge");
+    expect(res.status).toBe(200);
+    expect(res.body.title).toBe("MyBadge");
+    expect(res.body.img).toBe("badge.png");
+  });
+
+  it("GET /:id/badge returns 404 when no badge for channel", async () => {
+    const app = express();
+    app.use("/", createChannelsRoutes(new MockDatabase()));
+    const res = await request(app).get("/unknown-ch/badge");
     expect(res.status).toBe(404);
   });
 });

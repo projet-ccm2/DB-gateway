@@ -1,5 +1,15 @@
 import type { HandlerFn } from "../types";
-import { missing, str, strOrNull } from "../payload";
+import { missing, num, str, strOrNull } from "../payload";
+
+function parseXpField(
+  payload: Record<string, unknown>,
+): { error: string } | { xp?: number } {
+  if (!("xp" in payload)) return {};
+  const xpVal = num(payload, "xp");
+  if (xpVal === undefined) return { error: "xp must be a number" };
+  if (xpVal < 0) return { error: "xp must be a non-negative number" };
+  return { xp: xpVal };
+}
 
 export const userHandlers: Record<string, HandlerFn> = {
   createUser: async (repo, payload) => {
@@ -8,12 +18,16 @@ export const userHandlers: Record<string, HandlerFn> = {
     const lastUpdateTimestamp = str(payload, "lastUpdateTimestamp");
     if (!username || !id || !lastUpdateTimestamp)
       return missing("username", "id", "lastUpdateTimestamp");
+    const xpResult = parseXpField(payload);
+    if ("error" in xpResult) return { ok: false, error: xpResult.error };
+    const xp = xpResult.xp ?? 0;
     const user = await repo.user.addUser({
       id,
       username,
       profileImageUrl: strOrNull(payload, "profileImageUrl"),
       channelDescription: strOrNull(payload, "channelDescription"),
       scope: strOrNull(payload, "scope"),
+      xp,
       lastUpdateTimestamp,
     });
     return { ok: true, user };
@@ -39,6 +53,7 @@ export const userHandlers: Record<string, HandlerFn> = {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp?: string;
     } = {};
     if ("username" in payload) {
@@ -51,6 +66,9 @@ export const userHandlers: Record<string, HandlerFn> = {
     if ("channelDescription" in payload)
       data.channelDescription = strOrNull(payload, "channelDescription");
     if ("scope" in payload) data.scope = strOrNull(payload, "scope");
+    const xpResult = parseXpField(payload);
+    if ("error" in xpResult) return { ok: false, error: xpResult.error };
+    if (xpResult.xp !== undefined) data.xp = xpResult.xp;
     if ("lastUpdateTimestamp" in payload) {
       const ts = str(payload, "lastUpdateTimestamp");
       if (ts) data.lastUpdateTimestamp = ts;
@@ -77,8 +95,8 @@ export const userHandlers: Record<string, HandlerFn> = {
   getAchievementsByUserId: async (repo, payload) => {
     const userId = str(payload, "userId");
     if (!userId) return missing("userId");
-    const achievements = await repo.user.getAchievementsByUserId(userId);
-    return { ok: true, achievements };
+    const achievedRecords = await repo.user.getAchievementsByUserId(userId);
+    return { ok: true, achievedRecords };
   },
 
   getUsersByChannelId: async (repo, payload) => {
@@ -100,5 +118,13 @@ export const userHandlers: Record<string, HandlerFn> = {
     if (!achievementId) return missing("achievementId");
     const users = await repo.user.getUsersByAchievementId(achievementId);
     return { ok: true, users };
+  },
+
+  nukeUser: async (repo, payload) => {
+    const id = str(payload, "userId", "id");
+    if (!id) return missing("userId");
+    const deleted = await repo.user.nukeUser(id);
+    if (!deleted) return { ok: false, error: "user not found" };
+    return { ok: true };
   },
 };

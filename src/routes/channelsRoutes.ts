@@ -13,5 +13,6 @@ export function createChannelsRoutes(db: Database): express.Router {
   router.get("/:id", c.getById);
   router.put("/:id", c.update);
   router.get("/:id/users", c.getUsersByChannelId);
+  router.get("/:id/badge", c.getBadgeByChannelId);
   return router;
 }

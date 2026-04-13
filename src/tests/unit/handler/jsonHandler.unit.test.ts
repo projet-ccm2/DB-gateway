@@ -16,7 +16,7 @@ function makeRepoMock(): GatewayRepo {
   const channels: channelDTO[] = [];
   const typeAchievements: typeAchievementDTO[] = [];
   const achievements: achievementDTO[] = [];
-  const badges: badgeDTO[] = [];
+  const badges: (badgeDTO & { channelId?: string })[] = [];
   const achieved: achievedDTO[] = [];
   const are: areDTO[] = [];
   const possesses: possessesDTO[] = [];
@@ -30,6 +30,7 @@ function makeRepoMock(): GatewayRepo {
         profileImageUrl?: string | null;
         channelDescription?: string | null;
         scope?: string | null;
+        xp?: number;
       }) => {
         const u: userDTO = {
           id: user.id,
@@ -38,6 +39,7 @@ function makeRepoMock(): GatewayRepo {
           profileImageUrl: user.profileImageUrl ?? null,
           channelDescription: user.channelDescription ?? null,
           scope: user.scope ?? null,
+          xp: user.xp ?? 0,
         };
         users.push(u);
         return u;
@@ -51,6 +53,7 @@ function makeRepoMock(): GatewayRepo {
           profileImageUrl?: string | null;
           channelDescription?: string | null;
           scope?: string | null;
+          xp?: number;
           lastUpdateTimestamp?: string;
         },
       ) => {
@@ -62,6 +65,7 @@ function makeRepoMock(): GatewayRepo {
         if (data.channelDescription !== undefined)
           user.channelDescription = data.channelDescription;
         if (data.scope !== undefined) user.scope = data.scope;
+        if (data.xp !== undefined) user.xp = data.xp;
         if (data.lastUpdateTimestamp !== undefined)
           user.lastUpdateTimestamp = data.lastUpdateTimestamp;
         return user;
@@ -91,6 +95,7 @@ function makeRepoMock(): GatewayRepo {
               profileImageUrl: user!.profileImageUrl ?? null,
               channelDescription: user!.channelDescription ?? null,
               scope: user!.scope ?? null,
+              xp: user!.xp,
               userType: a.userType,
             };
           }),
@@ -104,20 +109,44 @@ function makeRepoMock(): GatewayRepo {
             (a) => a.achievementId === achievementId && a.userId === u.id,
           ),
         ),
+      nukeUser: async (userId: string) => {
+        const idx = users.findIndex((u) => u.id === userId);
+        if (idx === -1) return false;
+        users.splice(idx, 1);
+        return true;
+      },
     },
     channel: {
-      addChannel: async (id: string, name: string) => {
-        const c = { id, name };
+      addChannel: async (
+        id: string,
+        name: string,
+        discordWebhookUrl?: string | null,
+      ) => {
+        const c = {
+          id,
+          name,
+          discordWebhookUrl: discordWebhookUrl ?? null,
+        };
         channels.push(c);
         return c;
       },
       getChannelById: async (id: string) =>
         channels.find((c) => c.id === id) ?? null,
-      updateChannel: async (id: string, data: { name?: string }) => {
+      updateChannel: async (
+        id: string,
+        data: { name?: string; discordWebhookUrl?: string | null },
+      ) => {
         const channel = channels.find((c) => c.id === id);
         if (!channel) return null;
         if (data.name !== undefined) channel.name = data.name;
+        if (data.discordWebhookUrl !== undefined)
+          channel.discordWebhookUrl = data.discordWebhookUrl ?? null;
         return channel;
+      },
+      getBadgeByChannelId: async (channelId: string) => {
+        const b = badges.find((b) => b.channelId === channelId);
+        if (!b) return null;
+        return { id: b.id, title: b.title, img: b.img };
       },
     },
     typeAchievement: {
@@ -131,21 +160,109 @@ function makeRepoMock(): GatewayRepo {
     },
     achievement: {
       addAchievement: async (a) => {
-        const ach = { id: "a_" + a.title, ...a };
+        const typeAch = typeAchievements.find((t) => t.id === a.typeId);
+        if (!typeAch) return null;
+        const ach = {
+          id: "a_" + a.title,
+          ...a,
+          downloads: 0,
+          visits: 0,
+          channelId: a.channelId ?? null,
+          typeAchievement: typeAch,
+        };
         achievements.push(ach);
         return ach;
       },
       getAchievementById: async (id: string) =>
         achievements.find((a) => a.id === id) ?? null,
+      updateAchievementActive: async (id: string, active: boolean) => {
+        const ach = achievements.find((a) => a.id === id);
+        if (!ach) return null;
+        ach.active = active;
+        return ach;
+      },
+      updateAchievementPublic: async (id: string, isPublic: boolean) => {
+        const ach = achievements.find((a) => a.id === id);
+        if (!ach) return null;
+        ach.public = isPublic;
+        return ach;
+      },
+      updateAchievement: async (
+        id: string,
+        data: {
+          title?: string;
+          description?: string;
+          goal?: number;
+          reward?: number;
+          label?: string;
+          public?: boolean;
+          active?: boolean;
+          secret?: boolean;
+          image?: string;
+          typeId?: string;
+        },
+      ) => {
+        const ach = achievements.find((a) => a.id === id);
+        if (!ach) return null;
+        if (data.title !== undefined) ach.title = data.title;
+        if (data.description !== undefined) ach.description = data.description;
+        if (data.goal !== undefined) ach.goal = data.goal;
+        if (data.reward !== undefined) ach.reward = data.reward;
+        if (data.label !== undefined) ach.label = data.label;
+        if (data.public !== undefined) ach.public = data.public;
+        if (data.active !== undefined) ach.active = data.active;
+        if (data.secret !== undefined) ach.secret = data.secret;
+        if (data.image !== undefined) ach.image = data.image;
+        if (data.typeId !== undefined) {
+          const newType = typeAchievements.find((t) => t.id === data.typeId);
+          if (newType) ach.typeAchievement = newType;
+        }
+        return ach;
+      },
+      getPublicAchievements: async () => {
+        return achievements.filter((a) => a.public === true);
+      },
+      getAchievementDefinitionsByUserId: async (userId: string) => {
+        const userAchievedIds = new Set(
+          achieved
+            .filter((a) => a.userId === userId)
+            .map((a) => a.achievementId),
+        );
+        return achievements
+          .filter((a) => userAchievedIds.has(a.id))
+          .map((a) => ({
+            ...a,
+            achieved:
+              achieved.find(
+                (ac) => ac.achievementId === a.id && ac.userId === userId,
+              ) ?? null,
+          }));
+      },
+      deleteAchievement: async (id: string) => {
+        const idx = achievements.findIndex((a) => a.id === id);
+        if (idx === -1) return null;
+        const [removed] = achievements.splice(idx, 1);
+        return removed;
+      },
     },
     badge: {
-      addBadge: async (title: string, img: string) => {
-        const b = { id: "b_" + title, title, img };
+      addBadge: async (title: string, img: string, channelId: string) => {
+        const ch = channels.find((c) => c.id === channelId);
+        if (!ch) return null;
+        const b = {
+          id: "b_" + title,
+          title,
+          img,
+          channelId,
+        };
         badges.push(b);
-        return b;
+        return { id: b.id, title: b.title, img: b.img };
       },
-      getBadgeById: async (id: string) =>
-        badges.find((b) => b.id === id) ?? null,
+      getBadgeById: async (id: string) => {
+        const b = badges.find((b) => b.id === id);
+        if (!b) return null;
+        return { id: b.id, title: b.title, img: b.img };
+      },
     },
     achieved: {
       addAchieved: async (a: achievedDTO) => {
@@ -211,8 +328,11 @@ function makeRepoMock(): GatewayRepo {
 describe("jsonHandler full coverage", () => {
   let repo: GatewayRepo;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repo = makeRepoMock();
+    // Seed types used by achievement tests
+    await repo.typeAchievement.addTypeAchievement("TL", "TD");
+    await repo.typeAchievement.addTypeAchievement("NTL", "NTD");
   });
 
   test("user create/get", async () => {
@@ -295,8 +415,16 @@ describe("jsonHandler full coverage", () => {
       },
     });
     await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_testbadge", name: "testbadge" },
+    });
+    await handleJsonMessage(repo, {
       action: "createBadge",
-      payload: { title: "testbadge", img: "badge.png" },
+      payload: {
+        title: "testbadge",
+        img: "badge.png",
+        channelId: "ch_testbadge",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createPossesses",
@@ -344,8 +472,10 @@ describe("jsonHandler full coverage", () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.achievements).toHaveLength(1);
-    expect(result.achievements![0].achievementId).toBe("a1");
+    expect(result.achievedRecords).toHaveLength(1);
+    expect(
+      (result.achievedRecords![0] as { achievementId: string }).achievementId,
+    ).toBe("a1");
   });
 
   test("getUsersByChannelId with userType", async () => {
@@ -391,8 +521,16 @@ describe("jsonHandler full coverage", () => {
       },
     });
     await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_rarebadge", name: "rarebadge" },
+    });
+    await handleJsonMessage(repo, {
       action: "createBadge",
-      payload: { title: "rarebadge", img: "rare.png" },
+      payload: {
+        title: "rarebadge",
+        img: "rare.png",
+        channelId: "ch_rarebadge",
+      },
     });
     await handleJsonMessage(repo, {
       action: "createPossesses",
@@ -473,6 +611,104 @@ describe("jsonHandler full coverage", () => {
     }
   });
 
+  test("channel create with discordWebhookUrl", async () => {
+    const create = await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: {
+        id: "c_wh",
+        name: "whchan",
+        discordWebhookUrl: "https://discord.com/api/webhooks/handler",
+      },
+    });
+    expect(create.ok).toBe(true);
+    if (create.ok) {
+      expect(create.channel?.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/handler",
+      );
+    }
+  });
+
+  test("channel update discordWebhookUrl", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "c_upd_wh", name: "UW" },
+    });
+    const update = await handleJsonMessage(repo, {
+      action: "updateChannel",
+      payload: {
+        channelId: "c_upd_wh",
+        discordWebhookUrl: "https://discord.com/api/webhooks/updated",
+      },
+    });
+    expect(update.ok).toBe(true);
+    if (update.ok) {
+      expect(update.channel?.discordWebhookUrl).toBe(
+        "https://discord.com/api/webhooks/updated",
+      );
+    }
+  });
+
+  test("createChannel returns error when discordWebhookUrl is invalid type", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_bad_wh", name: "badwh", discordWebhookUrl: 12345 },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("invalid discordWebhookUrl");
+    }
+  });
+
+  test("updateChannel returns error when discordWebhookUrl is invalid type", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_upd_bad_wh", name: "updbadwh" },
+    });
+    const result = await handleJsonMessage(repo, {
+      action: "updateChannel",
+      payload: { channelId: "ch_upd_bad_wh", discordWebhookUrl: { url: "x" } },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("invalid discordWebhookUrl");
+    }
+  });
+
+  test("getBadgeByChannelId returns null for unknown channel", async () => {
+    const res = await handleJsonMessage(repo, {
+      action: "getBadgeByChannelId",
+      payload: { channelId: "no-channel" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.badge).toBeNull();
+    }
+  });
+
+  test("getBadgeByChannelId returns badge when linked", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_linked", name: "LinkedChannel" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createBadge",
+      payload: {
+        title: "linked_badge",
+        img: "linked.png",
+        channelId: "ch_linked",
+      },
+    });
+    const res = await handleJsonMessage(repo, {
+      action: "getBadgeByChannelId",
+      payload: { channelId: "ch_linked" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.badge).not.toBeNull();
+      expect(res.badge?.title).toBe("linked_badge");
+    }
+  });
+
   test("typeAchievement create/get", async () => {
     const create = await handleJsonMessage(repo, {
       action: "createTypeAchievement",
@@ -496,6 +732,11 @@ describe("jsonHandler full coverage", () => {
         goal: 1,
         reward: 2,
         label: "lab",
+        public: false,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: "t_TL",
       },
     });
     expect(create.ok).toBe(true);
@@ -507,10 +748,335 @@ describe("jsonHandler full coverage", () => {
     expect(get.ok).toBe(true);
   });
 
+  test("achievement activate/deactivate", async () => {
+    const create = await handleJsonMessage(repo, {
+      action: "createAchievement",
+      payload: {
+        title: "Toggle",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: "t_TL",
+      },
+    });
+    expect(create.ok).toBe(true);
+
+    const deactivate = await handleJsonMessage(repo, {
+      action: "deactivateAchievement",
+      payload: { achievementId: "a_Toggle" },
+    });
+    expect(deactivate.ok).toBe(true);
+    expect(
+      (deactivate as { achievement: { active: boolean } }).achievement.active,
+    ).toBe(false);
+
+    const activate = await handleJsonMessage(repo, {
+      action: "activateAchievement",
+      payload: { achievementId: "a_Toggle" },
+    });
+    expect(activate.ok).toBe(true);
+    expect(
+      (activate as { achievement: { active: boolean } }).achievement.active,
+    ).toBe(true);
+  });
+
+  test("achievement activate returns not found for unknown id", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "activateAchievement",
+      payload: { achievementId: "unknown" },
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  test("achievement public/private", async () => {
+    const create = await handleJsonMessage(repo, {
+      action: "createAchievement",
+      payload: {
+        title: "ToggleVis",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: "t_TL",
+      },
+    });
+    expect(create.ok).toBe(true);
+
+    const makePublic = await handleJsonMessage(repo, {
+      action: "publicAchievement",
+      payload: { achievementId: "a_ToggleVis" },
+    });
+    expect(makePublic.ok).toBe(true);
+    expect(
+      (makePublic as { achievement: { public: boolean } }).achievement.public,
+    ).toBe(true);
+
+    const makePrivate = await handleJsonMessage(repo, {
+      action: "privateAchievement",
+      payload: { achievementId: "a_ToggleVis" },
+    });
+    expect(makePrivate.ok).toBe(true);
+    expect(
+      (makePrivate as { achievement: { public: boolean } }).achievement.public,
+    ).toBe(false);
+  });
+
+  test("achievement public returns not found for unknown id", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "publicAchievement",
+      payload: { achievementId: "unknown" },
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  test("getPublicAchievements returns only public achievements", async () => {
+    await handleJsonMessage(repo, {
+      action: "createAchievement",
+      payload: {
+        title: "MarketPub",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: true,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: "t_TL",
+      },
+    });
+    await handleJsonMessage(repo, {
+      action: "createAchievement",
+      payload: {
+        title: "MarketPriv",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: "t_TL",
+      },
+    });
+    const result = await handleJsonMessage(repo, {
+      action: "getPublicAchievements",
+      payload: {},
+    });
+    expect(result.ok).toBe(true);
+    const achievements = (
+      result as unknown as { achievementsWithType: Array<{ public: boolean }> }
+    ).achievementsWithType;
+    expect(achievements.length).toBeGreaterThanOrEqual(1);
+    expect(achievements.every((a) => a.public === true)).toBe(true);
+  });
+
+  test("getAchievementDefinitionsByUserId returns achievements with achieved data", async () => {
+    const createRes = await handleJsonMessage(repo, {
+      action: "createAchievement",
+      payload: {
+        title: "DefByUser",
+        description: "D",
+        goal: 5,
+        reward: 10,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: "t_TL",
+      },
+    });
+    const achId = (createRes as unknown as { achievement: { id: string } })
+      .achievement.id;
+    await handleJsonMessage(repo, {
+      action: "createAchieved",
+      payload: {
+        achievementId: achId,
+        userId: "defUser1",
+        count: 3,
+        finished: false,
+        labelActive: true,
+        acquiredDate: "2024-06-01T00:00:00.000Z",
+      },
+    });
+    const result = await handleJsonMessage(repo, {
+      action: "getAchievementDefinitionsByUserId",
+      payload: { userId: "defUser1" },
+    });
+    expect(result.ok).toBe(true);
+    const achs = (
+      result as unknown as {
+        achievementDefinitions: Array<{
+          title: string;
+          achieved: { userId: string } | null;
+        }>;
+      }
+    ).achievementDefinitions;
+    expect(achs.length).toBeGreaterThanOrEqual(1);
+    const match = achs.find((a) => a.title === "DefByUser");
+    expect(match).toBeDefined();
+    expect(match?.achieved).not.toBeNull();
+    expect(match?.achieved?.userId).toBe("defUser1");
+  });
+
+  test("getAchievementDefinitionsByUserId missing userId returns error", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "getAchievementDefinitionsByUserId",
+      payload: {},
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  test("updateAchievement updates and returns achievement", async () => {
+    const create = await handleJsonMessage(repo, {
+      action: "createAchievement",
+      payload: {
+        title: "UpdA",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "i.png",
+        typeId: "t_TL",
+      },
+    });
+    expect(create.ok).toBe(true);
+    const achId = (
+      create as unknown as { ok: true; achievement: { id: string } }
+    ).achievement.id;
+
+    const result = await handleJsonMessage(repo, {
+      action: "updateAchievement",
+      payload: {
+        achievementId: achId,
+        title: "UpdNew",
+        description: "ND",
+        goal: 99,
+        reward: 50,
+        label: "NL",
+        public: true,
+        active: false,
+        secret: true,
+        image: "n.png",
+        typeId: "t_NTL",
+      },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.achievement?.title).toBe("UpdNew");
+      expect(result.achievement?.goal).toBe(99);
+      expect(result.achievement?.typeAchievement.label).toBe("NTL");
+    }
+  });
+
+  test("updateAchievement returns error when not found", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "updateAchievement",
+      payload: {
+        achievementId: "nonexistent",
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "i.png",
+        typeId: "t_TL",
+      },
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  test("updateAchievement returns error when achievementId missing", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "updateAchievement",
+      payload: {
+        title: "T",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "i.png",
+        typeId: "t_TL",
+      },
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  test("deleteAchievement deletes and returns achievement", async () => {
+    const create = await handleJsonMessage(repo, {
+      action: "createAchievement",
+      payload: {
+        title: "DelHdl",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "i.png",
+        typeId: "t_TL",
+      },
+    });
+    expect(create.ok).toBe(true);
+    const achId = (
+      create as unknown as { ok: true; achievement: { id: string } }
+    ).achievement.id;
+
+    const result = await handleJsonMessage(repo, {
+      action: "deleteAchievement",
+      payload: { achievementId: achId },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.achievement?.id).toBe(achId);
+    }
+  });
+
+  test("deleteAchievement returns error when not found", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "deleteAchievement",
+      payload: { achievementId: "nonexistent" },
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  test("deleteAchievement returns error when achievementId missing", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "deleteAchievement",
+      payload: {},
+    });
+    expect(result.ok).toBe(false);
+  });
+
   test("badge create/get", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch-badge-cg", name: "badgecg" },
+    });
     const create = await handleJsonMessage(repo, {
       action: "createBadge",
-      payload: { title: "B", img: "i" },
+      payload: { title: "B", img: "i", channelId: "ch-badge-cg" },
     });
     expect(create.ok).toBe(true);
 
@@ -519,6 +1085,40 @@ describe("jsonHandler full coverage", () => {
       payload: { badgeId: "b_B" },
     });
     expect(get.ok).toBe(true);
+  });
+
+  test("createBadge returns error when channelId not found", async () => {
+    const result = await handleJsonMessage(repo, {
+      action: "createBadge",
+      payload: { title: "Orphan", img: "o.png", channelId: "nonexistent" },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("channelId not found");
+    }
+  });
+
+  test("createBadge returns error on P2002 duplicate channelId", async () => {
+    const p2002 = Object.assign(new Error("Unique constraint"), {
+      code: "P2002",
+    });
+    const racyRepo: GatewayRepo = {
+      ...repo,
+      badge: {
+        addBadge: async () => {
+          throw p2002;
+        },
+        getBadgeById: async () => null,
+      },
+    };
+    const res = await handleJsonMessage(racyRepo, {
+      action: "createBadge",
+      payload: { title: "Dup", img: "d.png", channelId: "ch_A" },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.error).toBe("badge already exists for channel");
+    }
   });
 
   test("achieved create/get", async () => {
@@ -689,6 +1289,52 @@ describe("jsonHandler full coverage", () => {
     expect(get.ok).toBe(true);
   });
 
+  test("possesses create returns error when already exists", async () => {
+    await handleJsonMessage(repo, {
+      action: "createPossesses",
+      payload: {
+        userId: "u_dup",
+        badgeId: "b_dup",
+        acquiredDate: "2023-01-01T00:00:00Z",
+      },
+    });
+    const dup = await handleJsonMessage(repo, {
+      action: "createPossesses",
+      payload: {
+        userId: "u_dup",
+        badgeId: "b_dup",
+        acquiredDate: "2023-06-01T00:00:00Z",
+      },
+    });
+    expect(dup.ok).toBe(false);
+    if (!dup.ok) expect(dup.error).toBe("already exists");
+  });
+
+  test("possesses create returns already exists on P2002 race condition", async () => {
+    const p2002 = Object.assign(new Error("Unique constraint"), {
+      code: "P2002",
+    });
+    const racyRepo: GatewayRepo = {
+      ...repo,
+      possesses: {
+        getPossesses: async () => null,
+        addPossesses: async () => {
+          throw p2002;
+        },
+      },
+    };
+    const res = await handleJsonMessage(racyRepo, {
+      action: "createPossesses",
+      payload: {
+        userId: "u_race",
+        badgeId: "b_race",
+        acquiredDate: "2024-01-01T00:00:00Z",
+      },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("already exists");
+  });
+
   test("unknown action", async () => {
     const res = await handleJsonMessage(repo, {
       action: "nope",
@@ -704,10 +1350,13 @@ describe("jsonHandler full coverage", () => {
       "createChannel",
       "getChannel",
       "updateChannel",
+      "getBadgeByChannelId",
       "createTypeAchievement",
       "getTypeAchievement",
       "createAchievement",
       "getAchievement",
+      "activateAchievement",
+      "deactivateAchievement",
       "createBadge",
       "getBadge",
       "createAchieved",
@@ -890,6 +1539,119 @@ describe("jsonHandler full coverage", () => {
     const res = await handleJsonMessage(repo, {
       action: "updateUser",
       payload: { username: "test" },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toContain("missing");
+  });
+
+  test("createUser returns error when xp is negative", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_neg_xp",
+        username: "negxp",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+        xp: -1,
+      },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("xp must be a non-negative number");
+  });
+
+  test("createUser returns error when xp is non-numeric string", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_bad_xp",
+        username: "badxp",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+        xp: "abc",
+      },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("xp must be a number");
+  });
+
+  test("updateUser updates xp with a valid positive value", async () => {
+    const repo = makeRepoMock();
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_xp_ok",
+        username: "xpok",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    });
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { userId: "twitch_xp_ok", xp: 42 },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.user?.xp).toBe(42);
+  });
+
+  test("updateUser returns error when xp is negative", async () => {
+    const repo = makeRepoMock();
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_up_neg",
+        username: "upneg",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    });
+    const res = await handleJsonMessage(repo, {
+      action: "updateUser",
+      payload: { userId: "twitch_up_neg", xp: -5 },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBe("xp must be a non-negative number");
+  });
+
+  // ── nukeUser ──────────────────────────────────────────────────────────
+
+  test("nukeUser deletes the user and returns ok", async () => {
+    const repo = makeRepoMock();
+    await handleJsonMessage(repo, {
+      action: "createUser",
+      payload: {
+        id: "twitch_nuke",
+        username: "nukeMe",
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      },
+    });
+    const res = await handleJsonMessage(repo, {
+      action: "nukeUser",
+      payload: { userId: "twitch_nuke" },
+    });
+    expect(res.ok).toBe(true);
+
+    // user should no longer exist
+    const get = await handleJsonMessage(repo, {
+      action: "getUser",
+      payload: { userId: "twitch_nuke" },
+    });
+    expect(get.ok).toBe(true);
+    if (get.ok) expect(get.user).toBeNull();
+  });
+
+  test("nukeUser returns error when user does not exist", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "nukeUser",
+      payload: { userId: "nonexistent" },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toContain("not found");
+  });
+
+  test("nukeUser returns error when userId is missing", async () => {
+    const repo = makeRepoMock();
+    const res = await handleJsonMessage(repo, {
+      action: "nukeUser",
+      payload: {},
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toContain("missing");

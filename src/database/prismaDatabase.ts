@@ -14,9 +14,142 @@ import {
   achievedDTO,
   areDTO,
   possessesDTO,
+  AchievementInput,
+  AchievementUpdateData,
+  AchievedPayload,
 } from "./database";
+import { encrypt, decrypt } from "../utils/encryption";
+
+type PrismaTransactionClient = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
+>;
+
+/* ── Prisma row shapes used by mapper helpers ── */
+
+type PrismaUser = {
+  id: string;
+  username: string;
+  profileImageUrl: string | null;
+  channelDescription: string | null;
+  scope: string | null;
+  xp: number;
+  lastUpdateTimestamp: Date;
+};
+
+type PrismaAchievementWithType = {
+  id: string;
+  title: string;
+  description: string;
+  goal: number;
+  reward: number;
+  label: string;
+  public: boolean;
+  downloads: number;
+  visits: number;
+  active: boolean;
+  secret: boolean;
+  image: string;
+  channelId: string | null;
+  type: { id: string; label: string; data: string };
+};
+
+type PrismaAchievedRow = {
+  achievementId: string;
+  userId: string;
+  count: number;
+  finished: boolean;
+  labelActive: boolean;
+  acquiredDate: Date;
+};
+
+type PrismaAchievementWithAchieved = PrismaAchievementWithType & {
+  achieved: PrismaAchievedRow[];
+};
+
+/* ── Mapper helpers ── */
+
+function toUserDTO(u: PrismaUser): userDTO {
+  return {
+    id: u.id,
+    username: u.username,
+    profileImageUrl: u.profileImageUrl,
+    channelDescription: u.channelDescription,
+    scope: u.scope,
+    xp: u.xp,
+    lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
+  };
+}
+
+function toAchievementDTO(a: PrismaAchievementWithType): achievementDTO {
+  return {
+    id: a.id,
+    title: a.title,
+    description: a.description,
+    goal: a.goal,
+    reward: a.reward,
+    label: a.label,
+    public: a.public,
+    downloads: a.downloads,
+    visits: a.visits,
+    active: a.active,
+    secret: a.secret,
+    image: a.image,
+    channelId: a.channelId,
+    typeAchievement: {
+      id: a.type.id,
+      label: a.type.label,
+      data: a.type.data,
+    },
+  };
+}
+
+function toAchievedDTO(r: PrismaAchievedRow): achievedDTO {
+  return {
+    achievementId: r.achievementId,
+    userId: r.userId,
+    count: r.count,
+    finished: r.finished,
+    labelActive: r.labelActive,
+    acquiredDate: r.acquiredDate.toISOString(),
+  };
+}
+
+function toAchievementWithAchievedDTO(
+  a: PrismaAchievementWithAchieved,
+): achievementWithTypeAndAchievedDTO {
+  const achievedRecord = a.achieved[0];
+  return {
+    ...toAchievementDTO(a),
+    achieved: achievedRecord ? toAchievedDTO(achievedRecord) : null,
+  };
+}
+
+async function handleP2025<T>(fn: () => Promise<T>): Promise<T | null> {
+  try {
+    return await fn();
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as { code: string }).code === "P2025"
+    ) {
+      return null;
+    }
+    throw error;
+  }
+}
 
 export class PrismaDatabase implements Database {
+  async getPublicAchievements(): Promise<achievementWithTypeDTO[]> {
+    const achievements = await this.prisma.achievement.findMany({
+      where: { public: true },
+      include: { type: true },
+      orderBy: { id: "asc" },
+    });
+    return achievements.map(toAchievementDTO);
+  }
+
   async getAchievementsByChannelId(
     channelId: string,
   ): Promise<achievementWithTypeDTO[]> {
@@ -25,31 +158,7 @@ export class PrismaDatabase implements Database {
       include: { type: true },
       orderBy: { id: "asc" },
     });
-    return achievements.map(
-      (achievement: {
-        id: string;
-        title: string;
-        description: string;
-        goal: number;
-        reward: number;
-        label: string;
-        type: { id: string; label: string; data: string } | null;
-      }) => ({
-        id: achievement.id,
-        title: achievement.title,
-        description: achievement.description,
-        goal: achievement.goal,
-        reward: achievement.reward,
-        label: achievement.label,
-        typeAchievement: achievement.type
-          ? {
-              id: achievement.type.id,
-              label: achievement.type.label,
-              data: achievement.type.data,
-            }
-          : null,
-      }),
-    );
+    return achievements.map(toAchievementDTO);
   }
 
   async getAchievementsByUserAndChannel(
@@ -64,53 +173,11 @@ export class PrismaDatabase implements Database {
       },
       orderBy: { id: "asc" },
     });
-    const list: achievementWithTypeAndAchievedDTO[] = achievements.map(
-      (achievement: {
-        id: string;
-        title: string;
-        description: string;
-        goal: number;
-        reward: number;
-        label: string;
-        type: { id: string; label: string; data: string } | null;
-        achieved: Array<{
-          achievementId: string;
-          userId: string;
-          count: number;
-          finished: boolean;
-          labelActive: boolean;
-          acquiredDate: Date;
-        }>;
-      }) => {
-        const achievedRecord = achievement.achieved[0];
-        return {
-          id: achievement.id,
-          title: achievement.title,
-          description: achievement.description,
-          goal: achievement.goal,
-          reward: achievement.reward,
-          label: achievement.label,
-          typeAchievement: achievement.type
-            ? {
-                id: achievement.type.id,
-                label: achievement.type.label,
-                data: achievement.type.data,
-              }
-            : null,
-          achieved: achievedRecord
-            ? {
-                achievementId: achievedRecord.achievementId,
-                userId: achievedRecord.userId,
-                count: achievedRecord.count,
-                finished: achievedRecord.finished,
-                labelActive: achievedRecord.labelActive,
-                acquiredDate: achievedRecord.acquiredDate.toISOString(),
-              }
-            : null,
-        };
-      },
-    );
-    return { userId, channelId, achievements: list };
+    return {
+      userId,
+      channelId,
+      achievements: achievements.map(toAchievementWithAchievedDTO),
+    };
   }
 
   async getAchievedByUserAndChannels(
@@ -126,23 +193,7 @@ export class PrismaDatabase implements Database {
       },
       include: { achievement: true },
     });
-    return achieved.map(
-      (r: {
-        achievementId: string;
-        userId: string;
-        count: number;
-        finished: boolean;
-        labelActive: boolean;
-        acquiredDate: Date;
-      }) => ({
-        achievementId: r.achievementId,
-        userId: r.userId,
-        count: r.count,
-        finished: r.finished,
-        labelActive: r.labelActive,
-        acquiredDate: r.acquiredDate.toISOString(),
-      }),
-    );
+    return achieved.map(toAchievedDTO);
   }
   private readonly prisma: PrismaClient;
 
@@ -164,14 +215,7 @@ export class PrismaDatabase implements Database {
   async getUserById(id: string): Promise<userDTO | null> {
     const u = await this.prisma.user.findUnique({ where: { id } });
     if (!u) return null;
-    return {
-      id: u.id,
-      username: u.username,
-      profileImageUrl: u.profileImageUrl,
-      channelDescription: u.channelDescription,
-      scope: u.scope,
-      lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
-    };
+    return toUserDTO(u);
   }
 
   async addUser(user: {
@@ -180,6 +224,7 @@ export class PrismaDatabase implements Database {
     profileImageUrl?: string | null;
     channelDescription?: string | null;
     scope?: string | null;
+    xp?: number;
     lastUpdateTimestamp: string;
   }): Promise<userDTO> {
     const u = await this.prisma.user.create({
@@ -189,38 +234,16 @@ export class PrismaDatabase implements Database {
         profileImageUrl: user.profileImageUrl ?? null,
         channelDescription: user.channelDescription ?? null,
         scope: user.scope ?? null,
+        xp: user.xp ?? 0,
         lastUpdateTimestamp: new Date(user.lastUpdateTimestamp),
       },
     });
-    return {
-      id: u.id,
-      username: u.username,
-      profileImageUrl: u.profileImageUrl,
-      channelDescription: u.channelDescription,
-      scope: u.scope,
-      lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
-    };
+    return toUserDTO(u);
   }
 
   async getAllUsers(): Promise<userDTO[]> {
     const users = await this.prisma.user.findMany();
-    return users.map(
-      (u: {
-        id: string;
-        username: string;
-        profileImageUrl: string | null;
-        channelDescription: string | null;
-        scope: string | null;
-        lastUpdateTimestamp: Date;
-      }) => ({
-        id: u.id,
-        username: u.username,
-        profileImageUrl: u.profileImageUrl,
-        channelDescription: u.channelDescription,
-        scope: u.scope,
-        lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
-      }),
-    );
+    return users.map(toUserDTO);
   }
 
   async updateUser(
@@ -230,6 +253,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp?: string;
     },
   ): Promise<userDTO | null> {
@@ -239,6 +263,7 @@ export class PrismaDatabase implements Database {
       profileImageUrl?: string | null;
       channelDescription?: string | null;
       scope?: string | null;
+      xp?: number;
       lastUpdateTimestamp?: Date;
     } = {};
     if (data.username !== undefined) updateData.username = data.username;
@@ -247,6 +272,7 @@ export class PrismaDatabase implements Database {
     if (data.channelDescription !== undefined)
       updateData.channelDescription = data.channelDescription;
     if (data.scope !== undefined) updateData.scope = data.scope;
+    if (data.xp !== undefined) updateData.xp = data.xp;
     if (data.lastUpdateTimestamp !== undefined)
       updateData.lastUpdateTimestamp = new Date(data.lastUpdateTimestamp);
 
@@ -255,14 +281,7 @@ export class PrismaDatabase implements Database {
         where: { id },
         data: updateData,
       });
-      return {
-        id: u.id,
-        username: u.username,
-        profileImageUrl: u.profileImageUrl,
-        channelDescription: u.channelDescription,
-        scope: u.scope,
-        lastUpdateTimestamp: u.lastUpdateTimestamp.toISOString(),
-      };
+      return toUserDTO(u);
     } catch (error: unknown) {
       // Prisma throws P2025 when record not found
       if (
@@ -279,40 +298,59 @@ export class PrismaDatabase implements Database {
   async getChannelById(id: string): Promise<channelDTO | null> {
     const c = await this.prisma.channel.findUnique({ where: { id } });
     if (!c) return null;
-    return { id: c.id, name: c.name };
+    return {
+      id: c.id,
+      name: c.name,
+      discordWebhookUrl:
+        c.discordWebhookUrl == null ? null : decrypt(c.discordWebhookUrl),
+    };
   }
 
-  async addChannel(channel: { id: string; name: string }): Promise<channelDTO> {
+  async addChannel(channel: {
+    id: string;
+    name: string;
+    discordWebhookUrl?: string | null;
+  }): Promise<channelDTO> {
     const c = await this.prisma.channel.create({
-      data: { id: channel.id, name: channel.name },
+      data: {
+        id: channel.id,
+        name: channel.name,
+        discordWebhookUrl:
+          channel.discordWebhookUrl == null
+            ? null
+            : encrypt(channel.discordWebhookUrl),
+      },
     });
-    return { id: c.id, name: c.name };
+    return {
+      id: c.id,
+      name: c.name,
+      discordWebhookUrl:
+        c.discordWebhookUrl == null ? null : decrypt(c.discordWebhookUrl),
+    };
   }
 
   async updateChannel(
     id: string,
-    data: { name?: string },
+    data: { name?: string; discordWebhookUrl?: string | null },
   ): Promise<channelDTO | null> {
-    const updateData: { name?: string } = {};
+    const updateData: { name?: string; discordWebhookUrl?: string | null } = {};
     if (data.name !== undefined) updateData.name = data.name;
+    if (data.discordWebhookUrl !== undefined)
+      updateData.discordWebhookUrl =
+        data.discordWebhookUrl == null ? null : encrypt(data.discordWebhookUrl);
 
-    try {
+    return handleP2025(async () => {
       const c = await this.prisma.channel.update({
         where: { id },
         data: updateData,
       });
-      return { id: c.id, name: c.name };
-    } catch (error: unknown) {
-      // Prisma throws P2025 when record not found
-      if (
-        error instanceof Error &&
-        "code" in error &&
-        (error as { code: string }).code === "P2025"
-      ) {
-        return null;
-      }
-      throw error;
-    }
+      return {
+        id: c.id,
+        name: c.name,
+        discordWebhookUrl:
+          c.discordWebhookUrl == null ? null : decrypt(c.discordWebhookUrl),
+      };
+    });
   }
 
   async getTypeAchievementById(id: string): Promise<typeAchievementDTO | null> {
@@ -334,26 +372,86 @@ export class PrismaDatabase implements Database {
   async getAchievementById(id: string): Promise<achievementDTO | null> {
     const achievement = await this.prisma.achievement.findUnique({
       where: { id },
+      include: { type: true },
     });
     if (!achievement) return null;
-    return {
-      id: achievement.id,
-      title: achievement.title,
-      description: achievement.description,
-      goal: achievement.goal,
-      reward: achievement.reward,
-      label: achievement.label,
-    };
+    return toAchievementDTO(achievement);
   }
 
-  async addAchievement(achievement: {
-    title: string;
-    description: string;
-    goal: number;
-    reward: number;
-    label: string;
-    channelId?: string | null;
-  }): Promise<achievementDTO> {
+  async updateAchievementActive(
+    id: string,
+    active: boolean,
+  ): Promise<achievementDTO | null> {
+    return handleP2025(async () => {
+      const updated = await this.prisma.achievement.update({
+        where: { id },
+        data: { active },
+        include: { type: true },
+      });
+      return toAchievementDTO(updated);
+    });
+  }
+
+  async updateAchievementPublic(
+    id: string,
+    isPublic: boolean,
+  ): Promise<achievementDTO | null> {
+    return handleP2025(async () => {
+      const updated = await this.prisma.achievement.update({
+        where: { id },
+        data: { public: isPublic },
+        include: { type: true },
+      });
+      return toAchievementDTO(updated);
+    });
+  }
+
+  async updateAchievement(
+    id: string,
+    data: AchievementUpdateData,
+  ): Promise<achievementDTO | null> {
+    const { typeId, ...achievementData } = data;
+    if (typeId !== undefined) {
+      const typeExists = await this.prisma.typeAchievement.findUnique({
+        where: { id: typeId },
+      });
+      if (!typeExists) return null;
+    }
+    return handleP2025(async () => {
+      const updated = await this.prisma.achievement.update({
+        where: { id },
+        data: {
+          ...achievementData,
+          ...(typeId === undefined ? {} : { typeId }),
+        },
+        include: { type: true },
+      });
+      return toAchievementDTO(updated);
+    });
+  }
+
+  async deleteAchievement(id: string): Promise<achievementDTO | null> {
+    const existing = await this.prisma.achievement.findUnique({
+      where: { id },
+      include: { type: true },
+    });
+    if (!existing) return null;
+    return handleP2025(async () => {
+      await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+        await tx.achieved.deleteMany({ where: { achievementId: id } });
+        await tx.achievement.delete({ where: { id } });
+      });
+      return toAchievementDTO(existing);
+    });
+  }
+
+  async addAchievement(
+    achievement: AchievementInput,
+  ): Promise<achievementDTO | null> {
+    const typeExists = await this.prisma.typeAchievement.findUnique({
+      where: { id: achievement.typeId },
+    });
+    if (!typeExists) return null;
     const created = await this.prisma.achievement.create({
       data: {
         title: achievement.title,
@@ -361,23 +459,18 @@ export class PrismaDatabase implements Database {
         goal: achievement.goal,
         reward: achievement.reward,
         label: achievement.label,
-        channelId: achievement.channelId ?? undefined,
-        public: false,
+        public: achievement.public,
         downloads: 0,
         visits: 0,
-        active: true,
-        secret: false,
-        image: "",
+        active: achievement.active,
+        secret: achievement.secret,
+        image: achievement.image,
+        channelId: achievement.channelId ?? undefined,
+        typeId: achievement.typeId,
       },
+      include: { type: true },
     });
-    return {
-      id: created.id,
-      title: created.title,
-      description: created.description,
-      goal: created.goal,
-      reward: created.reward,
-      label: created.label,
-    };
+    return toAchievementDTO(created);
   }
 
   async getBadgeById(id: string): Promise<badgeDTO | null> {
@@ -386,9 +479,27 @@ export class PrismaDatabase implements Database {
     return { id: b.id, title: b.title, img: b.img };
   }
 
-  async addBadge(b: { title: string; img: string }): Promise<badgeDTO> {
+  async getBadgeByChannelId(channelId: string): Promise<badgeDTO | null> {
+    const b = await this.prisma.badge.findUnique({ where: { channelId } });
+    if (!b) return null;
+    return { id: b.id, title: b.title, img: b.img };
+  }
+
+  async addBadge(b: {
+    title: string;
+    img: string;
+    channelId: string;
+  }): Promise<badgeDTO | null> {
+    const channelExists = await this.prisma.channel.findUnique({
+      where: { id: b.channelId },
+    });
+    if (!channelExists) return null;
     const nb = await this.prisma.badge.create({
-      data: { title: b.title, img: b.img },
+      data: {
+        title: b.title,
+        img: b.img,
+        channelId: b.channelId,
+      },
     });
     return { id: nb.id, title: nb.title, img: nb.img };
   }
@@ -404,24 +515,10 @@ export class PrismaDatabase implements Database {
       },
     });
     if (!record) return null;
-    return {
-      achievementId: record.achievementId,
-      userId: record.userId,
-      count: record.count,
-      finished: record.finished,
-      labelActive: record.labelActive,
-      acquiredDate: record.acquiredDate.toISOString(),
-    };
+    return toAchievedDTO(record);
   }
 
-  async addAchieved(payload: {
-    achievementId: string;
-    userId: string;
-    count: number;
-    finished: boolean;
-    labelActive: boolean;
-    acquiredDate: string;
-  }): Promise<achievedDTO> {
+  async addAchieved(payload: AchievedPayload): Promise<achievedDTO> {
     const result = await this.prisma.achieved.upsert({
       where: {
         // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
@@ -445,24 +542,10 @@ export class PrismaDatabase implements Database {
         acquiredDate: new Date(payload.acquiredDate),
       },
     });
-    return {
-      achievementId: result.achievementId,
-      userId: result.userId,
-      count: result.count,
-      finished: result.finished,
-      labelActive: result.labelActive,
-      acquiredDate: result.acquiredDate.toISOString(),
-    };
+    return toAchievedDTO(result);
   }
 
-  async updateAchieved(payload: {
-    achievementId: string;
-    userId: string;
-    count: number;
-    finished: boolean;
-    labelActive: boolean;
-    acquiredDate: string;
-  }): Promise<achievedDTO | null> {
+  async updateAchieved(payload: AchievedPayload): Promise<achievedDTO | null> {
     const existing = await this.prisma.achieved.findUnique({
       where: {
         // Prisma compound unique key name from schema
@@ -489,14 +572,7 @@ export class PrismaDatabase implements Database {
         acquiredDate: new Date(payload.acquiredDate),
       },
     });
-    return {
-      achievementId: result.achievementId,
-      userId: result.userId,
-      count: result.count,
-      finished: result.finished,
-      labelActive: result.labelActive,
-      acquiredDate: result.acquiredDate.toISOString(),
-    };
+    return toAchievedDTO(result);
   }
 
   async getAre(userId: string, channelId: string): Promise<areDTO | null> {
@@ -561,7 +637,7 @@ export class PrismaDatabase implements Database {
     const updateData: { userType?: string } = {};
     if (data.userType !== undefined) updateData.userType = data.userType;
 
-    try {
+    return handleP2025(async () => {
       const updated = await this.prisma.are.update({
         // eslint-disable-next-line camelcase -- Prisma compound unique key name from schema
         where: { userId_channelId: { userId, channelId } },
@@ -572,16 +648,7 @@ export class PrismaDatabase implements Database {
         channelId: updated.channelId,
         userType: updated.userType,
       };
-    } catch (error: unknown) {
-      if (
-        error instanceof Error &&
-        "code" in error &&
-        (error as { code: string }).code === "P2025"
-      ) {
-        return null;
-      }
-      throw error;
-    }
+    });
   }
 
   async deleteAre(userId: string, channelId: string): Promise<boolean> {
@@ -670,23 +737,21 @@ export class PrismaDatabase implements Database {
     const achievedRecords = await this.prisma.achieved.findMany({
       where: { userId },
     });
-    return achievedRecords.map(
-      (r: {
-        achievementId: string;
-        userId: string;
-        count: number;
-        finished: boolean;
-        labelActive: boolean;
-        acquiredDate: Date;
-      }) => ({
-        achievementId: r.achievementId,
-        userId: r.userId,
-        count: r.count,
-        finished: r.finished,
-        labelActive: r.labelActive,
-        acquiredDate: r.acquiredDate.toISOString(),
-      }),
-    );
+    return achievedRecords.map(toAchievedDTO);
+  }
+
+  async getAchievementDefinitionsByUserId(
+    userId: string,
+  ): Promise<achievementWithTypeAndAchievedDTO[]> {
+    const achievements = await this.prisma.achievement.findMany({
+      where: { achieved: { some: { userId } } },
+      include: {
+        type: true,
+        achieved: { where: { userId } },
+      },
+      orderBy: { id: "asc" },
+    });
+    return achievements.map(toAchievementWithAchievedDTO);
   }
 
   async getUsersByChannelId(channelId: string): Promise<channelUserDTO[]> {
@@ -694,27 +759,10 @@ export class PrismaDatabase implements Database {
       where: { channelId },
       include: { user: true },
     });
-    return areRecords.map(
-      (r: {
-        user: {
-          id: string;
-          username: string;
-          profileImageUrl: string | null;
-          channelDescription: string | null;
-          scope: string | null;
-          lastUpdateTimestamp: Date;
-        };
-        userType: string;
-      }) => ({
-        id: r.user.id,
-        username: r.user.username,
-        profileImageUrl: r.user.profileImageUrl,
-        channelDescription: r.user.channelDescription,
-        scope: r.user.scope,
-        lastUpdateTimestamp: r.user.lastUpdateTimestamp.toISOString(),
-        userType: r.userType,
-      }),
-    );
+    return areRecords.map((r: { user: PrismaUser; userType: string }) => ({
+      ...toUserDTO(r.user),
+      userType: r.userType,
+    }));
   }
 
   async getUsersByBadgeId(badgeId: string): Promise<userDTO[]> {
@@ -722,25 +770,7 @@ export class PrismaDatabase implements Database {
       where: { badgeId },
       include: { user: true },
     });
-    return possessRecords.map(
-      (r: {
-        user: {
-          id: string;
-          username: string;
-          profileImageUrl: string | null;
-          channelDescription: string | null;
-          scope: string | null;
-          lastUpdateTimestamp: Date;
-        };
-      }) => ({
-        id: r.user.id,
-        username: r.user.username,
-        profileImageUrl: r.user.profileImageUrl,
-        channelDescription: r.user.channelDescription,
-        scope: r.user.scope,
-        lastUpdateTimestamp: r.user.lastUpdateTimestamp.toISOString(),
-      }),
-    );
+    return possessRecords.map((r: { user: PrismaUser }) => toUserDTO(r.user));
   }
 
   async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
@@ -748,28 +778,92 @@ export class PrismaDatabase implements Database {
       where: { achievementId },
       include: { user: true },
     });
-    return achievedRecords.map(
-      (r: {
-        user: {
-          id: string;
-          username: string;
-          profileImageUrl: string | null;
-          channelDescription: string | null;
-          scope: string | null;
-          lastUpdateTimestamp: Date;
-        };
-      }) => ({
-        id: r.user.id,
-        username: r.user.username,
-        profileImageUrl: r.user.profileImageUrl,
-        channelDescription: r.user.channelDescription,
-        scope: r.user.scope,
-        lastUpdateTimestamp: r.user.lastUpdateTimestamp.toISOString(),
-      }),
-    );
+    return achievedRecords.map((r: { user: PrismaUser }) => toUserDTO(r.user));
   }
 
   async disconnect(): Promise<void> {
     if (this.prisma?.$disconnect) await this.prisma.$disconnect();
+  }
+
+  async nukeUser(userId: string): Promise<boolean> {
+    try {
+      await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+        // Verify user exists inside the transaction
+        const user = await tx.user.findUnique({ where: { id: userId } });
+        if (!user) {
+          throw Object.assign(new Error("User not found"), {
+            code: "USER_NOT_FOUND",
+          });
+        }
+
+        // 1. Delete user's own achieved records
+        await tx.achieved.deleteMany({ where: { userId } });
+
+        // 2. Delete user's own possesses records
+        await tx.possesses.deleteMany({ where: { userId } });
+
+        // 3. Delete user's own are (channel-membership) records
+        await tx.are.deleteMany({ where: { userId } });
+
+        // 4. Delete other users' achieved on achievements linked to user's channel
+        const channelAchievements = await tx.achievement.findMany({
+          where: { channelId: userId },
+          select: { id: true },
+        });
+        const achievementIds = channelAchievements.map(
+          (a: { id: string }) => a.id,
+        );
+        if (achievementIds.length > 0) {
+          await tx.achieved.deleteMany({
+            where: { achievementId: { in: achievementIds } },
+          });
+        }
+
+        // 5. Delete other users' possesses for the badge linked to user's channel
+        const channelBadge = await tx.badge.findUnique({
+          where: { channelId: userId },
+          select: { id: true },
+        });
+        if (channelBadge) {
+          await tx.possesses.deleteMany({
+            where: { badgeId: channelBadge.id },
+          });
+        }
+
+        // 6. Delete other users' are records for user's channel
+        await tx.are.deleteMany({ where: { channelId: userId } });
+
+        // 7. Delete achievements linked to user's channel
+        if (achievementIds.length > 0) {
+          await tx.achievement.deleteMany({
+            where: { channelId: userId },
+          });
+        }
+
+        // 8. Delete badge linked to user's channel
+        if (channelBadge) {
+          await tx.badge.delete({ where: { id: channelBadge.id } });
+        }
+
+        // 9. Delete user's channel
+        const channel = await tx.channel.findUnique({
+          where: { id: userId },
+        });
+        if (channel) {
+          await tx.channel.delete({ where: { id: userId } });
+        }
+
+        // 10. Delete the user
+        await tx.user.delete({ where: { id: userId } });
+      });
+
+      return true;
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code;
+      if (code === "USER_NOT_FOUND" || code === "P2025") {
+        return false;
+      }
+      throw err;
+    }
   }
 }
