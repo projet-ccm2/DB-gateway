@@ -41,7 +41,7 @@ interface MockAchievedData {
   count: number;
   finished: boolean;
   labelActive: boolean;
-  acquiredDate: Date | string;
+  acquiredDate: Date | string | null;
 }
 interface MockAreData {
   userId: string;
@@ -486,10 +486,41 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                     };
                 this._achieved.set(key, raw);
                 const acquiredDate =
-                  raw.acquiredDate instanceof Date
-                    ? raw.acquiredDate
-                    : new Date(raw.acquiredDate);
+                  raw.acquiredDate == null
+                    ? null
+                    : raw.acquiredDate instanceof Date
+                      ? raw.acquiredDate
+                      : new Date(raw.acquiredDate);
                 return { ...raw, acquiredDate };
+              },
+              update: async ({
+                where,
+                data,
+              }: {
+                where: {
+                  achievementId_userId: {
+                    achievementId: string;
+                    userId: string;
+                  };
+                };
+                data: Partial<MockAchievedData>;
+              }) => {
+                const key =
+                  where.achievementId_userId.achievementId +
+                  "|" +
+                  where.achievementId_userId.userId;
+                const existing = this._achieved.get(key);
+                if (!existing)
+                  throw Object.assign(new Error(), { code: "P2025" });
+                const updated = { ...existing, ...data };
+                this._achieved.set(key, updated);
+                const acquiredDate =
+                  updated.acquiredDate == null
+                    ? null
+                    : updated.acquiredDate instanceof Date
+                      ? updated.acquiredDate
+                      : new Date(updated.acquiredDate as string);
+                return { ...updated, acquiredDate };
               },
               findMany: async (opts?: {
                 where?: FindManyWhere;
@@ -774,7 +805,69 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         acquiredDate: new Date().toISOString(),
       });
       expect(achv.achievementId).toBe(a.id);
+      expect(achv.acquiredDate).not.toBeNull();
       expect(await db.getAchieved(a.id, "missing_user")).toBeNull();
+
+      // addAchieved with null acquiredDate
+      const a2 = (await db.addAchievement({
+        title: "NullDateAch",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: t.id,
+      }))!;
+      const achvNull = await db.addAchieved({
+        achievementId: a2.id,
+        userId: addedUser.id,
+        count: 0,
+        finished: false,
+        labelActive: true,
+        acquiredDate: null,
+      });
+      expect(achvNull.acquiredDate).toBeNull();
+      const fetchedNull = await db.getAchieved(a2.id, addedUser.id);
+      expect(fetchedNull?.acquiredDate).toBeNull();
+
+      // updateAchieved with a date
+      const updatedAchv = await db.updateAchieved({
+        achievementId: a.id,
+        userId: addedUser.id,
+        count: 5,
+        finished: true,
+        labelActive: false,
+        acquiredDate: "2025-06-01T00:00:00.000Z",
+      });
+      expect(updatedAchv).not.toBeNull();
+      expect(updatedAchv?.count).toBe(5);
+      expect(updatedAchv?.acquiredDate).toBe("2025-06-01T00:00:00.000Z");
+
+      // updateAchieved with null acquiredDate
+      const updatedNull = await db.updateAchieved({
+        achievementId: a.id,
+        userId: addedUser.id,
+        count: 5,
+        finished: true,
+        labelActive: false,
+        acquiredDate: null,
+      });
+      expect(updatedNull).not.toBeNull();
+      expect(updatedNull?.acquiredDate).toBeNull();
+
+      // updateAchieved returns null for non-existent record
+      const updatedMissing = await db.updateAchieved({
+        achievementId: "missing",
+        userId: "missing",
+        count: 1,
+        finished: false,
+        labelActive: true,
+        acquiredDate: null,
+      });
+      expect(updatedMissing).toBeNull();
 
       // Test getAchievementDefinitionsByUserId
       const defList = await db.getAchievementDefinitionsByUserId(addedUser.id);
