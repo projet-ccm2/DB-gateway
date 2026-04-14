@@ -13,7 +13,7 @@ Creates or updates a user’s achievement completion record.
 | count         | number  | yes      | Count                       |
 | finished      | boolean | yes      | Whether achievement is done |
 | labelActive   | boolean | yes      | Label active                |
-| acquiredDate  | string  | yes      | Acquisition date (ISO 8601) |
+| acquiredDate  | string  | no       | Acquisition date (ISO 8601), null if not yet completed |
 
 ### Responses
 
@@ -26,7 +26,7 @@ Creates or updates a user’s achievement completion record.
   "count": 1,
   "finished": false,
   "labelActive": true,
-  "acquiredDate": "2024-01-01T00:00:00.000Z"
+  "acquiredDate": null
 }
 ```
 
@@ -34,7 +34,7 @@ Creates or updates a user’s achievement completion record.
 
 ```json
 {
-  "error": "achievementId, userId, count, finished, labelActive, acquiredDate required"
+  "error": "achievementId, userId, count, finished, labelActive required"
 }
 ```
 
@@ -61,7 +61,7 @@ Updates an existing user’s achievement completion record. All fields are requi
 | count         | number  | yes      | Count                       |
 | finished      | boolean | yes      | Whether achievement is done |
 | labelActive   | boolean | yes      | Label active                |
-| acquiredDate  | string  | yes      | Acquisition date (ISO 8601) |
+| acquiredDate  | string  | no       | Acquisition date (ISO 8601), null if not yet completed |
 
 ### Responses
 
@@ -74,7 +74,7 @@ Updates an existing user’s achievement completion record. All fields are requi
   "count": 1,
   "finished": false,
   "labelActive": true,
-  "acquiredDate": "2024-01-01T00:00:00.000Z"
+  "acquiredDate": null
 }
 ```
 
@@ -82,7 +82,7 @@ Updates an existing user’s achievement completion record. All fields are requi
 
 ```json
 {
-  "error": "achievementId, userId, count, finished, labelActive, acquiredDate required"
+  "error": "achievementId, userId, count, finished, labelActive required"
 }
 ```
 

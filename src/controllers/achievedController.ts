@@ -7,48 +7,50 @@ import {
   sendInternalError,
 } from "./helpers";
 
+type AchievedBody = {
+  achievementId?: string;
+  userId?: string;
+  count?: number;
+  finished?: boolean;
+  labelActive?: boolean;
+  acquiredDate?: string | null;
+};
+
+function parseAchievedBody(body: AchievedBody) {
+  const { achievementId, userId, count, finished, labelActive } = body;
+  const acquiredDate = body.acquiredDate ?? null;
+  if (
+    !achievementId ||
+    !userId ||
+    count == null ||
+    finished == null ||
+    labelActive == null
+  ) {
+    return null;
+  }
+  return {
+    achievementId,
+    userId,
+    count: Number(count),
+    finished: Boolean(finished),
+    labelActive: Boolean(labelActive),
+    acquiredDate,
+  };
+}
+
 export function createAchievedController(repo: AchievedRepository) {
   return {
     create: async (req: Request, res: Response): Promise<void> => {
       try {
-        const body = req.body as {
-          achievementId?: string;
-          userId?: string;
-          count?: number;
-          finished?: boolean;
-          labelActive?: boolean;
-          acquiredDate?: string;
-        };
-        const {
-          achievementId,
-          userId,
-          count,
-          finished,
-          labelActive,
-          acquiredDate,
-        } = body;
-        if (
-          !achievementId ||
-          !userId ||
-          count == null ||
-          finished == null ||
-          labelActive == null ||
-          !acquiredDate
-        ) {
+        const parsed = parseAchievedBody(req.body as AchievedBody);
+        if (!parsed) {
           res.status(BAD_REQUEST).json({
             error:
-              "achievementId, userId, count, finished, labelActive, acquiredDate required",
+              "achievementId, userId, count, finished, labelActive required",
           });
           return;
         }
-        const achieved = await repo.add({
-          achievementId,
-          userId,
-          count: Number(count),
-          finished: Boolean(finished),
-          labelActive: Boolean(labelActive),
-          acquiredDate,
-        });
+        const achieved = await repo.add(parsed);
         res.status(201).json(achieved);
       } catch (err: unknown) {
         sendInternalError(res, "POST /achieved error", err);
@@ -78,44 +80,15 @@ export function createAchievedController(repo: AchievedRepository) {
 
     update: async (req: Request, res: Response): Promise<void> => {
       try {
-        const body = req.body as {
-          achievementId?: string;
-          userId?: string;
-          count?: number;
-          finished?: boolean;
-          labelActive?: boolean;
-          acquiredDate?: string;
-        };
-        const {
-          achievementId,
-          userId,
-          count,
-          finished,
-          labelActive,
-          acquiredDate,
-        } = body;
-        if (
-          !achievementId ||
-          !userId ||
-          count == null ||
-          finished == null ||
-          labelActive == null ||
-          !acquiredDate
-        ) {
+        const parsed = parseAchievedBody(req.body as AchievedBody);
+        if (!parsed) {
           res.status(BAD_REQUEST).json({
             error:
-              "achievementId, userId, count, finished, labelActive, acquiredDate required",
+              "achievementId, userId, count, finished, labelActive required",
           });
           return;
         }
-        const achieved = await repo.update({
-          achievementId,
-          userId,
-          count: Number(count),
-          finished: Boolean(finished),
-          labelActive: Boolean(labelActive),
-          acquiredDate,
-        });
+        const achieved = await repo.update(parsed);
         if (!achieved) {
           res.status(NOT_FOUND).json({ error: "not found" });
           return;

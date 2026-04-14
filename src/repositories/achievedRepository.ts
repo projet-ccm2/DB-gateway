@@ -16,7 +16,7 @@ export class AchievedRepository {
     count: number;
     finished: boolean;
     labelActive: boolean;
-    acquiredDate: string;
+    acquiredDate: string | null;
   }): Promise<achievedDTO> {
     return this.db.addAchieved(payload);
   }
@@ -27,7 +27,7 @@ export class AchievedRepository {
     count: number;
     finished: boolean;
     labelActive: boolean;
-    acquiredDate: string;
+    acquiredDate: string | null;
   }): Promise<achievedDTO | null> {
     return this.db.updateAchieved(payload);
   }

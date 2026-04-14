@@ -92,7 +92,7 @@ model Achieved {
   count         Int      @map("Count")
   finished      Boolean  @map("Finished")
   labelActive   Boolean  @map("Label_Active")
-  acquiredDate   DateTime @map("Acquired_Date")
+  acquiredDate   DateTime? @map("Acquired_Date")
 
   user        User        @relation("user_achieved", fields: [userId], references: [id])
   achievement Achievement @relation(fields: [achievementId], references: [id])
