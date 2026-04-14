@@ -58,7 +58,7 @@ export type achievedDTO = {
   count: number;
   finished: boolean;
   labelActive: boolean;
-  acquiredDate: string;
+  acquiredDate: string | null;
 };
 export type areDTO = { userId: string; channelId: string; userType: string };
 export type possessesDTO = {
@@ -100,7 +100,7 @@ export type AchievedPayload = {
   count: number;
   finished: boolean;
   labelActive: boolean;
-  acquiredDate: string;
+  acquiredDate: string | null;
 };
 
 export interface Database {

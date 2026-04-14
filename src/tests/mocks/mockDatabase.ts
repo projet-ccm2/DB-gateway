@@ -343,7 +343,7 @@ export class MockDatabase implements Database {
     count: number;
     finished: boolean;
     labelActive: boolean;
-    acquiredDate: string;
+    acquiredDate: string | null;
   }): Promise<achievedDTO> {
     const existingIndex = this.achieved.findIndex(
       (record) =>
@@ -372,7 +372,7 @@ export class MockDatabase implements Database {
     count: number;
     finished: boolean;
     labelActive: boolean;
-    acquiredDate: string;
+    acquiredDate: string | null;
   }): Promise<achievedDTO | null> {
     const index = this.achieved.findIndex(
       (record) =>

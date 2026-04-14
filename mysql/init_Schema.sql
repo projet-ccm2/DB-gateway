@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS _Achieved(
     Count          INT NOT NULL,
     Finished       BOOL NOT NULL,
     Label_Active   BOOL NOT NULL,
-    Acquired_Date   DATETIME NOT NULL,
+    Acquired_Date   DATETIME NULL,
     CONSTRAINT _Achieved_PK PRIMARY KEY (Achievement_ID,User_ID),
     CONSTRAINT _Achieved_Achievements_FK FOREIGN KEY (Achievement_ID) REFERENCES Achievements(Achievement_ID),
     CONSTRAINT _Achieved_Users0_FK FOREIGN KEY (User_ID) REFERENCES Users(User_ID)

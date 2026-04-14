@@ -60,7 +60,7 @@ type PrismaAchievedRow = {
   count: number;
   finished: boolean;
   labelActive: boolean;
-  acquiredDate: Date;
+  acquiredDate: Date | null;
 };
 
 type PrismaAchievementWithAchieved = PrismaAchievementWithType & {
@@ -111,7 +111,7 @@ function toAchievedDTO(r: PrismaAchievedRow): achievedDTO {
     count: r.count,
     finished: r.finished,
     labelActive: r.labelActive,
-    acquiredDate: r.acquiredDate.toISOString(),
+    acquiredDate: r.acquiredDate ? r.acquiredDate.toISOString() : null,
   };
 }
 
@@ -533,13 +533,17 @@ export class PrismaDatabase implements Database {
         count: payload.count,
         finished: payload.finished,
         labelActive: payload.labelActive,
-        acquiredDate: new Date(payload.acquiredDate),
+        acquiredDate: payload.acquiredDate
+          ? new Date(payload.acquiredDate)
+          : null,
       },
       update: {
         count: payload.count,
         finished: payload.finished,
         labelActive: payload.labelActive,
-        acquiredDate: new Date(payload.acquiredDate),
+        acquiredDate: payload.acquiredDate
+          ? new Date(payload.acquiredDate)
+          : null,
       },
     });
     return toAchievedDTO(result);
@@ -569,7 +573,9 @@ export class PrismaDatabase implements Database {
         count: payload.count,
         finished: payload.finished,
         labelActive: payload.labelActive,
-        acquiredDate: new Date(payload.acquiredDate),
+        acquiredDate: payload.acquiredDate
+          ? new Date(payload.acquiredDate)
+          : null,
       },
     });
     return toAchievedDTO(result);

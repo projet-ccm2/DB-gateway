@@ -17,27 +17,20 @@ export function createAchievedController(repo: AchievedRepository) {
           count?: number;
           finished?: boolean;
           labelActive?: boolean;
-          acquiredDate?: string;
+          acquiredDate?: string | null;
         };
-        const {
-          achievementId,
-          userId,
-          count,
-          finished,
-          labelActive,
-          acquiredDate,
-        } = body;
+        const { achievementId, userId, count, finished, labelActive } = body;
+        const acquiredDate = body.acquiredDate ?? null;
         if (
           !achievementId ||
           !userId ||
           count == null ||
           finished == null ||
-          labelActive == null ||
-          !acquiredDate
+          labelActive == null
         ) {
           res.status(BAD_REQUEST).json({
             error:
-              "achievementId, userId, count, finished, labelActive, acquiredDate required",
+              "achievementId, userId, count, finished, labelActive required",
           });
           return;
         }
@@ -84,27 +77,20 @@ export function createAchievedController(repo: AchievedRepository) {
           count?: number;
           finished?: boolean;
           labelActive?: boolean;
-          acquiredDate?: string;
+          acquiredDate?: string | null;
         };
-        const {
-          achievementId,
-          userId,
-          count,
-          finished,
-          labelActive,
-          acquiredDate,
-        } = body;
+        const { achievementId, userId, count, finished, labelActive } = body;
+        const acquiredDate = body.acquiredDate ?? null;
         if (
           !achievementId ||
           !userId ||
           count == null ||
           finished == null ||
-          labelActive == null ||
-          !acquiredDate
+          labelActive == null
         ) {
           res.status(BAD_REQUEST).json({
             error:
-              "achievementId, userId, count, finished, labelActive, acquiredDate required",
+              "achievementId, userId, count, finished, labelActive required",
           });
           return;
         }
