@@ -67,6 +67,13 @@ export type possessesDTO = {
   acquiredDate: string;
 };
 
+export type leaderboardEntryDTO = {
+  userId: string;
+  username: string;
+  xp: number;
+  completed: number;
+};
+
 export type AchievementInput = {
   title: string;
   description: string;
@@ -216,6 +223,12 @@ export interface Database {
   getAchievementDefinitionsByUserId(
     userId: string,
   ): Promise<achievementWithTypeAndAchievedDTO[]>;
+
+  getLeaderboardByChannelId(
+    channelId: string,
+    limit: number,
+    sort: "xp" | "completed",
+  ): Promise<leaderboardEntryDTO[]>;
 
   getUsersByChannelId(channelId: string): Promise<channelUserDTO[]>;
   getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;

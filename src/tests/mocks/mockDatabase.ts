@@ -13,6 +13,7 @@ import {
   achievedDTO,
   areDTO,
   possessesDTO,
+  leaderboardEntryDTO,
 } from "../../database/database";
 import { randomUUID } from "node:crypto";
 
@@ -499,6 +500,53 @@ export class MockDatabase implements Database {
 
   async getAchievementsByUserId(userId: string): Promise<achievedDTO[]> {
     return this.achieved.filter((record) => record.userId === userId);
+  }
+
+  async getLeaderboardByChannelId(
+    channelId: string,
+    limit: number,
+    sort: "xp" | "completed",
+  ): Promise<leaderboardEntryDTO[]> {
+    const channelAchievementIds = new Set(
+      this.achievements
+        .filter((a) => a.channelId === channelId)
+        .map((a) => a.id),
+    );
+    const relevantAchieved = this.achieved.filter((r) =>
+      channelAchievementIds.has(r.achievementId),
+    );
+    const map = new Map<
+      string,
+      { username: string; xp: number; completed: number }
+    >();
+    for (const r of relevantAchieved) {
+      const user = this.users.find((u) => u.id === r.userId);
+      if (!user) continue;
+      const entry = map.get(r.userId);
+      if (entry) {
+        if (r.finished) entry.completed++;
+      } else {
+        map.set(r.userId, {
+          username: user.username,
+          xp: user.xp,
+          completed: r.finished ? 1 : 0,
+        });
+      }
+    }
+    const entries: leaderboardEntryDTO[] = [...map.entries()].map(
+      ([userId, v]) => ({
+        userId,
+        username: v.username,
+        xp: v.xp,
+        completed: v.completed,
+      }),
+    );
+    entries.sort((a, b) =>
+      sort === "completed"
+        ? b.completed - a.completed || b.xp - a.xp
+        : b.xp - a.xp || b.completed - a.completed,
+    );
+    return entries.slice(0, limit);
   }
 
   async getAchievementDefinitionsByUserId(

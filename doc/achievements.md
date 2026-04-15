@@ -756,3 +756,56 @@ Returns an achievement by ID.
   "error": "Internal server error"
 }
 ```
+
+---
+
+## GET /achievements/channel/:channelId/leaderboard
+
+Returns a leaderboard of users who have at least one achievement record (in progress or completed) on the given channel. Each entry includes the user's XP and number of completed achievements for that channel.
+
+### Path parameters
+
+| Name      | Type   | Description |
+| --------- | ------ | ----------- |
+| channelId | string | Channel ID  |
+
+### Query parameters
+
+| Name  | Type   | Default | Description                                                                   |
+| ----- | ------ | ------- | ----------------------------------------------------------------------------- |
+| limit | number | 10      | Maximum number of entries to return (minimum 1)                               |
+| sort  | string | `xp`    | Sort order: `xp` (descending XP) or `completed` (descending completed count) |
+
+### Responses
+
+**200 OK** — Array of leaderboard entries sorted by the chosen criteria
+
+```json
+[
+  {
+    "userId": "string",
+    "username": "string",
+    "xp": 150,
+    "completed": 5
+  }
+]
+```
+
+- When `sort=xp` (default): sorted by XP descending, ties broken by completed count descending.
+- When `sort=completed`: sorted by completed count descending, ties broken by XP descending.
+
+**400 Bad Request**
+
+```json
+{
+  "error": "channelId required"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```

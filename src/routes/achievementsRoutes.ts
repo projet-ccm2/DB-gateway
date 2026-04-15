@@ -13,6 +13,7 @@ export function createAchievementsRoutes(db: Database): express.Router {
   router.put("/:achievementId", c.update);
   router.delete("/:achievementId", c.remove);
   router.get("/public", c.getPublic);
+  router.get("/channel/:channelId/leaderboard", c.getLeaderboard);
   router.get("/channel/:channelId", c.getByChannelId);
   router.get(
     "/user/:userId/channel/:channelId",
