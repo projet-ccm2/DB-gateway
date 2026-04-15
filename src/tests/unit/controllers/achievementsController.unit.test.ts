@@ -824,4 +824,236 @@ describe("achievementsController (unit)", () => {
     await ctrl.update(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
   });
+
+  it("getLeaderboard returns 400 when channelId missing", async () => {
+    const req = { params: {}, query: {} } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getLeaderboard(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "channelId required" });
+  });
+
+  it("getLeaderboard returns 200 sorted by xp by default", async () => {
+    const freshDb = new MockDatabase();
+    const freshAchievementRepo = new AchievementRepository(freshDb);
+    const freshUserRepo = new UserRepository(freshDb);
+    const freshCtrl = createAchievementsController(
+      freshAchievementRepo,
+      freshUserRepo,
+    );
+    const ch = await freshDb.addChannel({ id: "ch-lb-1", name: "LB" });
+    const t = await freshDb.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await freshDb.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 10,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      channelId: ch.id,
+      typeId: t.id,
+    }))!;
+    await freshDb.addUser({
+      id: "u1",
+      username: "Alice",
+      xp: 100,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await freshDb.addUser({
+      id: "u2",
+      username: "Bob",
+      xp: 200,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await freshDb.addAchieved({
+      achievementId: ach.id,
+      userId: "u1",
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    await freshDb.addAchieved({
+      achievementId: ach.id,
+      userId: "u2",
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    const req = {
+      params: { channelId: ch.id },
+      query: {},
+    } as unknown as Request;
+    const res = mockRes();
+    await freshCtrl.getLeaderboard(req, res);
+    const result = (res.json as jest.Mock).mock.calls[0][0];
+    expect(result).toHaveLength(2);
+    expect(result[0].userId).toBe("u2");
+    expect(result[0].xp).toBe(200);
+    expect(result[1].userId).toBe("u1");
+  });
+
+  it("getLeaderboard respects limit param", async () => {
+    const freshDb = new MockDatabase();
+    const freshAchievementRepo = new AchievementRepository(freshDb);
+    const freshUserRepo = new UserRepository(freshDb);
+    const freshCtrl = createAchievementsController(
+      freshAchievementRepo,
+      freshUserRepo,
+    );
+    const ch = await freshDb.addChannel({ id: "ch-lb-2", name: "LB" });
+    const t = await freshDb.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await freshDb.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 10,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      channelId: ch.id,
+      typeId: t.id,
+    }))!;
+    await freshDb.addUser({
+      id: "u3",
+      username: "C",
+      xp: 50,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await freshDb.addUser({
+      id: "u4",
+      username: "D",
+      xp: 100,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await freshDb.addAchieved({
+      achievementId: ach.id,
+      userId: "u3",
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    await freshDb.addAchieved({
+      achievementId: ach.id,
+      userId: "u4",
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    const req = {
+      params: { channelId: ch.id },
+      query: { limit: "1" },
+    } as unknown as Request;
+    const res = mockRes();
+    await freshCtrl.getLeaderboard(req, res);
+    const result = (res.json as jest.Mock).mock.calls[0][0];
+    expect(result).toHaveLength(1);
+  });
+
+  it("getLeaderboard sorts by completed when sort=completed", async () => {
+    const freshDb = new MockDatabase();
+    const freshAchievementRepo = new AchievementRepository(freshDb);
+    const freshUserRepo = new UserRepository(freshDb);
+    const freshCtrl = createAchievementsController(
+      freshAchievementRepo,
+      freshUserRepo,
+    );
+    const ch = await freshDb.addChannel({ id: "ch-lb-3", name: "LB" });
+    const t = await freshDb.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach1 = (await freshDb.addAchievement({
+      title: "A1",
+      description: "D",
+      goal: 1,
+      reward: 10,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      channelId: ch.id,
+      typeId: t.id,
+    }))!;
+    const ach2 = (await freshDb.addAchievement({
+      title: "A2",
+      description: "D",
+      goal: 1,
+      reward: 10,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      channelId: ch.id,
+      typeId: t.id,
+    }))!;
+    await freshDb.addUser({
+      id: "u5",
+      username: "E",
+      xp: 300,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await freshDb.addUser({
+      id: "u6",
+      username: "F",
+      xp: 50,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await freshDb.addAchieved({
+      achievementId: ach1.id,
+      userId: "u5",
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    await freshDb.addAchieved({
+      achievementId: ach1.id,
+      userId: "u6",
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    await freshDb.addAchieved({
+      achievementId: ach2.id,
+      userId: "u6",
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    const req = {
+      params: { channelId: ch.id },
+      query: { sort: "completed" },
+    } as unknown as Request;
+    const res = mockRes();
+    await freshCtrl.getLeaderboard(req, res);
+    const result = (res.json as jest.Mock).mock.calls[0][0];
+    expect(result[0].userId).toBe("u6");
+    expect(result[0].completed).toBe(2);
+    expect(result[1].userId).toBe("u5");
+    expect(result[1].completed).toBe(1);
+  });
+
+  it("getLeaderboard returns 500 when repo throws", async () => {
+    const throwingAchievementRepo = {
+      getLeaderboard: jest.fn().mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof AchievementRepository>;
+    const c = createAchievementsController(throwingAchievementRepo, userRepo);
+    const req = {
+      params: { channelId: "ch" },
+      query: {},
+    } as unknown as Request;
+    const res = mockRes();
+    await c.getLeaderboard(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
 });

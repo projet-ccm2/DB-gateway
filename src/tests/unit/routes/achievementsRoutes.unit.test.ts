@@ -399,4 +399,146 @@ describe("achievementsRoutes (unit)", () => {
     const res = await request(app).delete("/unknown");
     expect(res.status).toBe(404);
   });
+
+  it("GET /channel/:channelId/leaderboard returns sorted leaderboard", async () => {
+    const db = new MockDatabase();
+    const ch = await db.addChannel({ id: "ch-lb-route", name: "LB" });
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await db.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 10,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      channelId: ch.id,
+      typeId: type.id,
+    }))!;
+    await db.addUser({
+      id: "route-u1",
+      username: "Alice",
+      xp: 50,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await db.addUser({
+      id: "route-u2",
+      username: "Bob",
+      xp: 200,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await db.addAchieved({
+      achievementId: ach.id,
+      userId: "route-u1",
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    await db.addAchieved({
+      achievementId: ach.id,
+      userId: "route-u2",
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    const app = express();
+    app.use(express.json());
+    app.use("/", createAchievementsRoutes(db));
+    const res = await request(app).get(`/channel/${ch.id}/leaderboard`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(2);
+    expect(res.body[0].userId).toBe("route-u2");
+    expect(res.body[0].xp).toBe(200);
+  });
+
+  it("GET /channel/:channelId/leaderboard respects limit and sort", async () => {
+    const db = new MockDatabase();
+    const ch = await db.addChannel({ id: "ch-lb-route2", name: "LB" });
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach1 = (await db.addAchievement({
+      title: "A1",
+      description: "D",
+      goal: 1,
+      reward: 10,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      channelId: ch.id,
+      typeId: type.id,
+    }))!;
+    const ach2 = (await db.addAchievement({
+      title: "A2",
+      description: "D",
+      goal: 1,
+      reward: 10,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      channelId: ch.id,
+      typeId: type.id,
+    }))!;
+    await db.addUser({
+      id: "route-u3",
+      username: "C",
+      xp: 999,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await db.addUser({
+      id: "route-u4",
+      username: "D",
+      xp: 10,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await db.addAchieved({
+      achievementId: ach1.id,
+      userId: "route-u3",
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    await db.addAchieved({
+      achievementId: ach1.id,
+      userId: "route-u4",
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    await db.addAchieved({
+      achievementId: ach2.id,
+      userId: "route-u4",
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    const app = express();
+    app.use(express.json());
+    app.use("/", createAchievementsRoutes(db));
+    const res = await request(app).get(
+      `/channel/${ch.id}/leaderboard?limit=1&sort=completed`,
+    );
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].userId).toBe("route-u4");
+    expect(res.body[0].completed).toBe(2);
+  });
+
+  it("GET /channel/:channelId/leaderboard returns empty for unknown channel", async () => {
+    const app = express();
+    app.use(express.json());
+    app.use("/", createAchievementsRoutes(new MockDatabase()));
+    const res = await request(app).get("/channel/unknown/leaderboard");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
 });

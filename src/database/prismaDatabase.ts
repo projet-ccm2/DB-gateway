@@ -14,6 +14,7 @@ import {
   achievedDTO,
   areDTO,
   possessesDTO,
+  leaderboardEntryDTO,
   AchievementInput,
   AchievementUpdateData,
   AchievedPayload,
@@ -777,6 +778,55 @@ export class PrismaDatabase implements Database {
       include: { user: true },
     });
     return possessRecords.map((r: { user: PrismaUser }) => toUserDTO(r.user));
+  }
+
+  async getLeaderboardByChannelId(
+    channelId: string,
+    limit: number,
+    sort: "xp" | "completed",
+  ): Promise<leaderboardEntryDTO[]> {
+    const rows = await this.prisma.achieved.findMany({
+      where: { achievement: { channelId } },
+      select: {
+        userId: true,
+        finished: true,
+        user: { select: { username: true, xp: true } },
+      },
+    });
+
+    const map = new Map<
+      string,
+      { username: string; xp: number; completed: number }
+    >();
+    for (const r of rows) {
+      const entry = map.get(r.userId);
+      if (entry) {
+        if (r.finished) entry.completed++;
+      } else {
+        map.set(r.userId, {
+          username: r.user.username,
+          xp: r.user.xp,
+          completed: r.finished ? 1 : 0,
+        });
+      }
+    }
+
+    const entries: leaderboardEntryDTO[] = [...map.entries()].map(
+      ([userId, v]) => ({
+        userId,
+        username: v.username,
+        xp: v.xp,
+        completed: v.completed,
+      }),
+    );
+
+    entries.sort((a, b) =>
+      sort === "completed"
+        ? b.completed - a.completed || b.xp - a.xp
+        : b.xp - a.xp || b.completed - a.completed,
+    );
+
+    return entries.slice(0, limit);
   }
 
   async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {
