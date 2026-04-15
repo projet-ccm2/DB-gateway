@@ -10,7 +10,7 @@ datasource db {
 model User {
   id                  String   @id @map("User_ID") @db.VarChar(50)
   username            String   @map("User_Username") @db.VarChar(50)
-  profileImageUrl     String?  @map("Profile_Image_Url") @db.VarChar(255)
+  profileImageUrl     String?  @map("Profile_Image_Url") @db.VarChar(2500)
   channelDescription  String?  @map("Channel_Description") @db.VarChar(500)
   scope               String?  @map("Scope") @db.VarChar(500)
   xp                  Int      @default(0) @map("Xp")
@@ -27,7 +27,7 @@ model User {
 model Channel {
   id                String  @id @map("Channel_ID") @db.VarChar(50)
   name              String  @map("Channel_Name") @db.VarChar(50)
-  discordWebhookUrl String? @map("Discord_Webhook_Url") @db.VarChar(1024)
+  discordWebhookUrl String? @map("Discord_Webhook_Url") @db.VarChar(2500)
 
   achievements Achievement[]
   badges       Badge[]
@@ -58,7 +58,7 @@ model Achievement {
   visits      Int     @map("Achievement_Visits")
   active      Boolean @map("Achievement_Active")
   secret      Boolean @map("Achievement_Secret")
-  image       String  @map("Achievement_Image") @db.VarChar(55)
+  image       String  @map("Achievement_Image") @db.VarChar(2500)
 
   channelId String? @map("Channel_ID") @db.VarChar(50)
   typeId   String  @map("Type_ID")   @db.Char(36)
