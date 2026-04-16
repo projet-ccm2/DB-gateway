@@ -790,7 +790,8 @@ export class PrismaDatabase implements Database {
       select: {
         userId: true,
         finished: true,
-        user: { select: { username: true, xp: true } },
+        user: { select: { username: true } },
+        achievement: { select: { reward: true } },
       },
     });
 
@@ -801,11 +802,14 @@ export class PrismaDatabase implements Database {
     for (const r of rows) {
       const entry = map.get(r.userId);
       if (entry) {
-        if (r.finished) entry.completed++;
+        if (r.finished) {
+          entry.completed++;
+          entry.xp += r.achievement.reward;
+        }
       } else {
         map.set(r.userId, {
           username: r.user.username,
-          xp: r.user.xp,
+          xp: r.finished ? r.achievement.reward : 0,
           completed: r.finished ? 1 : 0,
         });
       }

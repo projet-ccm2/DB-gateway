@@ -398,9 +398,11 @@ describe("achievementRepository (unit)", () => {
     });
     const result = await repo.getLeaderboard(ch.id, 10, "xp");
     expect(result).toHaveLength(2);
-    expect(result[0].userId).toBe("repo-u2");
-    expect(result[0].xp).toBe(200);
-    expect(result[1].completed).toBe(1);
+    expect(result[0].userId).toBe("repo-u1");
+    expect(result[0].xp).toBe(10);
+    expect(result[0].completed).toBe(1);
+    expect(result[1].userId).toBe("repo-u2");
+    expect(result[1].xp).toBe(0);
   });
 
   it("getLeaderboard returns empty array when no achieved", async () => {

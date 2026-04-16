@@ -537,6 +537,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                   userId?: boolean;
                   finished?: boolean;
                   user?: { select?: { username?: boolean; xp?: boolean } };
+                  achievement?: { select?: { reward?: boolean } };
                 };
               }) => {
                 const { where, include, select } = opts ?? {};
@@ -577,6 +578,18 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                             xp: (u as unknown as { xp?: number }).xp ?? 0,
                           }
                         : null;
+                    }
+                    if (select.achievement) {
+                      const ach = [...this._achievements.values()].find(
+                        (a) => a.id === v.achievementId,
+                      );
+                      row.achievement = ach
+                        ? {
+                            reward:
+                              (ach as unknown as { reward?: number }).reward ??
+                              0,
+                          }
+                        : { reward: 0 };
                     }
                     results.push(row);
                   } else {

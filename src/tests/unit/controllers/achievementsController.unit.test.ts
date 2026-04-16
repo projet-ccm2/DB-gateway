@@ -892,9 +892,10 @@ describe("achievementsController (unit)", () => {
     await freshCtrl.getLeaderboard(req, res);
     const result = (res.json as jest.Mock).mock.calls[0][0];
     expect(result).toHaveLength(2);
-    expect(result[0].userId).toBe("u2");
-    expect(result[0].xp).toBe(200);
-    expect(result[1].userId).toBe("u1");
+    expect(result[0].userId).toBe("u1");
+    expect(result[0].xp).toBe(10);
+    expect(result[1].userId).toBe("u2");
+    expect(result[1].xp).toBe(0);
   });
 
   it("getLeaderboard respects limit param", async () => {
