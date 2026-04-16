@@ -451,8 +451,10 @@ describe("achievementsRoutes (unit)", () => {
     const res = await request(app).get(`/channel/${ch.id}/leaderboard`);
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(2);
-    expect(res.body[0].userId).toBe("route-u2");
-    expect(res.body[0].xp).toBe(200);
+    expect(res.body[0].userId).toBe("route-u1");
+    expect(res.body[0].xp).toBe(10);
+    expect(res.body[1].userId).toBe("route-u2");
+    expect(res.body[1].xp).toBe(0);
   });
 
   it("GET /channel/:channelId/leaderboard respects limit and sort", async () => {

@@ -522,13 +522,20 @@ export class MockDatabase implements Database {
     for (const r of relevantAchieved) {
       const user = this.users.find((u) => u.id === r.userId);
       if (!user) continue;
+      const achievement = this.achievements.find(
+        (a) => a.id === r.achievementId,
+      );
+      const reward = achievement?.reward ?? 0;
       const entry = map.get(r.userId);
       if (entry) {
-        if (r.finished) entry.completed++;
+        if (r.finished) {
+          entry.completed++;
+          entry.xp += reward;
+        }
       } else {
         map.set(r.userId, {
           username: user.username,
-          xp: user.xp,
+          xp: r.finished ? reward : 0,
           completed: r.finished ? 1 : 0,
         });
       }

@@ -761,7 +761,7 @@ Returns an achievement by ID.
 
 ## GET /achievements/channel/:channelId/leaderboard
 
-Returns a leaderboard of users who have at least one achievement record (in progress or completed) on the given channel. Each entry includes the user's XP and number of completed achievements for that channel.
+Returns a leaderboard of users who have at least one achievement record (in progress or completed) on the given channel. Each entry includes the user's total XP earned from completed achievements on that channel (sum of `reward` values) and the number of completed achievements.
 
 ### Path parameters
 
@@ -791,8 +791,8 @@ Returns a leaderboard of users who have at least one achievement record (in prog
 ]
 ```
 
-- When `sort=xp` (default): sorted by XP descending, ties broken by completed count descending.
-- When `sort=completed`: sorted by completed count descending, ties broken by XP descending.
+- When `sort=xp` (default): sorted by channel XP (sum of completed achievement rewards) descending, ties broken by completed count descending.
+- When `sort=completed`: sorted by completed count descending, ties broken by channel XP descending.
 
 **400 Bad Request**
 
