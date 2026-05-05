@@ -3,6 +3,7 @@ import {
   achievementDTO,
   achievementWithTypeDTO,
   achievementWithTypeAndAchievedDTO,
+  leaderboardEntryDTO,
 } from "../database/database";
 
 export class AchievementRepository {
@@ -62,6 +63,14 @@ export class AchievementRepository {
 
   async makePrivate(id: string): Promise<achievementDTO | null> {
     return this.db.updateAchievementPublic(id, false);
+  }
+
+  async getLeaderboard(
+    channelId: string,
+    limit: number,
+    sort: "xp" | "completed",
+  ): Promise<leaderboardEntryDTO[]> {
+    return this.db.getLeaderboardByChannelId(channelId, limit, sort);
   }
 
   async add(achievement: {

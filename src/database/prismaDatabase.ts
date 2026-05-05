@@ -14,6 +14,7 @@ import {
   achievedDTO,
   areDTO,
   possessesDTO,
+  leaderboardEntryDTO,
   AchievementInput,
   AchievementUpdateData,
   AchievedPayload,
@@ -60,7 +61,7 @@ type PrismaAchievedRow = {
   count: number;
   finished: boolean;
   labelActive: boolean;
-  acquiredDate: Date;
+  acquiredDate: Date | null;
 };
 
 type PrismaAchievementWithAchieved = PrismaAchievementWithType & {
@@ -111,7 +112,7 @@ function toAchievedDTO(r: PrismaAchievedRow): achievedDTO {
     count: r.count,
     finished: r.finished,
     labelActive: r.labelActive,
-    acquiredDate: r.acquiredDate.toISOString(),
+    acquiredDate: r.acquiredDate ? r.acquiredDate.toISOString() : null,
   };
 }
 
@@ -533,13 +534,17 @@ export class PrismaDatabase implements Database {
         count: payload.count,
         finished: payload.finished,
         labelActive: payload.labelActive,
-        acquiredDate: new Date(payload.acquiredDate),
+        acquiredDate: payload.acquiredDate
+          ? new Date(payload.acquiredDate)
+          : null,
       },
       update: {
         count: payload.count,
         finished: payload.finished,
         labelActive: payload.labelActive,
-        acquiredDate: new Date(payload.acquiredDate),
+        acquiredDate: payload.acquiredDate
+          ? new Date(payload.acquiredDate)
+          : null,
       },
     });
     return toAchievedDTO(result);
@@ -569,7 +574,9 @@ export class PrismaDatabase implements Database {
         count: payload.count,
         finished: payload.finished,
         labelActive: payload.labelActive,
-        acquiredDate: new Date(payload.acquiredDate),
+        acquiredDate: payload.acquiredDate
+          ? new Date(payload.acquiredDate)
+          : null,
       },
     });
     return toAchievedDTO(result);
@@ -771,6 +778,59 @@ export class PrismaDatabase implements Database {
       include: { user: true },
     });
     return possessRecords.map((r: { user: PrismaUser }) => toUserDTO(r.user));
+  }
+
+  async getLeaderboardByChannelId(
+    channelId: string,
+    limit: number,
+    sort: "xp" | "completed",
+  ): Promise<leaderboardEntryDTO[]> {
+    const rows = await this.prisma.achieved.findMany({
+      where: { achievement: { channelId } },
+      select: {
+        userId: true,
+        finished: true,
+        user: { select: { username: true } },
+        achievement: { select: { reward: true } },
+      },
+    });
+
+    const map = new Map<
+      string,
+      { username: string; xp: number; completed: number }
+    >();
+    for (const r of rows) {
+      const entry = map.get(r.userId);
+      if (entry) {
+        if (r.finished) {
+          entry.completed++;
+          entry.xp += r.achievement.reward;
+        }
+      } else {
+        map.set(r.userId, {
+          username: r.user.username,
+          xp: r.finished ? r.achievement.reward : 0,
+          completed: r.finished ? 1 : 0,
+        });
+      }
+    }
+
+    const entries: leaderboardEntryDTO[] = [...map.entries()].map(
+      ([userId, v]) => ({
+        userId,
+        username: v.username,
+        xp: v.xp,
+        completed: v.completed,
+      }),
+    );
+
+    entries.sort((a, b) =>
+      sort === "completed"
+        ? b.completed - a.completed || b.xp - a.xp
+        : b.xp - a.xp || b.completed - a.completed,
+    );
+
+    return entries.slice(0, limit);
   }
 
   async getUsersByAchievementId(achievementId: string): Promise<userDTO[]> {

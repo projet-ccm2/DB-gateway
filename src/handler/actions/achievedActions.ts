@@ -8,14 +8,13 @@ export const achievedHandlers: Record<string, HandlerFn> = {
     const count = num(payload, "count");
     const finished = bool(payload, "finished");
     const labelActive = bool(payload, "labelActive");
-    const acquiredDate = str(payload, "acquiredDate");
+    const acquiredDate = str(payload, "acquiredDate") ?? null;
     if (
       !achievementId ||
       !userId ||
       count == null ||
       finished == null ||
-      labelActive == null ||
-      !acquiredDate
+      labelActive == null
     ) {
       return missing(
         "achievementId",
@@ -23,7 +22,6 @@ export const achievedHandlers: Record<string, HandlerFn> = {
         "count",
         "finished",
         "labelActive",
-        "acquiredDate",
       );
     }
     const achieved = await repo.achieved.addAchieved({

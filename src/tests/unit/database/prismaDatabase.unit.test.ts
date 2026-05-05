@@ -4,6 +4,7 @@ interface MockUserData {
   profileImageUrl?: string | null;
   channelDescription?: string | null;
   scope?: string | null;
+  xp?: number;
   lastUpdateTimestamp: Date | string;
 }
 interface MockChannelData {
@@ -41,7 +42,7 @@ interface MockAchievedData {
   count: number;
   finished: boolean;
   labelActive: boolean;
-  acquiredDate: Date | string;
+  acquiredDate: Date | string | null;
 }
 interface MockAreData {
   userId: string;
@@ -103,6 +104,10 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
           $transaction!: (
             fn: (tx: unknown) => Promise<unknown>,
           ) => Promise<unknown>;
+          $queryRaw!: (
+            strings: TemplateStringsArray,
+            ...values: unknown[]
+          ) => Promise<unknown[]>;
 
           constructor() {
             this._users = new Map();
@@ -124,6 +129,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                   profileImageUrl: data.profileImageUrl ?? null,
                   channelDescription: data.channelDescription ?? null,
                   scope: data.scope ?? null,
+                  xp: data.xp ?? 0,
                   lastUpdateTimestamp:
                     typeof data.lastUpdateTimestamp === "string"
                       ? new Date(data.lastUpdateTimestamp)
@@ -486,16 +492,55 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                     };
                 this._achieved.set(key, raw);
                 const acquiredDate =
-                  raw.acquiredDate instanceof Date
-                    ? raw.acquiredDate
-                    : new Date(raw.acquiredDate);
+                  raw.acquiredDate == null
+                    ? null
+                    : raw.acquiredDate instanceof Date
+                      ? raw.acquiredDate
+                      : new Date(raw.acquiredDate);
                 return { ...raw, acquiredDate };
               },
-              findMany: async (opts?: {
-                where?: FindManyWhere;
-                include?: FindManyInclude;
+              update: async ({
+                where,
+                data,
+              }: {
+                where: {
+                  achievementId_userId: {
+                    achievementId: string;
+                    userId: string;
+                  };
+                };
+                data: Partial<MockAchievedData>;
               }) => {
-                const { where, include } = opts ?? {};
+                const key =
+                  where.achievementId_userId.achievementId +
+                  "|" +
+                  where.achievementId_userId.userId;
+                const existing = this._achieved.get(key);
+                if (!existing)
+                  throw Object.assign(new Error(), { code: "P2025" });
+                const updated = { ...existing, ...data };
+                this._achieved.set(key, updated);
+                const acquiredDate =
+                  updated.acquiredDate == null
+                    ? null
+                    : updated.acquiredDate instanceof Date
+                      ? updated.acquiredDate
+                      : new Date(updated.acquiredDate as string);
+                return { ...updated, acquiredDate };
+              },
+              findMany: async (opts?: {
+                where?: FindManyWhere & {
+                  achievement?: { channelId?: string | { in?: string[] } };
+                };
+                include?: FindManyInclude & { achievement?: boolean };
+                select?: {
+                  userId?: boolean;
+                  finished?: boolean;
+                  user?: { select?: { username?: boolean; xp?: boolean } };
+                  achievement?: { select?: { reward?: boolean } };
+                };
+              }) => {
+                const { where, include, select } = opts ?? {};
                 const results: unknown[] = [];
                 for (const [, v] of this._achieved) {
                   if (where?.userId && v.userId !== where.userId) continue;
@@ -504,9 +549,60 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                     v.achievementId !== where.achievementId
                   )
                     continue;
-                  const row: Record<string, unknown> = { ...v };
-                  if (include?.user) row.user = this._users.get(v.userId);
-                  results.push(row);
+                  if (where?.achievement) {
+                    const ach = [...this._achievements.values()].find(
+                      (a) => a.id === v.achievementId,
+                    );
+                    if (!ach) continue;
+                    const chFilter = where.achievement.channelId;
+                    if (chFilter) {
+                      if (typeof chFilter === "string") {
+                        if (ach.channelId !== chFilter) continue;
+                      } else if (
+                        chFilter.in &&
+                        !chFilter.in.includes(ach.channelId ?? "")
+                      ) {
+                        continue;
+                      }
+                    }
+                  }
+                  if (select) {
+                    const row: Record<string, unknown> = {};
+                    if (select.userId) row.userId = v.userId;
+                    if (select.finished) row.finished = v.finished;
+                    if (select.user) {
+                      const u = this._users.get(v.userId);
+                      row.user = u
+                        ? {
+                            username: u.username,
+                            xp: (u as unknown as { xp?: number }).xp ?? 0,
+                          }
+                        : null;
+                    }
+                    if (select.achievement) {
+                      const ach = [...this._achievements.values()].find(
+                        (a) => a.id === v.achievementId,
+                      );
+                      row.achievement = ach
+                        ? {
+                            reward:
+                              (ach as unknown as { reward?: number }).reward ??
+                              0,
+                          }
+                        : { reward: 0 };
+                    }
+                    results.push(row);
+                  } else {
+                    const row: Record<string, unknown> = { ...v };
+                    if (include?.user) row.user = this._users.get(v.userId);
+                    if (include?.achievement) {
+                      const ach = [...this._achievements.values()].find(
+                        (a) => a.id === v.achievementId,
+                      );
+                      row.achievement = ach ?? null;
+                    }
+                    results.push(row);
+                  }
                 }
                 return results;
               },
@@ -572,6 +668,43 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
                 }
                 return { count };
               },
+              update: async ({
+                where,
+                data,
+              }: {
+                where: {
+                  userId_channelId: { userId: string; channelId: string };
+                };
+                data: Partial<MockAreData>;
+              }) => {
+                const key =
+                  where.userId_channelId.userId +
+                  "|" +
+                  where.userId_channelId.channelId;
+                const existing = this._are.get(key);
+                if (!existing)
+                  throw Object.assign(new Error(), { code: "P2025" });
+                const updated = { ...existing, ...data };
+                this._are.set(key, updated);
+                return updated;
+              },
+              delete: async ({
+                where,
+              }: {
+                where: {
+                  userId_channelId: { userId: string; channelId: string };
+                };
+              }) => {
+                const key =
+                  where.userId_channelId.userId +
+                  "|" +
+                  where.userId_channelId.channelId;
+                const existing = this._are.get(key);
+                if (!existing)
+                  throw Object.assign(new Error(), { code: "P2025" });
+                this._are.delete(key);
+                return existing;
+              },
             };
 
             this.possesses = {
@@ -635,6 +768,7 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
             this.$disconnect = async () => {};
             this.$transaction = async (fn: (tx: unknown) => Promise<unknown>) =>
               fn(this);
+            this.$queryRaw = async () => [{ 1: 1 }];
           }
         },
       };
@@ -774,7 +908,69 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         acquiredDate: new Date().toISOString(),
       });
       expect(achv.achievementId).toBe(a.id);
+      expect(achv.acquiredDate).not.toBeNull();
       expect(await db.getAchieved(a.id, "missing_user")).toBeNull();
+
+      // addAchieved with null acquiredDate
+      const a2 = (await db.addAchievement({
+        title: "NullDateAch",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "img.png",
+        typeId: t.id,
+      }))!;
+      const achvNull = await db.addAchieved({
+        achievementId: a2.id,
+        userId: addedUser.id,
+        count: 0,
+        finished: false,
+        labelActive: true,
+        acquiredDate: null,
+      });
+      expect(achvNull.acquiredDate).toBeNull();
+      const fetchedNull = await db.getAchieved(a2.id, addedUser.id);
+      expect(fetchedNull?.acquiredDate).toBeNull();
+
+      // updateAchieved with a date
+      const updatedAchv = await db.updateAchieved({
+        achievementId: a.id,
+        userId: addedUser.id,
+        count: 5,
+        finished: true,
+        labelActive: false,
+        acquiredDate: "2025-06-01T00:00:00.000Z",
+      });
+      expect(updatedAchv).not.toBeNull();
+      expect(updatedAchv?.count).toBe(5);
+      expect(updatedAchv?.acquiredDate).toBe("2025-06-01T00:00:00.000Z");
+
+      // updateAchieved with null acquiredDate
+      const updatedNull = await db.updateAchieved({
+        achievementId: a.id,
+        userId: addedUser.id,
+        count: 5,
+        finished: true,
+        labelActive: false,
+        acquiredDate: null,
+      });
+      expect(updatedNull).not.toBeNull();
+      expect(updatedNull?.acquiredDate).toBeNull();
+
+      // updateAchieved returns null for non-existent record
+      const updatedMissing = await db.updateAchieved({
+        achievementId: "missing",
+        userId: "missing",
+        count: 1,
+        finished: false,
+        labelActive: true,
+        acquiredDate: null,
+      });
+      expect(updatedMissing).toBeNull();
 
       // Test getAchievementDefinitionsByUserId
       const defList = await db.getAchievementDefinitionsByUserId(addedUser.id);
@@ -795,6 +991,11 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
       });
       expect(ar.userType).toBe("admin");
       expect(await db.getAre("x", "y")).toBeNull();
+
+      // getAre found branch
+      const arFound = await db.getAre(addedUser.id, ch.id);
+      expect(arFound).not.toBeNull();
+      expect(arFound?.userType).toBe("admin");
 
       const p = await db.addPossesses({
         userId: addedUser.id,
@@ -874,6 +1075,244 @@ describe("prismaDatabase adapter (mocked GeneratedPrismaClient)", () => {
         username: "test",
       });
       expect(nonExistentUpdate).toBeNull();
+
+      // ── healthCheck ─────────────────────────────────────────────────
+      const healthy = await db.healthCheck();
+      expect(healthy).toBe(true);
+
+      // ── getAchievementsByChannelId ──────────────────────────────────
+      // First, set a channelId on our existing achievement
+      const achWithCh = await db.updateAchievement(a!.id, {
+        channelId: ch.id,
+      });
+      expect(achWithCh).not.toBeNull();
+
+      const achByCh = await db.getAchievementsByChannelId(ch.id);
+      expect(Array.isArray(achByCh)).toBe(true);
+      expect(achByCh.length).toBeGreaterThanOrEqual(1);
+      expect(achByCh[0]).toHaveProperty("typeAchievement");
+
+      // ── getAchievementsByUserAndChannel ─────────────────────────────
+      const userChAchs = await db.getAchievementsByUserAndChannel(
+        addedUser.id,
+        ch.id,
+      );
+      expect(userChAchs).toHaveProperty("userId", addedUser.id);
+      expect(userChAchs).toHaveProperty("channelId", ch.id);
+      expect(Array.isArray(userChAchs.achievements)).toBe(true);
+
+      // ── getAchievedByUserAndChannels ────────────────────────────────
+      const achByUserChans = await db.getAchievedByUserAndChannels(
+        addedUser.id,
+        [ch.id],
+      );
+      expect(Array.isArray(achByUserChans)).toBe(true);
+
+      // ── getAchievementById ──────────────────────────────────────────
+      const achById = await db.getAchievementById(a!.id);
+      expect(achById).not.toBeNull();
+      expect(achById?.id).toBe(a!.id);
+      expect(achById?.title).toBeDefined();
+
+      // getAchievementById returns null for missing
+      expect(await db.getAchievementById("no-such-id")).toBeNull();
+
+      // ── getBadgeById & getBadgeByChannelId ──────────────────────────
+      const badgeById = await db.getBadgeById(b.id);
+      expect(badgeById).not.toBeNull();
+      expect(badgeById?.id).toBe(b.id);
+
+      const badgeByCh = await db.getBadgeByChannelId("ch-prisma");
+      expect(badgeByCh).not.toBeNull();
+      expect(badgeByCh?.id).toBe(b.id);
+
+      // not found
+      expect(await db.getBadgeById("nope")).toBeNull();
+      expect(await db.getBadgeByChannelId("nope")).toBeNull();
+
+      // ── getAreByUserId & getAreByChannelId ──────────────────────────
+      const areByUser = await db.getAreByUserId(addedUser.id);
+      expect(Array.isArray(areByUser)).toBe(true);
+      expect(areByUser.length).toBeGreaterThanOrEqual(1);
+      expect(areByUser[0]).toHaveProperty("userType");
+
+      const areByCh = await db.getAreByChannelId(ch.id);
+      expect(Array.isArray(areByCh)).toBe(true);
+      expect(areByCh.length).toBeGreaterThanOrEqual(1);
+
+      // ── updateAre ──────────────────────────────────────────────────
+      const updAre = await db.updateAre(addedUser.id, ch.id, {
+        userType: "moderator",
+      });
+      expect(updAre).not.toBeNull();
+      expect(updAre?.userType).toBe("moderator");
+
+      // updateAre returns null for non-existent
+      const updAreNotFound = await db.updateAre("nope", "nope", {
+        userType: "x",
+      });
+      expect(updAreNotFound).toBeNull();
+
+      // ── deleteAre ──────────────────────────────────────────────────
+      // Add a temp are to delete
+      await db.addAre({
+        userId: addedUser.id,
+        channelId: "ch-prisma",
+        userType: "viewer",
+      });
+      const delAre = await db.deleteAre(addedUser.id, "ch-prisma");
+      expect(delAre).toBe(true);
+
+      // deleteAre returns false for non-existent
+      const delAreNotFound = await db.deleteAre("nope", "nope");
+      expect(delAreNotFound).toBe(false);
+
+      // ── getPossesses (found branch) ────────────────────────────────
+      const pFound = await db.getPossesses(addedUser.id, b.id);
+      expect(pFound).not.toBeNull();
+      expect(pFound?.userId).toBe(addedUser.id);
+      expect(pFound?.badgeId).toBe(b.id);
+      expect(pFound?.acquiredDate).toBeDefined();
+
+      // ── getChannelsByUserId ────────────────────────────────────────
+      const chByUser = await db.getChannelsByUserId(addedUser.id);
+      expect(Array.isArray(chByUser)).toBe(true);
+      expect(chByUser.length).toBeGreaterThanOrEqual(1);
+      expect(chByUser[0]).toHaveProperty("name");
+      expect(chByUser[0]).toHaveProperty("userType");
+
+      // ── getBadgesByUserId ──────────────────────────────────────────
+      const badgesByUser = await db.getBadgesByUserId(addedUser.id);
+      expect(Array.isArray(badgesByUser)).toBe(true);
+      expect(badgesByUser.length).toBeGreaterThanOrEqual(1);
+      expect(badgesByUser[0]).toHaveProperty("title");
+
+      // ── getAchievementsByUserId ────────────────────────────────────
+      const achByUser = await db.getAchievementsByUserId(addedUser.id);
+      expect(Array.isArray(achByUser)).toBe(true);
+      expect(achByUser.length).toBeGreaterThanOrEqual(1);
+
+      // ── getUsersByChannelId ────────────────────────────────────────
+      const usersByCh = await db.getUsersByChannelId(ch.id);
+      expect(Array.isArray(usersByCh)).toBe(true);
+      expect(usersByCh.length).toBeGreaterThanOrEqual(1);
+      expect(usersByCh[0]).toHaveProperty("userType");
+      expect(usersByCh[0]).toHaveProperty("username");
+
+      // ── getUsersByBadgeId ──────────────────────────────────────────
+      const usersByBadge = await db.getUsersByBadgeId(b.id);
+      expect(Array.isArray(usersByBadge)).toBe(true);
+      expect(usersByBadge.length).toBeGreaterThanOrEqual(1);
+      expect(usersByBadge[0]).toHaveProperty("username");
+
+      // ── getLeaderboardByChannelId ──────────────────────────────────
+      // Add a second achievement on same channel so user has multiple achieved entries
+      const a3 = await db.addAchievement({
+        title: "LeaderAch",
+        description: "D",
+        goal: 1,
+        reward: 1,
+        label: "L",
+        public: false,
+        active: true,
+        secret: false,
+        image: "",
+        typeId: t.id,
+        channelId: ch.id,
+      });
+      await db.addAchieved({
+        achievementId: a3!.id,
+        userId: addedUser.id,
+        count: 1,
+        finished: true,
+        labelActive: true,
+        acquiredDate: new Date().toISOString(),
+      });
+
+      // Add a second user for leaderboard with different xp
+      const lbUser2 = await db.addUser({
+        id: "twitch_bob",
+        username: "bob",
+        xp: 100,
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      });
+      await db.addAchieved({
+        achievementId: a3!.id,
+        userId: lbUser2.id,
+        count: 1,
+        finished: false,
+        labelActive: true,
+        acquiredDate: null,
+      });
+
+      // Add a third user with same xp as bob (tie-break by completed for xp sort)
+      // and also same completed as bob (tie-break by xp for completed sort)
+      const lbUser3 = await db.addUser({
+        id: "twitch_carol",
+        username: "carol",
+        xp: 100,
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      });
+      // carol has 1 achieved, not finished (same as bob: completed=0, xp=100)
+      await db.addAchieved({
+        achievementId: a3!.id,
+        userId: lbUser3.id,
+        count: 1,
+        finished: false,
+        labelActive: true,
+        acquiredDate: null,
+      });
+      // Also add carol to achievement a (finished=true) so she has completed=1
+      // This makes her different from bob (0) for xp-sort tie-break
+      await db.addAchieved({
+        achievementId: a!.id,
+        userId: lbUser3.id,
+        count: 1,
+        finished: true,
+        labelActive: true,
+        acquiredDate: new Date().toISOString(),
+      });
+
+      // Add fourth user: same xp=100, completed=1 (same as carol) to force completed-sort tie-break by xp
+      const lbUser4 = await db.addUser({
+        id: "twitch_dave",
+        username: "dave",
+        xp: 50,
+        lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+      });
+      await db.addAchieved({
+        achievementId: a3!.id,
+        userId: lbUser4.id,
+        count: 1,
+        finished: true,
+        labelActive: true,
+        acquiredDate: new Date().toISOString(),
+      });
+
+      const lbXp = await db.getLeaderboardByChannelId(ch.id, 10, "xp");
+      expect(Array.isArray(lbXp)).toBe(true);
+      expect(lbXp.length).toBeGreaterThanOrEqual(2);
+      expect(lbXp[0]).toHaveProperty("userId");
+      expect(lbXp[0]).toHaveProperty("username");
+      expect(lbXp[0]).toHaveProperty("xp");
+      expect(lbXp[0]).toHaveProperty("completed");
+
+      // Sort by completed
+      const lbCompleted = await db.getLeaderboardByChannelId(
+        ch.id,
+        10,
+        "completed",
+      );
+      expect(Array.isArray(lbCompleted)).toBe(true);
+
+      // Limit works
+      const lbLimited = await db.getLeaderboardByChannelId(ch.id, 1, "xp");
+      expect(lbLimited.length).toBeLessThanOrEqual(1);
+
+      // ── handleP2025 rethrow (non-P2025 error) ─────────────────────
+      // updateUser re-throws non-P2025 errors (line 295)
+      // This is tested indirectly — the mock update throws P2025 for missing records
+      // To cover the rethrow: we rely on updateAre with P2025 already tested above
 
       // ── nukeUser ────────────────────────────────────────────────────
       // Create a second user with a full channel ecosystem
@@ -1017,6 +1456,113 @@ describe("prismaDatabase not-found branches", () => {
       expect(await db.getAchieved("no", "no")).toBeNull();
       expect(await db.getAre("no", "no")).toBeNull();
       expect(await db.getPossesses("no", "no")).toBeNull();
+      await db.disconnect();
+    });
+  });
+});
+
+describe("prismaDatabase healthCheck failure", () => {
+  jest.isolateModules(() => {
+    jest.doMock("@prisma/client", () => {
+      return {
+        PrismaClient: class {
+          $queryRaw = async () => {
+            throw new Error("connection refused");
+          };
+          $disconnect = async () => {};
+        },
+      };
+    });
+
+    const { PrismaDatabase } = require("../../../database/prismaDatabase");
+    test("healthCheck returns false when $queryRaw throws", async () => {
+      const db = new PrismaDatabase();
+      expect(await db.healthCheck()).toBe(false);
+      await db.disconnect();
+    });
+  });
+});
+
+describe("prismaDatabase handleP2025 rethrows non-P2025 errors", () => {
+  jest.isolateModules(() => {
+    jest.doMock("@prisma/client", () => {
+      return {
+        PrismaClient: class {
+          user = {
+            findUnique: async () => ({
+              id: "u1",
+              username: "u",
+              profileImageUrl: null,
+              channelDescription: null,
+              scope: null,
+              xp: 0,
+              lastUpdateTimestamp: new Date(),
+            }),
+            update: async () => {
+              throw new Error("Some random DB error");
+            },
+          };
+          achievement = {
+            update: async () => {
+              throw new Error("Some random DB error");
+            },
+          };
+          are = {
+            delete: async () => {
+              throw new Error("Non-P2025 are error");
+            },
+          };
+          $disconnect = async () => {};
+          $transaction = async (fn: (tx: unknown) => Promise<unknown>) =>
+            fn({
+              user: {
+                findUnique: async () => ({ id: "u1" }),
+                delete: async () => {
+                  throw new Error("tx-error");
+                },
+              },
+              achieved: { deleteMany: async () => ({ count: 0 }) },
+              possesses: { deleteMany: async () => ({ count: 0 }) },
+              are: { deleteMany: async () => ({ count: 0 }) },
+              achievement: {
+                findMany: async () => [],
+                deleteMany: async () => ({ count: 0 }),
+              },
+              badge: { findUnique: async () => null, delete: async () => {} },
+              channel: {
+                findUnique: async () => null,
+                delete: async () => {},
+              },
+            });
+        },
+      };
+    });
+
+    const { PrismaDatabase } = require("../../../database/prismaDatabase");
+    test("updateUser rethrows non-P2025 error", async () => {
+      const db = new PrismaDatabase();
+      await expect(db.updateUser("u1", { username: "fail" })).rejects.toThrow(
+        "Some random DB error",
+      );
+      await db.disconnect();
+    });
+    test("updateAchievementActive rethrows non-P2025 error via handleP2025", async () => {
+      const db = new PrismaDatabase();
+      await expect(db.updateAchievementActive("a1", true)).rejects.toThrow(
+        "Some random DB error",
+      );
+      await db.disconnect();
+    });
+    test("deleteAre rethrows non-P2025 error", async () => {
+      const db = new PrismaDatabase();
+      await expect(db.deleteAre("u1", "c1")).rejects.toThrow(
+        "Non-P2025 are error",
+      );
+      await db.disconnect();
+    });
+    test("nukeUser rethrows non-P2025/non-USER_NOT_FOUND error", async () => {
+      const db = new PrismaDatabase();
+      await expect(db.nukeUser("u1")).rejects.toThrow("tx-error");
       await db.disconnect();
     });
   });

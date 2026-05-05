@@ -114,6 +114,87 @@ describe("achievedController (unit)", () => {
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
+  it("create returns 201 when acquiredDate is null", async () => {
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const user = await db.addUser({
+      id: "tNullDate",
+      username: "uNullDate",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const ach = (await db.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 1,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeId: type.id,
+    }))!;
+    const req = {
+      body: {
+        achievementId: ach.id,
+        userId: user.id,
+        count: 1,
+        finished: false,
+        labelActive: true,
+        acquiredDate: null,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        achievementId: ach.id,
+        userId: user.id,
+        acquiredDate: null,
+      }),
+    );
+  });
+
+  it("create returns 201 when acquiredDate is omitted", async () => {
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const user = await db.addUser({
+      id: "tOmitDate",
+      username: "uOmitDate",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const ach = (await db.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 1,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeId: type.id,
+    }))!;
+    const req = {
+      body: {
+        achievementId: ach.id,
+        userId: user.id,
+        count: 1,
+        finished: false,
+        labelActive: true,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.create(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        achievementId: ach.id,
+        userId: user.id,
+        acquiredDate: null,
+      }),
+    );
+  });
+
   it("create returns 500 when repo.add throws", async () => {
     const throwingRepo = {
       add: jest.fn().mockRejectedValue(new Error("db")),
@@ -282,6 +363,54 @@ describe("achievedController (unit)", () => {
     const res = mockRes();
     await ctrl.update(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("update returns 200 when acquiredDate is null", async () => {
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const user = await db.addUser({
+      id: "tPutNull",
+      username: "uPutNull",
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    const ach = (await db.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 1,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      typeId: type.id,
+    }))!;
+    await db.addAchieved({
+      achievementId: ach.id,
+      userId: user.id,
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: "2024-01-01T00:00:00.000Z",
+    });
+    const req = {
+      body: {
+        achievementId: ach.id,
+        userId: user.id,
+        count: 3,
+        finished: true,
+        labelActive: false,
+        acquiredDate: null,
+      },
+    } as Request;
+    const res = mockRes();
+    await ctrl.update(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        achievementId: ach.id,
+        userId: user.id,
+        acquiredDate: null,
+      }),
+    );
   });
 
   it("update returns 500 when repo.update throws", async () => {

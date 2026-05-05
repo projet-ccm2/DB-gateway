@@ -1,7 +1,13 @@
 import { Request, Response } from "express";
 import type { AchievementRepository } from "../repositories/achievementRepository";
 import type { UserRepository } from "../repositories/userRepository";
-import { BAD_REQUEST, NOT_FOUND, paramId, sendInternalError } from "./helpers";
+import {
+  BAD_REQUEST,
+  NOT_FOUND,
+  paramId,
+  queryString,
+  sendInternalError,
+} from "./helpers";
 
 export function createAchievementsController(
   achievementRepo: AchievementRepository,
@@ -168,6 +174,36 @@ export function createAchievementsController(
         res.json(list);
       } catch (err: unknown) {
         sendInternalError(res, "GET /achievements/user/:userId error", err);
+      }
+    },
+
+    getLeaderboard: async (req: Request, res: Response): Promise<void> => {
+      try {
+        const channelId = paramId(req, "channelId");
+        if (!channelId) {
+          res.status(BAD_REQUEST).json({ error: "channelId required" });
+          return;
+        }
+        const rawLimit = queryString(req, "limit");
+        const limit =
+          rawLimit != null && /^\d+$/.test(rawLimit)
+            ? Math.max(1, Number(rawLimit))
+            : 10;
+        const rawSort = queryString(req, "sort");
+        const sort: "xp" | "completed" =
+          rawSort === "completed" ? "completed" : "xp";
+        const leaderboard = await achievementRepo.getLeaderboard(
+          channelId,
+          limit,
+          sort,
+        );
+        res.json(leaderboard);
+      } catch (err: unknown) {
+        sendInternalError(
+          res,
+          "GET /achievements/channel/:channelId/leaderboard error",
+          err,
+        );
       }
     },
 

@@ -58,13 +58,20 @@ export type achievedDTO = {
   count: number;
   finished: boolean;
   labelActive: boolean;
-  acquiredDate: string;
+  acquiredDate: string | null;
 };
 export type areDTO = { userId: string; channelId: string; userType: string };
 export type possessesDTO = {
   userId: string;
   badgeId: string;
   acquiredDate: string;
+};
+
+export type leaderboardEntryDTO = {
+  userId: string;
+  username: string;
+  xp: number;
+  completed: number;
 };
 
 export type AchievementInput = {
@@ -100,7 +107,7 @@ export type AchievedPayload = {
   count: number;
   finished: boolean;
   labelActive: boolean;
-  acquiredDate: string;
+  acquiredDate: string | null;
 };
 
 export interface Database {
@@ -216,6 +223,12 @@ export interface Database {
   getAchievementDefinitionsByUserId(
     userId: string,
   ): Promise<achievementWithTypeAndAchievedDTO[]>;
+
+  getLeaderboardByChannelId(
+    channelId: string,
+    limit: number,
+    sort: "xp" | "completed",
+  ): Promise<leaderboardEntryDTO[]>;
 
   getUsersByChannelId(channelId: string): Promise<channelUserDTO[]>;
   getUsersByBadgeId(badgeId: string): Promise<userDTO[]>;

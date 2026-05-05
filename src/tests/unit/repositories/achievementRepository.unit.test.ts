@@ -349,4 +349,66 @@ describe("achievementRepository (unit)", () => {
     const result = await repo.delete("unknown");
     expect(result).toBeNull();
   });
+
+  it("getLeaderboard returns sorted users with completed count", async () => {
+    const db = new MockDatabase();
+    const repo = new AchievementRepository(db);
+    const ch = await db.addChannel({ id: "ch-lb-repo", name: "LB" });
+    const type = await db.addTypeAchievement({ label: "TL", data: "TD" });
+    const ach = (await db.addAchievement({
+      title: "A",
+      description: "D",
+      goal: 1,
+      reward: 10,
+      label: "L",
+      public: false,
+      active: true,
+      secret: false,
+      image: "img.png",
+      channelId: ch.id,
+      typeId: type.id,
+    }))!;
+    await db.addUser({
+      id: "repo-u1",
+      username: "Alice",
+      xp: 50,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await db.addUser({
+      id: "repo-u2",
+      username: "Bob",
+      xp: 200,
+      lastUpdateTimestamp: "2024-01-01T00:00:00.000Z",
+    });
+    await db.addAchieved({
+      achievementId: ach.id,
+      userId: "repo-u1",
+      count: 1,
+      finished: true,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    await db.addAchieved({
+      achievementId: ach.id,
+      userId: "repo-u2",
+      count: 1,
+      finished: false,
+      labelActive: true,
+      acquiredDate: null,
+    });
+    const result = await repo.getLeaderboard(ch.id, 10, "xp");
+    expect(result).toHaveLength(2);
+    expect(result[0].userId).toBe("repo-u1");
+    expect(result[0].xp).toBe(10);
+    expect(result[0].completed).toBe(1);
+    expect(result[1].userId).toBe("repo-u2");
+    expect(result[1].xp).toBe(0);
+  });
+
+  it("getLeaderboard returns empty array when no achieved", async () => {
+    const db = new MockDatabase();
+    const repo = new AchievementRepository(db);
+    const result = await repo.getLeaderboard("nonexistent", 10, "xp");
+    expect(result).toEqual([]);
+  });
 });

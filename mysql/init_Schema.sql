@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS Users(
     User_ID               VARCHAR(50) NOT NULL,
     User_Username         VARCHAR(50) NOT NULL,
-    Profile_Image_Url     VARCHAR(255),
+    Profile_Image_Url     VARCHAR(2500),
     Channel_Description   VARCHAR(255),
     Scope                 VARCHAR(255),
     Xp                    INT NOT NULL DEFAULT 0,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS Users(
 CREATE TABLE IF NOT EXISTS Channels(
     Channel_ID          VARCHAR(50)  NOT NULL,
     Channel_Name        VARCHAR(50)  NOT NULL,
-    Discord_Webhook_Url VARCHAR(1024) DEFAULT NULL,
+    Discord_Webhook_Url VARCHAR(2500) DEFAULT NULL,
     CONSTRAINT Channels_PK PRIMARY KEY (Channel_ID)
 ) ENGINE=InnoDB;
 
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS Achievements(
     Achievement_Visits      INT NOT NULL,
     Achievement_Active      BOOL NOT NULL,
     Achievement_Secret      BOOL NOT NULL,
-    Achievement_Image       VARCHAR(55) NOT NULL,
+    Achievement_Image       VARCHAR(2500) NOT NULL,
     Channel_ID              VARCHAR(50),
     Type_ID                 CHAR(36) NOT NULL,
     CONSTRAINT Achievements_PK PRIMARY KEY (Achievement_ID),
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS _Achieved(
     Count          INT NOT NULL,
     Finished       BOOL NOT NULL,
     Label_Active   BOOL NOT NULL,
-    Acquired_Date   DATETIME NOT NULL,
+    Acquired_Date   DATETIME NULL,
     CONSTRAINT _Achieved_PK PRIMARY KEY (Achievement_ID,User_ID),
     CONSTRAINT _Achieved_Achievements_FK FOREIGN KEY (Achievement_ID) REFERENCES Achievements(Achievement_ID),
     CONSTRAINT _Achieved_Users0_FK FOREIGN KEY (User_ID) REFERENCES Users(User_ID)
