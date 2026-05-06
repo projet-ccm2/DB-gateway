@@ -108,4 +108,39 @@ describe("channelRepository (unit)", () => {
     const found = await repo.getBadgeByChannelId("no-ch");
     expect(found).toBeNull();
   });
+
+  it("updateBadgeByChannelId updates title", async () => {
+    const db = new MockDatabase();
+    const repo = new ChannelRepository(db);
+    const ch = await db.addChannel({ id: "ch-upd-badge-title", name: "C" });
+    await db.addBadge({ title: "OldTitle", img: "old.png", channelId: ch.id });
+    const updated = await repo.updateBadgeByChannelId(ch.id, {
+      title: "NewTitle",
+    });
+    expect(updated).not.toBeNull();
+    expect(updated?.title).toBe("NewTitle");
+    expect(updated?.img).toBe("old.png");
+  });
+
+  it("updateBadgeByChannelId updates img", async () => {
+    const db = new MockDatabase();
+    const repo = new ChannelRepository(db);
+    const ch = await db.addChannel({ id: "ch-upd-badge-img", name: "C" });
+    await db.addBadge({ title: "T", img: "old.png", channelId: ch.id });
+    const updated = await repo.updateBadgeByChannelId(ch.id, {
+      img: "new.png",
+    });
+    expect(updated).not.toBeNull();
+    expect(updated?.img).toBe("new.png");
+    expect(updated?.title).toBe("T");
+  });
+
+  it("updateBadgeByChannelId returns null when no badge", async () => {
+    const db = new MockDatabase();
+    const repo = new ChannelRepository(db);
+    const updated = await repo.updateBadgeByChannelId("no-ch", {
+      title: "X",
+    });
+    expect(updated).toBeNull();
+  });
 });

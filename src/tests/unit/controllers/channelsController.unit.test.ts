@@ -272,4 +272,149 @@ describe("channelsController (unit)", () => {
     await c.getBadgeByChannelId(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
   });
+
+  it("updateBadgeByChannelId returns updated badge when title provided", async () => {
+    const ch = await channelRepo.addChannel("ch-upd-badge-ctrl", "C");
+    await db.addBadge({ title: "OldTitle", img: "old.png", channelId: ch.id });
+    const req = {
+      params: { id: ch.id },
+      body: { title: "NewTitle" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "NewTitle", img: "old.png" }),
+    );
+    expect(res.status).not.toHaveBeenCalledWith(400);
+    expect(res.status).not.toHaveBeenCalledWith(404);
+  });
+
+  it("updateBadgeByChannelId returns updated badge when img provided", async () => {
+    const ch = await channelRepo.addChannel("ch-upd-badge-img-ctrl", "C");
+    await db.addBadge({ title: "T", img: "old.png", channelId: ch.id });
+    const req = {
+      params: { id: ch.id },
+      body: { img: "new.png" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "T", img: "new.png" }),
+    );
+  });
+
+  it("updateBadgeByChannelId returns updated badge when both provided", async () => {
+    const ch = await channelRepo.addChannel("ch-upd-badge-both-ctrl", "C");
+    await db.addBadge({ title: "OldT", img: "old.png", channelId: ch.id });
+    const req = {
+      params: { id: ch.id },
+      body: { title: "NewT", img: "new.png" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "NewT", img: "new.png" }),
+    );
+  });
+
+  it("updateBadgeByChannelId returns 400 when body empty", async () => {
+    const req = {
+      params: { id: "ch-x" },
+      body: {},
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "at least one of title or img is required",
+    });
+  });
+
+  it("updateBadgeByChannelId returns 400 when title is empty string", async () => {
+    const req = {
+      params: { id: "ch-x" },
+      body: { title: "   " },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "invalid title" });
+  });
+
+  it("updateBadgeByChannelId returns 400 when img is empty string", async () => {
+    const req = {
+      params: { id: "ch-x" },
+      body: { img: "" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "invalid img" });
+  });
+
+  it("updateBadgeByChannelId returns 400 when title is not a string", async () => {
+    const req = {
+      params: { id: "ch-x" },
+      body: { title: 123 },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "invalid title" });
+  });
+
+  it("updateBadgeByChannelId returns 400 when img is not a string", async () => {
+    const req = {
+      params: { id: "ch-x" },
+      body: { img: true },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "invalid img" });
+  });
+
+  it("updateBadgeByChannelId returns 404 when no badge", async () => {
+    const req = {
+      params: { id: "ch-no-badge" },
+      body: { title: "T" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it("updateBadgeByChannelId trims whitespace from title and img", async () => {
+    const ch = await channelRepo.addChannel("ch-upd-badge-trim", "C");
+    await db.addBadge({ title: "OldT", img: "old.png", channelId: ch.id });
+    const req = {
+      params: { id: ch.id },
+      body: { title: "  Trimmed  ", img: "  badge.png  " },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.updateBadgeByChannelId(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Trimmed", img: "badge.png" }),
+    );
+  });
+
+  it("updateBadgeByChannelId returns 500 when repo throws", async () => {
+    const throwingChannelRepo = {
+      addChannel: jest.fn(),
+      getChannelById: jest.fn(),
+      updateChannel: jest.fn(),
+      getBadgeByChannelId: jest.fn(),
+      updateBadgeByChannelId: jest
+        .fn()
+        .mockRejectedValue(new Error("db error")),
+    } as unknown as InstanceType<typeof ChannelRepository>;
+    const c = createChannelsController(throwingChannelRepo, userRepo);
+    const req = {
+      params: { id: "ch-x" },
+      body: { title: "T" },
+    } as unknown as Request;
+    const res = mockRes();
+    await c.updateBadgeByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
 });
