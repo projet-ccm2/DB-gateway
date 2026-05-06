@@ -60,6 +60,10 @@ export type GatewayRepo = {
       data: { name?: string; discordWebhookUrl?: string | null },
     ): Promise<channelDTO | null>;
     getBadgeByChannelId(channelId: string): Promise<badgeDTO | null>;
+    updateBadgeByChannelId(
+      channelId: string,
+      data: { title?: string; img?: string },
+    ): Promise<badgeDTO | null>;
   };
   typeAchievement: {
     addTypeAchievement(

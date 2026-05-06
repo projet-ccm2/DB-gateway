@@ -11,6 +11,13 @@ export class ChannelRepository {
     return this.db.getBadgeByChannelId(channelId);
   }
 
+  async updateBadgeByChannelId(
+    channelId: string,
+    data: { title?: string; img?: string },
+  ): Promise<badgeDTO | null> {
+    return this.db.updateBadgeByChannelId(channelId, data);
+  }
+
   async addChannel(
     id: string,
     name: string,

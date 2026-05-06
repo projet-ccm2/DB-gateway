@@ -148,6 +148,16 @@ function makeRepoMock(): GatewayRepo {
         if (!b) return null;
         return { id: b.id, title: b.title, img: b.img };
       },
+      updateBadgeByChannelId: async (
+        channelId: string,
+        data: { title?: string; img?: string },
+      ) => {
+        const b = badges.find((b) => b.channelId === channelId);
+        if (!b) return null;
+        if (data.title !== undefined) b.title = data.title;
+        if (data.img !== undefined) b.img = data.img;
+        return { id: b.id, title: b.title, img: b.img };
+      },
     },
     typeAchievement: {
       addTypeAchievement: async (label: string, data: string) => {
@@ -706,6 +716,57 @@ describe("jsonHandler full coverage", () => {
     if (res.ok) {
       expect(res.badge).not.toBeNull();
       expect(res.badge?.title).toBe("linked_badge");
+    }
+  });
+
+  test("updateBadgeByChannelId missing channelId returns error", async () => {
+    const res = await handleJsonMessage(repo, {
+      action: "updateBadgeByChannelId",
+      payload: { title: "NewTitle" },
+    });
+    expect(res.ok).toBe(false);
+  });
+
+  test("updateBadgeByChannelId missing title and img returns error", async () => {
+    const res = await handleJsonMessage(repo, {
+      action: "updateBadgeByChannelId",
+      payload: { channelId: "ch_linked" },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.error).toBe("at least one of title or img is required");
+    }
+  });
+
+  test("updateBadgeByChannelId updates title", async () => {
+    await handleJsonMessage(repo, {
+      action: "createChannel",
+      payload: { id: "ch_upd_badge", name: "UpdBadge" },
+    });
+    await handleJsonMessage(repo, {
+      action: "createBadge",
+      payload: { title: "OldTitle", img: "old.png", channelId: "ch_upd_badge" },
+    });
+    const res = await handleJsonMessage(repo, {
+      action: "updateBadgeByChannelId",
+      payload: { channelId: "ch_upd_badge", title: "NewTitle" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.badge).not.toBeNull();
+      expect(res.badge?.title).toBe("NewTitle");
+      expect(res.badge?.img).toBe("old.png");
+    }
+  });
+
+  test("updateBadgeByChannelId returns null when no badge", async () => {
+    const res = await handleJsonMessage(repo, {
+      action: "updateBadgeByChannelId",
+      payload: { channelId: "no-such-channel", title: "T" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.badge).toBeNull();
     }
   });
 
@@ -1351,6 +1412,7 @@ describe("jsonHandler full coverage", () => {
       "getChannel",
       "updateChannel",
       "getBadgeByChannelId",
+      "updateBadgeByChannelId",
       "createTypeAchievement",
       "getTypeAchievement",
       "createAchievement",

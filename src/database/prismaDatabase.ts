@@ -505,6 +505,19 @@ export class PrismaDatabase implements Database {
     return { id: nb.id, title: nb.title, img: nb.img };
   }
 
+  async updateBadgeByChannelId(
+    channelId: string,
+    data: { title?: string; img?: string },
+  ): Promise<badgeDTO | null> {
+    return handleP2025(async () => {
+      const updated = await this.prisma.badge.update({
+        where: { channelId },
+        data,
+      });
+      return { id: updated.id, title: updated.title, img: updated.img };
+    });
+  }
+
   async getAchieved(
     achievementId: string,
     userId: string,

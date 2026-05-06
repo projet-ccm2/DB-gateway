@@ -187,6 +187,10 @@ export interface Database {
     img: string;
     channelId: string;
   }): Promise<badgeDTO | null>;
+  updateBadgeByChannelId(
+    channelId: string,
+    data: { title?: string; img?: string },
+  ): Promise<badgeDTO | null>;
 
   getAchieved(
     achievementId: string,
