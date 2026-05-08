@@ -107,5 +107,47 @@ export function createChannelsController(
         sendInternalError(res, "GET /channels/:id/badge error", err);
       }
     },
+
+    updateBadgeByChannelId: async (
+      req: Request,
+      res: Response,
+    ): Promise<void> => {
+      try {
+        const rawTitle = (req.body as { title?: unknown }).title;
+        const rawImg = (req.body as { img?: unknown }).img;
+        if (rawTitle !== undefined) {
+          if (typeof rawTitle !== "string" || rawTitle.trim() === "") {
+            res.status(BAD_REQUEST).json({ error: "invalid title" });
+            return;
+          }
+        }
+        if (rawImg !== undefined) {
+          if (typeof rawImg !== "string" || rawImg.trim() === "") {
+            res.status(BAD_REQUEST).json({ error: "invalid img" });
+            return;
+          }
+        }
+        const title =
+          typeof rawTitle === "string" ? rawTitle.trim() : undefined;
+        const img = typeof rawImg === "string" ? rawImg.trim() : undefined;
+        if (title === undefined && img === undefined) {
+          res
+            .status(BAD_REQUEST)
+            .json({ error: "at least one of title or img is required" });
+          return;
+        }
+        const badge = await channelRepo.updateBadgeByChannelId(
+          paramId(req, "id"),
+          { title, img },
+        );
+        if (!badge) {
+          res.status(NOT_FOUND).json({ error: "not found" });
+          return;
+        }
+        res.json(badge);
+      } catch (err: unknown) {
+        sendInternalError(res, "PUT /channels/:id/badge error", err);
+      }
+    },
   };
 }

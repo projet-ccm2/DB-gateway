@@ -209,3 +209,74 @@ Returns the badge associated with a channel.
   "error": "Internal server error"
 }
 ```
+
+---
+
+## PUT /channels/:id/badge
+
+Updates the badge linked to a channel.
+
+### Path parameters
+
+| Name | Type   | Description |
+| ---- | ------ | ----------- |
+| id   | string | Channel ID  |
+
+### Body (JSON)
+
+At least one of `title` or `img` must be provided.
+
+| Field | Type   | Required | Description                                        |
+| ----- | ------ | -------- | -------------------------------------------------- |
+| title | string | no       | New badge title (non-empty after trim if provided) |
+| img   | string | no       | New badge image ID or path (non-empty after trim)  |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "badge-uuid",
+  "title": "New Badge Title",
+  "img": "badge-image-id-or-path"
+}
+```
+
+**400 Bad Request**
+
+```json
+{
+  "error": "at least one of title or img is required"
+}
+```
+
+```json
+{
+  "error": "invalid title"
+}
+```
+
+```json
+{
+  "error": "invalid img"
+}
+```
+
+**404 Not Found**
+
+Returned when the channel does not exist or the channel has no badge yet.
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```

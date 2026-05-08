@@ -52,6 +52,12 @@ export type userChannelAchievementsDTO = {
   achievements: achievementWithTypeAndAchievedDTO[];
 };
 export type badgeDTO = { id: string; title: string; img: string };
+export type badgeWithChannelDTO = {
+  id: string;
+  title: string;
+  img: string;
+  channelId: string;
+};
 export type achievedDTO = {
   achievementId: string;
   userId: string;
@@ -182,11 +188,18 @@ export interface Database {
 
   getBadgeById(id: string): Promise<badgeDTO | null>;
   getBadgeByChannelId(channelId: string): Promise<badgeDTO | null>;
+  getBadgeWithChannelByChannelId(
+    channelId: string,
+  ): Promise<badgeWithChannelDTO | null>;
   addBadge(badge: {
     title: string;
     img: string;
     channelId: string;
   }): Promise<badgeDTO | null>;
+  updateBadgeByChannelId(
+    channelId: string,
+    data: { title?: string; img?: string },
+  ): Promise<badgeDTO | null>;
 
   getAchieved(
     achievementId: string,

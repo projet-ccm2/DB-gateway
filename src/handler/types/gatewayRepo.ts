@@ -8,6 +8,7 @@ import type {
   achievementWithTypeDTO,
   achievementWithTypeAndAchievedDTO,
   badgeDTO,
+  badgeWithChannelDTO,
   achievedDTO,
   areDTO,
   possessesDTO,
@@ -60,6 +61,10 @@ export type GatewayRepo = {
       data: { name?: string; discordWebhookUrl?: string | null },
     ): Promise<channelDTO | null>;
     getBadgeByChannelId(channelId: string): Promise<badgeDTO | null>;
+    updateBadgeByChannelId(
+      channelId: string,
+      data: { title?: string; img?: string },
+    ): Promise<badgeDTO | null>;
   };
   typeAchievement: {
     addTypeAchievement(
@@ -98,6 +103,9 @@ export type GatewayRepo = {
       channelId: string,
     ): Promise<badgeDTO | null>;
     getBadgeById(id: string): Promise<badgeDTO | null>;
+    getBadgeWithChannelByChannelId(
+      channelId: string,
+    ): Promise<badgeWithChannelDTO | null>;
   };
   achieved: {
     addAchieved(payload: AchievedPayload): Promise<achievedDTO>;

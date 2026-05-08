@@ -90,4 +90,35 @@ describe("ChannelRepository (integration)", () => {
     const found = await repo.getBadgeByChannelId("no-badge-channel");
     expect(found).toBeNull();
   });
+
+  it("updateBadgeByChannelId updates title", async () => {
+    const chId = "ch_upd_badge_title_" + Date.now();
+    await repo.addChannel(chId, "UpdBadgeTitleChannel");
+    await db.addBadge({ title: "OldTitle", img: "old.png", channelId: chId });
+    const updated = await repo.updateBadgeByChannelId(chId, {
+      title: "NewTitle",
+    });
+    expect(updated).not.toBeNull();
+    expect(updated?.title).toBe("NewTitle");
+    expect(updated?.img).toBe("old.png");
+  });
+
+  it("updateBadgeByChannelId updates img", async () => {
+    const chId = "ch_upd_badge_img_" + Date.now();
+    await repo.addChannel(chId, "UpdBadgeImgChannel");
+    await db.addBadge({ title: "T", img: "old.png", channelId: chId });
+    const updated = await repo.updateBadgeByChannelId(chId, {
+      img: "new.png",
+    });
+    expect(updated).not.toBeNull();
+    expect(updated?.img).toBe("new.png");
+    expect(updated?.title).toBe("T");
+  });
+
+  it("updateBadgeByChannelId returns null when no badge", async () => {
+    const updated = await repo.updateBadgeByChannelId("no-badge-channel-xyz", {
+      title: "X",
+    });
+    expect(updated).toBeNull();
+  });
 });

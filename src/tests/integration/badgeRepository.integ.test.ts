@@ -30,4 +30,21 @@ describe("BadgeRepository (integration)", () => {
     const found = await repo.getById("unknown-badge-id");
     expect(found).toBeNull();
   });
+
+  it("getByChannelId returns badge with channelId when found", async () => {
+    const chId = "ch_badge_ch_" + Date.now();
+    await db.addChannel({ id: chId, name: "BadgeChChannel" });
+    const title = "IntegBadgeCh_" + Date.now();
+    await db.addBadge({ title, img: "ch.png", channelId: chId });
+    const found = await repo.getByChannelId(chId);
+    expect(found).not.toBeNull();
+    expect(found?.title).toBe(title);
+    expect(found?.img).toBe("ch.png");
+    expect(found?.channelId).toBe(chId);
+  });
+
+  it("getByChannelId returns null when no badge for channel", async () => {
+    const found = await repo.getByChannelId("no-badge-channel-integ");
+    expect(found).toBeNull();
+  });
 });

@@ -21,4 +21,27 @@ describe("badgeRepository (unit)", () => {
     const found = await repo.getById("unknown-id");
     expect(found).toBeNull();
   });
+
+  it("getByChannelId returns badge with channelId when found", async () => {
+    const db = new MockDatabase();
+    const repo = new BadgeRepository(db);
+    await db.addChannel({ id: "ch-badge-channel", name: "C" });
+    await db.addBadge({
+      title: "ChannelBadge",
+      img: "cb.png",
+      channelId: "ch-badge-channel",
+    });
+    const found = await repo.getByChannelId("ch-badge-channel");
+    expect(found).not.toBeNull();
+    expect(found?.title).toBe("ChannelBadge");
+    expect(found?.img).toBe("cb.png");
+    expect(found?.channelId).toBe("ch-badge-channel");
+  });
+
+  it("getByChannelId returns null when no badge for channel", async () => {
+    const db = new MockDatabase();
+    const repo = new BadgeRepository(db);
+    const found = await repo.getByChannelId("no-channel");
+    expect(found).toBeNull();
+  });
 });

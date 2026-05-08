@@ -11,6 +11,7 @@ import {
   achievementWithTypeAndAchievedDTO,
   userChannelAchievementsDTO,
   badgeDTO,
+  badgeWithChannelDTO,
   achievedDTO,
   areDTO,
   possessesDTO,
@@ -486,6 +487,14 @@ export class PrismaDatabase implements Database {
     return { id: b.id, title: b.title, img: b.img };
   }
 
+  async getBadgeWithChannelByChannelId(
+    channelId: string,
+  ): Promise<badgeWithChannelDTO | null> {
+    const b = await this.prisma.badge.findUnique({ where: { channelId } });
+    if (!b) return null;
+    return { id: b.id, title: b.title, img: b.img, channelId: b.channelId };
+  }
+
   async addBadge(b: {
     title: string;
     img: string;
@@ -503,6 +512,19 @@ export class PrismaDatabase implements Database {
       },
     });
     return { id: nb.id, title: nb.title, img: nb.img };
+  }
+
+  async updateBadgeByChannelId(
+    channelId: string,
+    data: { title?: string; img?: string },
+  ): Promise<badgeDTO | null> {
+    return handleP2025(async () => {
+      const updated = await this.prisma.badge.update({
+        where: { channelId },
+        data,
+      });
+      return { id: updated.id, title: updated.title, img: updated.img };
+    });
   }
 
   async getAchieved(
