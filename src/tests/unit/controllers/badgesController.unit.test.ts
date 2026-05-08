@@ -141,4 +141,51 @@ describe("badgesController (unit)", () => {
     await c.getUsersByBadgeId(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
   });
+
+  it("getByChannelId returns badge with channelId when found", async () => {
+    await db.addChannel({ id: "ch-ctrl-badge-ch", name: "C" });
+    await db.addBadge({
+      title: "ChBadge",
+      img: "ch.png",
+      channelId: "ch-ctrl-badge-ch",
+    });
+    const req = {
+      params: { channelId: "ch-ctrl-badge-ch" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getByChannelId(req, res);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "ChBadge",
+        img: "ch.png",
+        channelId: "ch-ctrl-badge-ch",
+      }),
+    );
+    expect(res.status).not.toHaveBeenCalledWith(404);
+  });
+
+  it("getByChannelId returns 404 when no badge for channel", async () => {
+    const req = {
+      params: { channelId: "no-badge-ch" },
+    } as unknown as Request;
+    const res = mockRes();
+    await ctrl.getByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: "not found" });
+  });
+
+  it("getByChannelId returns 500 when repo throws", async () => {
+    const throwingBadgeRepo = {
+      add: jest.fn(),
+      getById: jest.fn(),
+      getByChannelId: jest.fn().mockRejectedValue(new Error("db")),
+    } as unknown as InstanceType<typeof BadgeRepository>;
+    const c = createBadgesController(throwingBadgeRepo, userRepo);
+    const req = {
+      params: { channelId: "ch-x" },
+    } as unknown as Request;
+    const res = mockRes();
+    await c.getByChannelId(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
 });

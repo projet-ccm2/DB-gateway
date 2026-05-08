@@ -103,3 +103,44 @@ Lists users who own this badge.
   "error": "Internal server error"
 }
 ```
+
+---
+
+## GET /badges/channel/:channelId
+
+Returns the badge linked to a channel, including the `channelId` field.
+
+### Path parameters
+
+| Name      | Type   | Description |
+| --------- | ------ | ----------- |
+| channelId | string | Channel ID  |
+
+### Responses
+
+**200 OK**
+
+```json
+{
+  "id": "uuid",
+  "title": "string",
+  "img": "string",
+  "channelId": "string"
+}
+```
+
+**404 Not Found** — no badge associated with this channelId.
+
+```json
+{
+  "error": "not found"
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+  "error": "Internal server error"
+}
+```

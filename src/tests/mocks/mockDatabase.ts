@@ -10,6 +10,7 @@ import {
   achievementWithTypeAndAchievedDTO,
   userChannelAchievementsDTO,
   badgeDTO,
+  badgeWithChannelDTO,
   achievedDTO,
   areDTO,
   possessesDTO,
@@ -303,6 +304,19 @@ export class MockDatabase implements Database {
     const badge = this.badges.find((b) => b.channelId === channelId);
     if (!badge) return null;
     return { id: badge.id, title: badge.title, img: badge.img };
+  }
+
+  async getBadgeWithChannelByChannelId(
+    channelId: string,
+  ): Promise<badgeWithChannelDTO | null> {
+    const badge = this.badges.find((b) => b.channelId === channelId);
+    if (!badge) return null;
+    return {
+      id: badge.id,
+      title: badge.title,
+      img: badge.img,
+      channelId: badge.channelId!,
+    };
   }
 
   async addBadge(b: {

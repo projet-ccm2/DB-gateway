@@ -10,6 +10,7 @@ export function createBadgesRoutes(db: Database): express.Router {
   const userRepo = new UserRepository(db);
   const c = createBadgesController(badgeRepo, userRepo);
   router.post("/", c.create);
+  router.get("/channel/:channelId", c.getByChannelId);
   router.get("/:id", c.getById);
   router.get("/:id/users", c.getUsersByBadgeId);
   return router;
