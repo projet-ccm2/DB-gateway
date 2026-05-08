@@ -8,6 +8,7 @@ import type {
   achievementWithTypeDTO,
   achievementWithTypeAndAchievedDTO,
   badgeDTO,
+  badgeWithChannelDTO,
   achievedDTO,
   areDTO,
   possessesDTO,
@@ -102,6 +103,9 @@ export type GatewayRepo = {
       channelId: string,
     ): Promise<badgeDTO | null>;
     getBadgeById(id: string): Promise<badgeDTO | null>;
+    getBadgeWithChannelByChannelId(
+      channelId: string,
+    ): Promise<badgeWithChannelDTO | null>;
   };
   achieved: {
     addAchieved(payload: AchievedPayload): Promise<achievedDTO>;

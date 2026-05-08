@@ -273,6 +273,16 @@ function makeRepoMock(): GatewayRepo {
         if (!b) return null;
         return { id: b.id, title: b.title, img: b.img };
       },
+      getBadgeWithChannelByChannelId: async (channelId: string) => {
+        const b = badges.find((b) => b.channelId === channelId);
+        if (!b) return null;
+        return {
+          id: b.id,
+          title: b.title,
+          img: b.img,
+          channelId: b.channelId!,
+        };
+      },
     },
     achieved: {
       addAchieved: async (a: achievedDTO) => {
@@ -1146,6 +1156,34 @@ describe("jsonHandler full coverage", () => {
       payload: { badgeId: "b_B" },
     });
     expect(get.ok).toBe(true);
+
+    const getByCh = await handleJsonMessage(repo, {
+      action: "getBadgeWithChannelByChannelId",
+      payload: { channelId: "ch-badge-cg" },
+    });
+    expect(getByCh.ok).toBe(true);
+    if (getByCh.ok) {
+      expect(getByCh.badgeWithChannel?.channelId).toBe("ch-badge-cg");
+    }
+  });
+
+  test("getBadgeWithChannelByChannelId missing channelId returns error", async () => {
+    const res = await handleJsonMessage(repo, {
+      action: "getBadgeWithChannelByChannelId",
+      payload: {},
+    });
+    expect(res.ok).toBe(false);
+  });
+
+  test("getBadgeWithChannelByChannelId returns null for unknown channelId", async () => {
+    const res = await handleJsonMessage(repo, {
+      action: "getBadgeWithChannelByChannelId",
+      payload: { channelId: "no-such-channel" },
+    });
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.badgeWithChannel).toBeNull();
+    }
   });
 
   test("createBadge returns error when channelId not found", async () => {
@@ -1170,6 +1208,7 @@ describe("jsonHandler full coverage", () => {
           throw p2002;
         },
         getBadgeById: async () => null,
+        getBadgeWithChannelByChannelId: async () => null,
       },
     };
     const res = await handleJsonMessage(racyRepo, {
@@ -1421,6 +1460,7 @@ describe("jsonHandler full coverage", () => {
       "deactivateAchievement",
       "createBadge",
       "getBadge",
+      "getBadgeWithChannelByChannelId",
       "createAchieved",
       "getAchieved",
       "createAre",

@@ -11,6 +11,7 @@ import {
   achievementWithTypeAndAchievedDTO,
   userChannelAchievementsDTO,
   badgeDTO,
+  badgeWithChannelDTO,
   achievedDTO,
   areDTO,
   possessesDTO,
@@ -484,6 +485,14 @@ export class PrismaDatabase implements Database {
     const b = await this.prisma.badge.findUnique({ where: { channelId } });
     if (!b) return null;
     return { id: b.id, title: b.title, img: b.img };
+  }
+
+  async getBadgeWithChannelByChannelId(
+    channelId: string,
+  ): Promise<badgeWithChannelDTO | null> {
+    const b = await this.prisma.badge.findUnique({ where: { channelId } });
+    if (!b) return null;
+    return { id: b.id, title: b.title, img: b.img, channelId: b.channelId };
   }
 
   async addBadge(b: {

@@ -61,6 +61,19 @@ export function createBadgesController(
       }
     },
 
+    getByChannelId: async (req: Request, res: Response): Promise<void> => {
+      try {
+        const badge = await badgeRepo.getByChannelId(paramId(req, "channelId"));
+        if (!badge) {
+          res.status(NOT_FOUND).json({ error: "not found" });
+          return;
+        }
+        res.json(badge);
+      } catch (err: unknown) {
+        sendInternalError(res, "GET /badges/channel/:channelId error", err);
+      }
+    },
+
     getUsersByBadgeId: async (req: Request, res: Response): Promise<void> => {
       try {
         const users = await userRepo.getUsersByBadgeId(paramId(req, "id"));
