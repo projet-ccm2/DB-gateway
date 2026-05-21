@@ -33,3 +33,4 @@ jobs:
       MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE_PROD }}
       MYSQL_USER: ${{ secrets.MYSQL_USER_PROD }}
       MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD_PROD }}
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY_PROD }}
